@@ -1,0 +1,21 @@
+from dataclasses import dataclass
+
+from oneai.classes import Skill, skillclass
+
+@dataclass
+@skillclass(name='summarize', iswriting=True, param_fields=['min_length', 'max_length'])
+class Summarize(Skill):
+    min_length: int = 5
+    max_length: int = 100
+
+@skillclass(name='entities')
+class EntityDetection(Skill): pass
+
+@skillclass(name='keywords')
+class KeywordDetection(Skill): pass
+
+@skillclass(name='highlights')
+class Highlighting(Skill): pass
+
+@skillclass(name='enhance', iswriting=True)
+class EnhanceTranscription(Skill): pass
