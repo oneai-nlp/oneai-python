@@ -6,7 +6,7 @@ from oneai.classes import *
 
 URL = 'https://api.oneai.com/api/v0/pipeline'
 
-def process(text: str, *skills: Skill, inputType: Literal['article', 'transcription']='article') -> List[LabeledText]:
+def process(text: str, skills: Skill, inputType: Literal['article', 'transcription']='article') -> List[LabeledText]:
     def build_skills(skills: List[Skill]) -> List[dict]:
         result = []
         input = 0

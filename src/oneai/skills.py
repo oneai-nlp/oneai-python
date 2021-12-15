@@ -2,8 +2,8 @@ from dataclasses import dataclass
 
 from oneai.classes import Skill, skillclass
 
-@dataclass
 @skillclass(name='summarize', iswriting=True, param_fields=['min_length', 'max_length'])
+@dataclass
 class Summarize(Skill):
     min_length: int = 5
     max_length: int = 100

@@ -10,7 +10,8 @@ class Skill:
 
 def skillclass(cls: Type[Skill]=None, name: str='', iswriting: bool=False, param_fields: List[str]=[]):
     def wrap(cls):
-        if not Skill.__subclasscheck__(cls): print('warning: @skillclass annotated class ' + cls.__name__ + ' doesn\'t override Skill')
+        if not Skill.__subclasscheck__(cls):
+            print('warning: @skillclass annotated class ' + cls.__name__ + ' doesn\'t override Skill')
 
         cls_init = cls.__init__
         def skill_init(self, *args, **kwargs) -> None:
