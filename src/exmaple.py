@@ -53,6 +53,7 @@ Agent  1:58
 Okay, cool. Take care of on the way
 '''
 
+# in the future: accept files, urls, TRANSCRIPTIONS! (GPT, assembly ai)
 if __name__ == '__main__':
     result = oneai.process(text_convo, skills=[
         oneai.skills.EntityDetection(),

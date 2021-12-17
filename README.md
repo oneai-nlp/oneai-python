@@ -1,1 +1,1 @@
-# oneai_sdk_python
+# One AI Python SDK
