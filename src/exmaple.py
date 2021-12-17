@@ -57,6 +57,4 @@ if __name__ == '__main__':
     result = oneai.process(text_convo, skills=[
         oneai.skills.EntityDetection(),
         oneai.skills.Summarize(min_length=20),
-        oneai.skills.Highlighting()
     ])
-    print(result)

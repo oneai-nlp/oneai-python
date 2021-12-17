@@ -8,17 +8,14 @@ class Skill:
     iswriting: bool = False
     param_fields: List[str] = field(default_factory=list, repr=False)
 
-def skillclass(cls: Type[Skill]=None, name: str='', iswriting: bool=False, param_fields: List[str]=[]):
+def skillclass(cls: Type=None, name: str='', iswriting: bool=False, param_fields: List[str]=[]):
     def wrap(cls):
-        if not Skill.__subclasscheck__(cls):
-            print('warning: @skillclass annotated class ' + cls.__name__ + ' doesn\'t override Skill')
+        class SkillWrapper(cls, Skill):
+            def __init__(self, *args, **kwargs):
+                cls.__init__(self, *args, **kwargs)
+                Skill.__init__(self, name=name, iswriting=iswriting, param_fields=param_fields)
 
-        cls_init = cls.__init__
-        def skill_init(self, *args, **kwargs) -> None:
-            cls_init(self, *args, **kwargs)
-            Skill.__init__(self, name=name, iswriting=iswriting, param_fields=param_fields)
-        cls.__init__ = skill_init
-        return cls
+        return SkillWrapper
     
     return wrap if cls is None else wrap(cls)
 
