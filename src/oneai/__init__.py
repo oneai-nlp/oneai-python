@@ -12,7 +12,7 @@ def process(text: str, skills: Skill, inputType: Literal['article', 'transcripti
         input = 0
         for id, skill in enumerate(skills):
             result.append({
-                'model': skill.name,
+                'skill': skill.name,
                 'input': input,
                 'id': id + 1,
                 'params': {
