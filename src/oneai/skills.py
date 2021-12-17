@@ -11,7 +11,7 @@ class Summarize:
     min_length: int = 5
     max_length: int = 100
 
-@skillclass('emotions')
+@skillclass(name='emotions')
 class EmotionDetection: pass
 
 @skillclass(name='entities')
