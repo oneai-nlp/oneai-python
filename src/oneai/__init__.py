@@ -42,7 +42,8 @@ def process(text: str, skills: Skill, inputType: Literal['article', 'transcripti
 
     request = {
         'text': text,
-        'steps': build_skills(skills)
+        'steps': build_skills(skills),
+        'include_intermediates': True
     }
     headers = {
         'accept': 'application/json',
