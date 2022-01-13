@@ -16,7 +16,7 @@ def process(text: str, skills: List[Skill], inputType: Literal['article', 'trans
                 'input': input,
                 'id': id + 1,
                 'params': {
-                    p: skill.__getattribute__(p) for p in skill.param_fields
+                    p: skill.__getattribute__(p) for p in skill._param_fields
                 }
             })
             if skill.iswriting: input = id + 1
