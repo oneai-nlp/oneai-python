@@ -1,5 +1,5 @@
-from dataclasses import dataclass, field
-from typing import List, Type
+from dataclasses import asdict, dataclass, field
+from typing import Dict, List, Type
 
 
 @dataclass
@@ -41,13 +41,21 @@ class Document(Input):
     def get_text(self) -> str:
         return self.text
 
-# class Conversation(Input):
-#     def __init__(self, text: str):
-#         super().__init__('conversation')
-#         self.text = text
+@dataclass
+class Utterance:
+    speaker: str
+    utterance: str
 
-#     def get_text(self) -> str:
-#         return self.text
+    def __repr__(self):
+        return f'{asdict(self)}'
+
+class Conversation(Input):
+    def __init__(self, utterances: List[Utterance]=[]):
+        super().__init__('conversation')
+        self.utterances = utterances
+
+    def get_text(self) -> str:
+        return repr(self.utterances)
 
 @dataclass
 class Label:
