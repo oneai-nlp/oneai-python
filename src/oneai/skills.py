@@ -25,3 +25,15 @@ class Highlighting(Skill): pass
 
 @skillclass(name='sentences')
 class SplitToSentences(Skill): pass
+
+@skillclass(name='sentiment')
+class SentimentDetection(Skill): pass
+
+@skillclass(name='topics')
+class TopicExtraction(Skill): pass
+
+@skillclass(name='extract-html')
+class ExtractHTMLArticle(Skill): pass
+
+@skillclass(name='html-extract-text')
+class ExtractHTMLText(Skill): pass
