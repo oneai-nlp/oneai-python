@@ -54,10 +54,11 @@ Okay, cool. Take care of on the way
 '''
 
 if __name__ == '__main__':
-    pipeline = oneai.Pipeline(skills=[
+    oneai.api_key = '510a3615-59ff-4f4c-9d98-2cc30e7408d7'
+    pipeline = oneai.Pipeline(steps=[
         oneai.skills.EntityDetection(),
         oneai.skills.Summarize(min_length=20),
         oneai.skills.Highlighting()
     ])
-    result = pipeline.run(text, api_key='510a3615-59ff-4f4c-9d98-2cc30e7408d7')
+    result = pipeline.run(text)
     print(result)

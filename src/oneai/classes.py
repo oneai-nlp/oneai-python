@@ -12,10 +12,11 @@ class Skill:
     iswriting: bool = False
     _param_fields: List[str] = field(default_factory=list, repr=False, init=False)
 
+
 def skillclass(cls: Type=None, name: str='', iswriting: bool=False, param_fields: List[str]=[]):
     def wrap(cls):
         if not issubclass(cls, Skill):
-            print(f'warning: class {cls.__name__} decorated with @skillclass does not inherit from Skill')
+            print(f'warning: class {cls.__name__} decorated with @skillclass does not inherit Skill')
 
         def __init__(self, *args, **kwargs):
             cls_init(self, *args, **kwargs)
@@ -28,6 +29,7 @@ def skillclass(cls: Type=None, name: str='', iswriting: bool=False, param_fields
     
     return wrap if cls is None else wrap(cls)
 
+
 @dataclass
 class Label:
     type: str = ''
@@ -35,50 +37,48 @@ class Label:
     span: Tuple[int] = (0, 0)
     value: float = .0
 
+
 @dataclass
 class LabeledText:
     text: str
     labels: List[Label]
 
+
 class Pipeline:
-    def __init__(self, skills: List[Skill], api_key: str=None) -> None:
-        self.skills = skills
+    def __init__(self, steps: List[Skill], input_type: Literal['article', 'transcription']=None, api_key: str=None) -> None:
+        self.steps = steps
+        self.input_type = input_type
         self.api_key = api_key
 
     def to_json(self) -> dict:
         result = []
-        input = 0
-        for id, skill in enumerate(self.skills):
+        for skill in self.steps:
             result.append({
                 'skill': skill.name,
-                'input': input,
-                'id': id + 1,
                 'params': {
                     p: skill.__getattribute__(p) for p in skill._param_fields
                 }
             })
-            if skill.iswriting: input = id + 1
         return result
         
     def run(
         self,
         text: str,
-        inputType: Literal['article', 'transcription']='article',
+        input_type: Literal['article', 'transcription']=None,
         api_key: str=None
     ) -> List[LabeledText]:
-        return asyncio.run(self.run_async(text, inputType, api_key))
+        return asyncio.run(self.run_async(text, input_type, api_key))
 
     async def run_async(
         self,
         text: str,
-        inputType: Literal['article', 'transcription']='article',
+        input_type: Literal['article', 'converstion']=None,
         api_key: str=None
     ) -> Awaitable[List[LabeledText]]:
         request = {
             'text': text,
             'steps': self.to_json(),
-            'include_intermediates': True,
-            'input_type': inputType
+            'input_type': input_type or self.input_type or 'article'
         }
         headers = {
             'api-key': api_key or self.api_key or oneai.api_key,
