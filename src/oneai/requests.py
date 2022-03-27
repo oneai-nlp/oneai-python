@@ -26,7 +26,8 @@ async def _send_request(
     }
     async with session.post(oneai.URL, headers=headers, json=request) as resp:
         if resp.status != 200:
-            raise Exception  # todo error types
+            print(f'Error: {resp.status} {await resp.text()}')
+            raise Exception(f'Error: {resp.status} {await resp.text()}')  # todo error types
         else:
             response = await resp.json()
             return [LabeledText.from_json(output) for output in response['output']]

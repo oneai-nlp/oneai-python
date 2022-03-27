@@ -29,7 +29,7 @@ class SplitToSentences(Skill): pass
 @skillclass(name='sentiment')
 class SentimentDetection(Skill): pass
 
-@skillclass(name='topics')
+@skillclass(name='article-topics')
 class TopicExtraction(Skill): pass
 
 @skillclass(name='extract-html')
