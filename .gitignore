@@ -129,4 +129,4 @@ dmypy.json
 .pyre/
 
 .DS_Store
-src/exmaple.py
+src/example.py
