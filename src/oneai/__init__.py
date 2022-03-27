@@ -1,12 +1,18 @@
-from typing import List, Literal
-import requests
+import asyncio
+from typing import Awaitable, List, Literal
+import aiohttp
 
 import oneai.skills as skills
 from oneai.classes import *
 
 URL = 'https://api.oneai.com/api/v0/pipeline'
 
+api_key = ''
+
 def process(text: str, skills: List[Skill], inputType: Literal['article', 'transcription']='article') -> List[LabeledText]:
+    return asyncio.run(process_async(text, skills, inputType))
+
+async def process_async(text: str, skills: List[Skill], inputType: Literal['article', 'transcription']='article') -> Awaitable[List[LabeledText]]:
     def build_skills(skills: List[Skill]) -> List[dict]:
         result = []
         input = 0
@@ -47,9 +53,15 @@ def process(text: str, skills: List[Skill], inputType: Literal['article', 'trans
         'input_type': inputType
     }
     headers = {
-        'accept': 'application/json',
+        'api-key': api_key,
         'Content-Type': 'application/json'
     }
 
-    response = requests.post(URL, headers=headers, json=request).json()
-    return build_output(response['output'])
+    timeout = aiohttp.ClientTimeout(total=6000)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        async with session.post(URL, headers=headers, json=request) as resp:
+            if resp.status != 200:
+                raise Exception # todo error types
+            else:
+                response = await resp.json()
+                return build_output(response['output'])
