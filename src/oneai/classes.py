@@ -1,5 +1,5 @@
 from dataclasses import dataclass, field
-from typing import List, Tuple, Type
+from typing import List, Type
 
 
 @dataclass
@@ -30,11 +30,25 @@ def skillclass(cls: Type=None, name: str='', iswriting: bool=False, param_fields
 class Label:
     type: str = ''
     name: str = ''
-    span: Tuple[int, int] = (0, 0)
+    span: List[int] = field(default_factory=lambda: [0, 0])
     value: float = .0
+
+    @classmethod
+    def from_json(cls, json): return cls(
+        type=json.get('type', ''),
+        name=json.get('name', ''),
+        span=json.get('span', [0, 0]),
+        value=json.get('value', .0)
+    )
 
 
 @dataclass
 class LabeledText:
     text: str
     labels: List[Label]
+
+    @classmethod
+    def from_json(cls, json: dict): return cls(
+        text=json['text'],
+        labels=[Label.from_json(l) for l in json['labels']]
+    )

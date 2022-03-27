@@ -30,7 +30,7 @@ async def _send_request(
             raise Exception  # todo error types
         else:
             response = await resp.json()
-            return [LabeledText(output['text'], output['labels']) for output in response['output']]
+            return [LabeledText.from_json(output) for output in response['output']]
 
 
 async def send_single_request(
