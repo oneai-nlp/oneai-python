@@ -30,7 +30,7 @@ def skillclass(cls: Type=None, name: str='', iswriting: bool=False, param_fields
 class Label:
     type: str = ''
     name: str = ''
-    span: Tuple[int] = (0, 0)
+    span: Tuple[int, int] = (0, 0)
     value: float = .0
 
 
