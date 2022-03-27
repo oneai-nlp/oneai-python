@@ -1,5 +1,5 @@
 import asyncio
-from typing import Awaitable, Generator, List, Union
+from typing import Awaitable, Dict, Generator, Iterable, List, Union
 
 import aiohttp
 import oneai
@@ -48,27 +48,33 @@ async def send_single_request(
 
 
 async def send_batch_request(
-    batch: List[Union[str, Input]],
+    batch: Iterable[Union[str, Input]],
     steps: dict,
     api_key: str
-) -> Awaitable[List[List[LabeledText]]]:
-    size = len(batch)
-    results = [None] * size
+) -> Awaitable[Dict[Union[str, Input], List[LabeledText]]]:
+    iterator = iter(batch)
+    results = dict()
 
-    async def req_worker(session, task_id):
-        for i in range(task_id, size, MAX_CONCURRENT_REQUESTS):
-            results[i] = await _send_request(
+    def next_input():
+        try: return next(iterator)
+        except StopIteration: return None
+
+    async def req_worker(session):
+        input = next_input()
+        while input:
+            results[input] = await _send_request(
                 session,
-                batch[i],
+                input,
                 steps,
                 api_key
             )
+            input = next_input()
 
     timeout = aiohttp.ClientTimeout(total=6000)
-    tasks = []
+    workers = []
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        for i in range(min(MAX_CONCURRENT_REQUESTS, size)):
-            task = asyncio.create_task(req_worker(session, i))
-            tasks.append(task)
-        await asyncio.gather(*tasks)
+        for _ in range(MAX_CONCURRENT_REQUESTS):
+            worker = asyncio.create_task(req_worker(session))
+            workers.append(worker)
+        await asyncio.gather(*workers)
         return results

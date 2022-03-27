@@ -1,7 +1,7 @@
 import asyncio
 import oneai
 
-from typing import Awaitable, List, Union
+from typing import Awaitable, Dict, Iterable, List, Union
 from oneai.classes import Input, Skill, LabeledText
 from oneai.requests import send_batch_request, send_single_request
 
@@ -42,16 +42,16 @@ class Pipeline:
 
     def run_batch(
         self,
-        batch: List[Union[str, Input]],
+        batch: Iterable[Union[str, Input]],
         api_key: str=None
-    ) -> List[List[LabeledText]]:
+    ) -> Dict[Union[str, Input], List[LabeledText]]:
         return asyncio.run(self.run_batch_async(batch, api_key))
 
     async def run_batch_async(
         self,
-        batch: List[Union[str, Input]],
+        batch: Iterable[Union[str, Input]],
         api_key: str=None
-    ) -> Awaitable[List[List[LabeledText]]]:
+    ) -> Awaitable[Dict[Union[str, Input], List[LabeledText]]]:
         return await send_batch_request(
             batch,
             self.to_json(),
