@@ -62,12 +62,13 @@ async def send_batch_request(
     async def req_worker(session):
         input = next_input()
         while input:
-            results[input] = await _send_request(
+            try: results[input] = await _send_request(
                 session,
                 input,
                 steps,
                 api_key
             )
+            except Exception as e: results[input] = e
             input = next_input()
 
     timeout = aiohttp.ClientTimeout(total=6000)
