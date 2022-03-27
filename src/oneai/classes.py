@@ -1,5 +1,9 @@
+import asyncio
 from dataclasses import dataclass, field
-from typing import List, Type
+from typing import Awaitable, List, Literal, Tuple, Type
+
+import aiohttp
+import oneai
 
 
 @dataclass
@@ -26,12 +30,66 @@ def skillclass(cls: Type=None, name: str='', iswriting: bool=False, param_fields
 
 @dataclass
 class Label:
-    type: str
-    name: str
-    span: List[int]
-    value: float
+    type: str = ''
+    name: str = ''
+    span: Tuple[int] = (0, 0)
+    value: float = .0
 
 @dataclass
 class LabeledText:
     text: str
     labels: List[Label]
+
+class Pipeline:
+    def __init__(self, skills: List[Skill], api_key: str=None) -> None:
+        self.skills = skills
+        self.api_key = api_key
+
+    def to_json(self) -> dict:
+        result = []
+        input = 0
+        for id, skill in enumerate(self.skills):
+            result.append({
+                'skill': skill.name,
+                'input': input,
+                'id': id + 1,
+                'params': {
+                    p: skill.__getattribute__(p) for p in skill._param_fields
+                }
+            })
+            if skill.iswriting: input = id + 1
+        return result
+        
+    def run(
+        self,
+        text: str,
+        inputType: Literal['article', 'transcription']='article',
+        api_key: str=None
+    ) -> List[LabeledText]:
+        return asyncio.run(self.run_async(text, inputType, api_key))
+
+    async def run_async(
+        self,
+        text: str,
+        inputType: Literal['article', 'transcription']='article',
+        api_key: str=None
+    ) -> Awaitable[List[LabeledText]]:
+        request = {
+            'text': text,
+            'steps': self.to_json(),
+            'include_intermediates': True,
+            'input_type': inputType
+        }
+        headers = {
+            'api-key': api_key or self.api_key or oneai.api_key,
+            'Content-Type': 'application/json'
+        }
+
+        timeout = aiohttp.ClientTimeout(total=6000)
+        async with aiohttp.ClientSession(timeout=timeout) as session:
+            async with session.post(oneai.URL, headers=headers, json=request) as resp:
+                if resp.status != 200:
+                    raise Exception # todo error types
+                else:
+                    response = await resp.json()
+                    return [LabeledText(output['text'], output['labels']) for output in response['output']]

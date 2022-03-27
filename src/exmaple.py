@@ -54,10 +54,10 @@ Okay, cool. Take care of on the way
 '''
 
 if __name__ == '__main__':
-    oneai.api_key = '510a3615-59ff-4f4c-9d98-2cc30e7408d7'
-    result = oneai.process(text_convo, skills=[
+    pipeline = oneai.Pipeline(skills=[
         oneai.skills.EntityDetection(),
         oneai.skills.Summarize(min_length=20),
         oneai.skills.Highlighting()
     ])
+    result = pipeline.run(text, api_key='510a3615-59ff-4f4c-9d98-2cc30e7408d7')
     print(result)
