@@ -1,15 +1,14 @@
 import asyncio
 import oneai
 
-from typing import Awaitable, List, Literal
-from oneai.classes import Skill, LabeledText
+from typing import Awaitable, List, Union
+from oneai.classes import Input, Skill, LabeledText
 from oneai.requests import send_batch_request, send_single_request
 
 
 class Pipeline:
-    def __init__(self, steps: List[Skill], input_type: Literal['article', 'transcription']=None, api_key: str=None) -> None:
+    def __init__(self, steps: List[Skill], api_key: str=None) -> None:
         self.steps = steps  # todo: validate (based on input_type)
-        self.input_type = input_type
         self.api_key = api_key
 
     def to_json(self) -> dict:
@@ -25,44 +24,38 @@ class Pipeline:
         
     def run(
         self,
-        text: str,
-        input_type: Literal['article', 'transcription']=None,
+        input: Union[str, Input],
         api_key: str=None
     ) -> List[LabeledText]:
-        return asyncio.run(self.run_async(text, input_type, api_key))
+        return asyncio.run(self.run_async(input.text, input.type, api_key))
 
     async def run_async(
         self,
-        text: str,
-        input_type: Literal['article', 'converstion']=None,
+        input: Union[str, Input],
         api_key: str=None
     ) -> Awaitable[List[LabeledText]]:
         return await send_single_request(
-            text,
+            input.text if input is Input else input,
             self.to_json(),
             api_key=api_key or self.api_key or oneai.api_key,
-            input_type=input_type or self.input_type or 'article'
         )
 
     def run_batch(
         self,
-        batch: List[str],
-        input_type: Literal['article', 'converstion']=None,
+        batch: List[Union[str, Input]],
         api_key: str=None
     ) -> List[List[LabeledText]]:
-        return asyncio.run(self.run_batch_async(batch, input_type, api_key))
+        return asyncio.run(self.run_batch_async(batch, api_key))
 
     async def run_batch_async(
         self,
-        batch: List[str],
-        input_type: Literal['article', 'converstion']=None,
+        batch: List[Union[str, Input]],
         api_key: str=None
     ) -> Awaitable[List[List[LabeledText]]]:
         return await send_batch_request(
             batch,
             self.to_json(),
-            api_key=api_key or self.api_key or oneai.api_key,
-            input_type=input_type or self.input_type or 'article'
+            api_key=api_key or self.api_key or oneai.api_key
         )
 
     def __repr__(self) -> str:

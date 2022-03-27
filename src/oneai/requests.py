@@ -1,19 +1,18 @@
 import asyncio
-from typing import Awaitable, Generator, List
+from typing import Awaitable, Generator, List, Union
 
 import aiohttp
 import oneai
 
-from oneai.classes import LabeledText
+from oneai.classes import Input, LabeledText
 
 MAX_CONCURRENT_REQUESTS = 4
 
 
 async def _send_request(
     session: aiohttp.ClientSession,
-    text: str,
+    input: Union[Input, str],
     steps: dict,
-    input_type: str,
     api_key: str
 ) -> Awaitable[List[LabeledText]]:
     headers = {
@@ -21,9 +20,9 @@ async def _send_request(
         'Content-Type': 'application/json'
     }
     request = {
-        'text': text,
+        'text': input.text if input is Input else str(input),
         'steps': steps,
-        'input_type': input_type
+        'input_type': input.type if input is Input else 'article'
     }
     async with session.post(oneai.URL, headers=headers, json=request) as resp:
         if resp.status != 200:
@@ -34,26 +33,23 @@ async def _send_request(
 
 
 async def send_single_request(
-    text: str,
+    input: Union[Input, str],
     steps: dict,
-    input_type: str,
     api_key: str
 ) -> Awaitable[List[LabeledText]]:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         return await _send_request(
             session,
-            text,
+            input,
             steps,
-            input_type,
             api_key
         )
 
 
 async def send_batch_request(
-    batch: List[str],
+    batch: List[Union[str, Input]],
     steps: dict,
-    input_type: str,
     api_key: str
 ) -> Awaitable[List[List[LabeledText]]]:
     size = len(batch)
@@ -63,9 +59,8 @@ async def send_batch_request(
         for i in range(task_id, size, MAX_CONCURRENT_REQUESTS):
             results[i] = await _send_request(
                 session,
-                batch[task_id],
+                batch[i],
                 steps,
-                input_type,
                 api_key
             )
 

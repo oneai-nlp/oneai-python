@@ -26,6 +26,29 @@ def skillclass(cls: Type=None, name: str='', iswriting: bool=False, param_fields
     return wrap if cls is None else wrap(cls)
 
 
+class Input:
+    def __init__(self, input_type: str):
+        self.input_type = input_type
+
+    def get_text(self) -> str:
+        raise NotImplementedError()
+
+class Document(Input):
+    def __init__(self, text: str):
+        super().__init__('article')
+        self.text = text
+
+    def get_text(self) -> str:
+        return self.text
+
+# class Conversation(Input):
+#     def __init__(self, text: str):
+#         super().__init__('conversation')
+#         self.text = text
+
+#     def get_text(self) -> str:
+#         return self.text
+
 @dataclass
 class Label:
     type: str = ''
