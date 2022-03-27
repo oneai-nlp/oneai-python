@@ -7,7 +7,7 @@ from oneai.classes import Skill, LabeledText
 
 class Pipeline:
     def __init__(self, steps: List[Skill], input_type: Literal['article', 'transcription']=None, api_key: str=None) -> None:
-        self.steps = steps
+        self.steps = steps # todo: validate (based on input_type)
         self.input_type = input_type
         self.api_key = api_key
 
@@ -54,3 +54,6 @@ class Pipeline:
                 else:
                     response = await resp.json()
                     return [LabeledText(output['text'], output['labels']) for output in response['output']]
+
+    def __repr__(self) -> str:
+        return f'oneai.Pipeline({self.steps})'
