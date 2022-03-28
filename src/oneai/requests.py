@@ -1,6 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
-from typing import Awaitable, Dict, Generator, Iterable, List, Union
+from typing import Awaitable, Dict, Iterable, List, Union
 
 import aiohttp
 import oneai
@@ -63,7 +63,7 @@ async def send_batch_request(
         try: return next(iterator)
         except StopIteration: return None  # we need to break loop for each worker, so we ignore StopIteration
 
-    def print_progress(time_delta=timedelta(), start=False, end=False):
+    def print_progress(time_delta=timedelta(), start=False, end=False): # todo progress bar for iterables with __len__
         nonlocal time_total
         
         def time_format(time: timedelta):
