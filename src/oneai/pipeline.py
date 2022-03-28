@@ -27,7 +27,7 @@ class Pipeline:
         input: Union[str, Input],
         api_key: str=None
     ) -> List[LabeledText]:
-        return asyncio.run(self.run_async(input.text, input.type, api_key))
+        return asyncio.run(self.run_async(input, api_key))
 
     async def run_async(
         self,

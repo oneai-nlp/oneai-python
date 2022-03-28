@@ -1,5 +1,5 @@
 from dataclasses import asdict, dataclass, field
-from typing import List, Type
+from typing import Dict, List, Type
 
 
 @dataclass
@@ -57,6 +57,14 @@ class Conversation(Input):
     def get_text(self) -> str:
         return repr(self.utterances)
 
+    @classmethod
+    def from_json(cls, json: List[Dict[str, str]]): return cls(
+        [Utterance(**utterance) for utterance in json]
+    )
+
+    def __repr__(self) -> str:
+        return f'oneai.Conversation {repr(self.utterances)}'
+
 @dataclass
 class Label:
     type: str = ''
@@ -75,7 +83,7 @@ class Label:
 
 @dataclass
 class LabeledText:
-    text: str
+    text: str # todo: this should be an Input
     labels: List[Label]
 
     @classmethod
