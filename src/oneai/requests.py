@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
+import re
 from typing import Awaitable, Dict, Iterable, List, Union
 
 import aiohttp
@@ -21,9 +22,9 @@ async def _send_request(
         'Content-Type': 'application/json'
     }
     request = {
-        'text': input.text if input is Input else str(input),
+        'text': input.get_text() if isinstance(input, Input) else str(input),
         'steps': steps,
-        'input_type': input.type if input is Input else 'article'
+        'input_type': input.type if isinstance(input, Input) else 'article'
     }
     async with session.post(oneai.URL, headers=headers, json=request) as resp:
         if resp.status != 200:

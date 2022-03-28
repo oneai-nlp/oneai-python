@@ -27,8 +27,8 @@ def skillclass(cls: Type=None, name: str='', iswriting: bool=False, param_fields
 
 
 class Input:
-    def __init__(self, input_type: str):
-        self.input_type = input_type
+    def __init__(self, type: str):
+        self.type = type
 
     def get_text(self) -> str:
         raise NotImplementedError()
