@@ -3,7 +3,7 @@ from dataclasses import dataclass
 from oneai.classes import Skill, skillclass
 
 @skillclass(name='enhance', iswriting=True)
-class EnhanceTranscription(Skill): pass
+class Proofread(Skill): pass
 
 @skillclass(name='summarize', iswriting=True, param_fields=['min_length', 'max_length'])
 @dataclass
@@ -12,28 +12,28 @@ class Summarize(Skill):
     max_length: int = 100
 
 @skillclass(name='emotions')
-class EmotionDetection(Skill): pass
+class Emotions(Skill): pass
 
 @skillclass(name='entities')
-class EntityDetection(Skill): pass
+class Entities(Skill): pass
 
 @skillclass(name='keywords')
-class KeywordDetection(Skill): pass
+class Keywords(Skill): pass
 
 @skillclass(name='highlights')
-class Highlighting(Skill): pass
+class Highlights(Skill): pass
 
 @skillclass(name='sentences')
-class SplitToSentences(Skill): pass
+class Sentencer(Skill): pass
 
 @skillclass(name='sentiment')
-class SentimentDetection(Skill): pass
+class Sentiments(Skill): pass
 
 @skillclass(name='article-topics')
-class TopicExtraction(Skill): pass
+class Topics(Skill): pass
 
 @skillclass(name='extract-html')
-class ExtractHTMLArticle(Skill): pass
+class HTMLExtractArticle(Skill): pass
 
 @skillclass(name='html-extract-text')
-class ExtractHTMLText(Skill): pass
+class HTMLExtractText(Skill): pass
