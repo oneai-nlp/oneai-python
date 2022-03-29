@@ -1,12 +1,12 @@
 import asyncio
 from datetime import datetime, timedelta
-import re
 from typing import Awaitable, Dict, Iterable, List, Union
 
 import aiohttp
 import oneai
 
 from oneai.classes import Input, LabeledText
+from oneai.exceptions import handle_unsuccessful_response
 
 MAX_CONCURRENT_REQUESTS = 4
 
@@ -27,9 +27,8 @@ async def _send_request(
         'input_type': input.type if isinstance(input, Input) else 'article'
     }
     async with session.post(oneai.URL, headers=headers, json=request) as resp:
-        if resp.status != 200:
-            print(f'Error: {resp.status} {await resp.text()}')
-            raise Exception(f'Error: {resp.status} {await resp.text()}')  # todo error types
+        if resp.status != 200: 
+            handle_unsuccessful_response(resp)
         else:
             response = await resp.json()
             return [LabeledText.from_json(output) for output in response['output']]
