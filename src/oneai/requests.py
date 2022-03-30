@@ -1,11 +1,11 @@
 import asyncio
 from datetime import datetime, timedelta
-from typing import Awaitable, Dict, Iterable, List, Union
+from typing import Awaitable, Dict, Iterable, Union
 
 import aiohttp
 import oneai
 
-from oneai.classes import Input, LabeledText
+from oneai.classes import Input
 from oneai.exceptions import handle_unsuccessful_response
 
 MAX_CONCURRENT_REQUESTS = 4
@@ -16,7 +16,7 @@ async def _send_request(
     input: Union[Input, str],
     steps: dict,
     api_key: str
-) -> Awaitable[List[LabeledText]]:
+) -> Awaitable[Dict]:
     headers = {
         'api-key': api_key,
         'Content-Type': 'application/json'
@@ -26,19 +26,18 @@ async def _send_request(
         'steps': steps,
         'input_type': input.type if isinstance(input, Input) else 'article'
     }
-    async with session.post(oneai.URL, headers=headers, json=request) as resp:
-        if resp.status != 200: 
-            handle_unsuccessful_response(resp)
+    async with session.post(oneai.URL, headers=headers, json=request) as response:
+        if response.status != 200: 
+            handle_unsuccessful_response(response)
         else:
-            response = await resp.json()
-            return [LabeledText.from_json(output) for output in response['output']]
+            return await response.json()
 
 
 async def send_single_request(
     input: Union[Input, str],
     steps: dict,
     api_key: str
-) -> Awaitable[List[LabeledText]]:
+) -> Awaitable[Dict]:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         return await _send_request(
@@ -53,7 +52,7 @@ async def send_batch_request(
     batch: Iterable[Union[str, Input]],
     steps: dict,
     api_key: str
-) -> Awaitable[Dict[Union[str, Input], List[LabeledText]]]:
+) -> Awaitable[Dict[Union[str, Input], Dict]]:
     iterator = iter(batch)
     results = dict()
     exceptions = 0
