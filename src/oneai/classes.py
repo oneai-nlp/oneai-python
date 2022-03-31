@@ -1,4 +1,5 @@
 from dataclasses import asdict, dataclass, field
+import json
 from typing import Dict, List, Type, Union
 
 
@@ -62,21 +63,23 @@ class Utterance:
     speaker: str
     utterance: str
 
-    def __repr__(self):
-        return f'{asdict(self)}'
-
 class Conversation(Input):
     def __init__(self, utterances: List[Utterance]=[]):
         super().__init__('conversation')
         self.utterances = utterances
 
     def get_text(self) -> str:
-        return repr(self.utterances)
+        return json.dumps(self.utterances, default=lambda o: o.__dict__)
 
     @classmethod
     def from_json(cls, json: List[Dict[str, str]]): return cls(
         [Utterance(**utterance) for utterance in json]
     )
+
+    @staticmethod
+    def parse(text: str) -> 'Conversation':
+        from oneai.parsing import parse_conversation
+        return parse_conversation(text)
 
     def __repr__(self) -> str:
         return f'oneai.Conversation {repr(self.utterances)}'
@@ -95,18 +98,6 @@ class Label:
         span=json.get('span', [0, 0]),
         value=json.get('value', .0)
     )
-
-
-# @dataclass
-# class LabeledText:
-#     text: str # todo: this should be an Input
-#     labels: List[Label]
-
-#     @classmethod
-#     def from_json(cls, json: dict): return cls(
-#         text=json['text'],
-#         labels=[Label.from_json(l) for l in json['labels']]
-#     )
 
 
 @dataclass
