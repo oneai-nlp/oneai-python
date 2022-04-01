@@ -9,14 +9,15 @@ class Skill:
     Args:
         api_name: The name of the Skill in the pipeline API.
         is_generator: Whether the Skill is a generator.
-        param_fields: Names of the fields of the Skill object that should be passed as parameters to the API.
-        label_type: For generator Skills, the field name to give to the output text.
+        skill_params: Names of the fields of the Skill object that should be passed as parameters to the API.
+        label_type: If the Skill generates labels, the type name of the label.
+        output_attr: The attribute name of the Skill's output in the Output object.
     '''
     api_name: str = ''
     is_generator: bool = False
-    _param_fields: List[str] = field(default_factory=list, repr=False, init=False)
+    _skill_params: List[str] = field(default_factory=list, repr=False, init=False)
     label_type: str = ''
-    output_name: str = ''
+    output_attr: str = ''
 
 
 def skillclass(
@@ -24,17 +25,16 @@ def skillclass(
     api_name: str='',
     label_type: str='',
     is_generator: bool=False,
-    param_fields: List[str]=[],
-    output_name: str = ''
-) -> Type[Skill]:
-    def wrap(cls):
+    output_attr: str = ''
+):
+    def wrap(cls) -> cls:
         if not issubclass(cls, Skill):
             print(f'warning: class {cls.__name__} decorated with @skillclass does not inherit Skill')
 
         def __init__(self, *args, **kwargs):
             cls_init(self, *args, **kwargs)
-            Skill.__init__(self, api_name=api_name, label_type=label_type, is_generator=is_generator, output_name=output_name)
-            self._param_fields = param_fields
+            Skill.__init__(self, api_name=api_name, label_type=label_type, is_generator=is_generator, output_attr=output_attr)
+            self._skill_params = [a for a in self.__dict__ if not (a in Skill.__dict__ or a == '_skill_params')]
         
         cls_init = cls.__init__
         cls.__init__ = __init__
@@ -112,7 +112,7 @@ class Output:
     def __getattr__(self, name: str) -> Union[List[Label], 'Output']:
         for i, skill in enumerate(self.skills):
             if (skill.api_name and skill.api_name == name) or \
-                (skill.output_name and name in skill.output_name) or \
+                (skill.output_attr and name in skill.output_attr) or \
                 (type(skill).__name__ == name):
                 return self.data[i]
         raise AttributeError(f'{name} not found in {self}')

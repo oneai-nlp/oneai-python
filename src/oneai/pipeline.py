@@ -18,7 +18,7 @@ class Pipeline:
             result.append({
                 'skill': skill.api_name,
                 'params': {
-                    p: skill.__getattribute__(p) for p in skill._param_fields
+                    p: skill.__getattribute__(p) for p in skill._skill_params
                 }
             })
         return result
