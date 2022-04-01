@@ -1,12 +1,11 @@
 import asyncio
 from datetime import datetime, timedelta
-import re
 from typing import Awaitable, Dict, Iterable, Union
 
 import aiohttp
 import oneai
 
-from oneai.classes import Input
+from oneai.classes import Input, Output
 from oneai.exceptions import handle_unsuccessful_response
 
 MAX_CONCURRENT_REQUESTS = 4
@@ -15,45 +14,45 @@ MAX_CONCURRENT_REQUESTS = 4
 async def _send_request(
     session: aiohttp.ClientSession,
     input: Union[Input, str],
-    steps: dict,
+    pipeline: oneai.Pipeline,
     api_key: str
-) -> Awaitable[Dict]:
+) -> Awaitable[Output]:
     headers = {
         'api-key': api_key,
         'Content-Type': 'application/json'
     }
     request = {
         'text': input.get_text() if isinstance(input, Input) else str(input),
-        'steps': steps,
+        'steps': pipeline.to_json(),
         'input_type': input.type if isinstance(input, Input) else 'article'
     }
     async with session.post(oneai.URL, headers=headers, json=request) as response:
         if response.status != 200: 
             handle_unsuccessful_response(response)
         else:
-            return await response.json()
+            return Output.build(pipeline, await response.json(), input_type=type(input))
 
 
 async def send_single_request(
     input: Union[Input, str],
-    steps: dict,
+    pipeline: oneai.Pipeline,
     api_key: str
-) -> Awaitable[Dict]:
+) -> Awaitable[Output]:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         return await _send_request(
             session,
             input,
-            steps,
+            pipeline,
             api_key
         )
 
 
 async def send_batch_request(
     batch: Iterable[Union[str, Input]],
-    steps: dict,
+    pipeline: oneai.Pipeline,
     api_key: str
-) -> Awaitable[Dict[Union[str, Input], Dict]]:
+) -> Awaitable[Dict[Union[str, Input], Output]]:
     iterator = iter(batch)
     results = dict()
     exceptions = 0
@@ -97,7 +96,7 @@ async def send_batch_request(
             try: results[input] = await _send_request(
                 session,
                 input,
-                steps,
+                pipeline,
                 api_key
             )
             except Exception as e:

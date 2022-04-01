@@ -1,7 +1,6 @@
 import re
 import oneai
 
-from oneai.classes import Conversation, Utterance
 
 def parse_conversation(text: str, strict=False) -> oneai.Conversation:
     result = []

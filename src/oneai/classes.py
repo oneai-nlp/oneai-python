@@ -1,6 +1,6 @@
 from dataclasses import asdict, dataclass, field
 import json
-from typing import Dict, List, Type, Union
+from typing import List, Type, Union
 
 
 @dataclass
@@ -47,6 +47,10 @@ class Input:
     def __init__(self, type: str):
         self.type = type
 
+    @classmethod
+    def parse(cls, text: str) -> 'Input':
+        raise NotImplementedError()
+
     def get_text(self) -> str:
         raise NotImplementedError()
 
@@ -54,6 +58,10 @@ class Document(Input):
     def __init__(self, text: str):
         super().__init__('article')
         self.text = text
+
+    @classmethod
+    def parse(cls, text: str) -> 'Document':
+        return cls(text)
 
     def get_text(self) -> str:
         return self.text
@@ -120,10 +128,18 @@ class Output:
         raise AttributeError(f'{name} not found in {self}')
 
     @classmethod
-    def build(cls, pipeline, raw_output: Dict, output_index: int=0, skill_index: int=0) -> 'Output':
+    def build(
+        cls,
+        pipeline, 
+        raw_output: dict,
+        output_index: int=0, 
+        skill_index: int=0,
+        input_type: type=str
+    ) -> 'Output':
         if skill_index == 0 and pipeline.steps[0].is_generator:
+            text = raw_output['input_text']
             return cls(
-                text=raw_output['input_text'],
+                text=input_type.parse(text) if issubclass(input_type, Input) else text,
                 skills=[pipeline.steps[0]],
                 data=[cls.build(pipeline, raw_output, output_index, skill_index + 1)]
             )

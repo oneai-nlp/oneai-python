@@ -1,10 +1,8 @@
 import asyncio
-from curses import raw
 import oneai
 
 from typing import Awaitable, Dict, Iterable, List, Union
 from oneai.classes import Input, Output, Skill
-from oneai.requests import send_batch_request, send_single_request
 
 
 class Pipeline:
@@ -35,12 +33,12 @@ class Pipeline:
         input: Union[str, Input],
         api_key: str=None
     ) -> Awaitable[Output]:
-        raw_output = await send_single_request(
-            input.get_text() if input is Input else input,
-            self.to_json(),
+        from oneai.requests import send_single_request
+        return await send_single_request(
+            input,
+            self,
             api_key=api_key or self.api_key or oneai.api_key,
         )
-        return Output.build(self, raw_output)
 
     def run_batch(
         self,
@@ -54,17 +52,12 @@ class Pipeline:
         batch: Iterable[Union[str, Input]],
         api_key: str=None
     ) -> Awaitable[Dict[Union[str, Input], Output]]:
-        raw_output = await send_batch_request(
+        from oneai.requests import send_batch_request
+        return await send_batch_request(
             batch,
-            self.to_json(),
+            self,
             api_key=api_key or self.api_key or oneai.api_key
         )
-        return {
-            # todo: this obviously should happen in parallel to the requests
-            input: Output.build(self, output) 
-                for input, output in raw_output.items()
-                if not isinstance(output, Exception)
-        }
 
     def __repr__(self) -> str:
         return f'oneai.Pipeline({self.steps})'
