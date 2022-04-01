@@ -77,8 +77,8 @@ async def send_batch_request(
             total,
             time_format(time_delta),
             time_format(time_total),
-            len(results),
-            total - len(results)
+            total - exceptions,
+            exceptions
         ))
         else: print('Input %d - %s/input - %s total - %d successful - %d failed        ' % (
             total,

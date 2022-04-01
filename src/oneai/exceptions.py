@@ -12,6 +12,7 @@ class APIKeyError(Exception):
 class ServerError(Exception):
     pass
 
+# todo: fix this
 errors = {
     400: InputError,
     401: APIKeyError,
