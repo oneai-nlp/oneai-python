@@ -63,6 +63,9 @@ class Utterance:
     speaker: str
     utterance: str
 
+    def __repr__(self) -> str:
+        return f'\n\t{self.speaker}: {self.utterance}'
+
 class Conversation(Input):
     def __init__(self, utterances: List[Utterance]=[]):
         super().__init__('conversation')
@@ -72,17 +75,16 @@ class Conversation(Input):
         return json.dumps(self.utterances, default=lambda o: o.__dict__)
 
     @classmethod
-    def from_json(cls, json: List[Dict[str, str]]): return cls(
-        [Utterance(**utterance) for utterance in json]
-    )
-
-    @staticmethod
-    def parse(text: str) -> 'Conversation':
-        from oneai.parsing import parse_conversation
-        return parse_conversation(text)
+    def parse(cls, text: str) -> 'Conversation':
+        try:
+            js = json.loads(text)
+            return cls([Utterance(**utterance) for utterance in js])
+        except json.JSONDecodeError:
+            from oneai.parsing import parse_conversation
+            return parse_conversation(text)
 
     def __repr__(self) -> str:
-        return f'oneai.Conversation {repr(self.utterances)}'
+        return f'oneai.Conversation{repr(self.utterances)}'
 
 @dataclass
 class Label:
