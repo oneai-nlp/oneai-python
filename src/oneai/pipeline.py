@@ -23,16 +23,19 @@ class Pipeline:
         
     def run(
         self,
-        input: Union[str, Input],
+        input: Union[str, Input, Iterable[Union[str, Input]]],
         api_key: str=None
     ) -> Output:
         return asyncio.run(self.run_async(input, api_key))
 
     async def run_async(
         self,
-        input: Union[str, Input],
+        input: Union[str, Input, Iterable[Union[str, Input]]],
         api_key: str=None
     ) -> Awaitable[Output]:
+        if isinstance(input, Iterable):
+            return await self.run_batch_async(input, api_key)
+
         from oneai.requests import send_single_request
         return await send_single_request(
             input,

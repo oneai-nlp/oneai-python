@@ -100,7 +100,7 @@ async def send_batch_request(
                 api_key
             )
             except Exception as e:
-                print('\r\033[K' + repr(e))
+                print(f'\r\033[KInput {len(results)}:', repr(e))
                 results[input] = e
                 exceptions += 1
 
