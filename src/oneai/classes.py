@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import json
-from typing import List, Type, Union
+from typing import Iterable, List, Type, Union
 
 
 @dataclass
@@ -128,6 +128,9 @@ class Output:
                 (type(skill).__name__ == name):
                 return self.data[i]
         raise AttributeError(f'{name} not found in {self}')
+
+    def __dir__(self) -> Iterable[str]:
+        return super().__dir__() + [skill.output_attr or skill.api_name for skill in self.skills]
 
     @classmethod
     def build(
