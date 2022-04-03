@@ -1,4 +1,4 @@
-from dataclasses import asdict, dataclass, field
+from dataclasses import dataclass, field
 import json
 from typing import List, Type, Union
 
@@ -99,16 +99,18 @@ class Label:
     type: str = ''
     name: str = ''
     span: List[int] = field(default_factory=lambda: [0, 0])
-    value: float = .0
+    value: str = ''
 
     @classmethod
     def from_json(cls, json): return cls(
         type=json.get('type', ''),
         name=json.get('name', ''),
         span=json.get('span', [0, 0]),
-        value=json.get('value', .0)
+        value=json.get('value', '')
     )
 
+    def __repr__(self) -> str:
+        return 'oneai.Label(' + ', '.join(f'{k}={v}' for k, v in self.__dict__.items() if v) + ')'
 
 @dataclass
 class Output:
