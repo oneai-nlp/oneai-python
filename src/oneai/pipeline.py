@@ -33,15 +33,16 @@ class Pipeline:
         input: Union[str, Input, Iterable[Union[str, Input]]],
         api_key: str=None
     ) -> Awaitable[Output]:
-        if isinstance(input, Iterable):
+        if isinstance(input, (str, Input)):
+            from oneai.requests import send_single_request
+            return await send_single_request(
+                input,
+                self,
+                api_key=api_key or self.api_key or oneai.api_key,
+            )
+        elif isinstance(input, Iterable):
             return await self.run_batch_async(input, api_key)
-
-        from oneai.requests import send_single_request
-        return await send_single_request(
-            input,
-            self,
-            api_key=api_key or self.api_key or oneai.api_key,
-        )
+        else: raise TypeError(f'pipeline input must be Input, str or iterable of inputs')
 
     def run_batch(
         self,
