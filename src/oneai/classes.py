@@ -21,6 +21,7 @@ class Skill:
     api_name: str = ''
     is_generator: bool = False
     _skill_params: List[str] = field(default_factory=list, repr=False, init=False)
+    # todo: replace all these w/ an output type object + parse conversations from t. enhancer etc.
     label_type: str = ''
     output_attr: str = ''
     output_attr1: str = ''
@@ -107,13 +108,15 @@ class Label:
     name: str = ''
     span: List[int] = field(default_factory=lambda: [0, 0])
     value: str = ''
+    data: dict = field(default_factory=lambda: dict())
 
     @classmethod
-    def from_json(cls, json): return cls(
-        type=json.get('type', ''),
-        name=json.get('name', ''),
-        span=json.get('span', [0, 0]),
-        value=json.get('value', '')
+    def from_json(cls, object): return cls(
+        type=object.get('type', ''),
+        name=object.get('name', ''),
+        span=object.get('span', [0, 0]),
+        value=object.get('value', ''),
+        data=object.get('data', {})
     )
 
     def __repr__(self) -> str:
@@ -129,6 +132,10 @@ class Output:
         return self.__getattr__(name)
 
     def __getattr__(self, name: str) -> Union[List[Label], 'Output']:
+        #####TEMP#HACK########
+        if name == 'business_entities' and hasattr(self, 'labs'):
+            return self.__getattr__('labs').business_entities
+        ######################
         for i, skill in enumerate(self.skills):
             if (skill.api_name and skill.api_name == name) or \
                 (skill.output_attr and name in skill.output_attr) or \
