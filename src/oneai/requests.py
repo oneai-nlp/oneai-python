@@ -8,8 +8,6 @@ import oneai
 from oneai.classes import Input, Output
 from oneai.exceptions import handle_unsuccessful_response
 
-MAX_CONCURRENT_REQUESTS = 4
-
 
 async def _send_request(
     session: aiohttp.ClientSession,
@@ -71,7 +69,7 @@ async def send_batch_request(
 
         total = len(results)
         time_total += time_delta
-        if start: print(f'Starting processing batch with {MAX_CONCURRENT_REQUESTS} workers', end='\r')
+        if start: print(f'Starting processing batch with {oneai.MAX_CONCURRENT_REQUESTS} workers', end='\r')
         elif end: print('Processed %d inputs - %s/input - %s total - %d successful - %d failed' % (
             total,
             time_format(time_delta),
@@ -113,7 +111,7 @@ async def send_batch_request(
     timeout = aiohttp.ClientTimeout(total=6000)
     workers = []
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        for _ in range(MAX_CONCURRENT_REQUESTS):
+        for _ in range(oneai.MAX_CONCURRENT_REQUESTS):
             worker = asyncio.create_task(req_worker(session))
             workers.append(worker)
         print_progress(start=True)
