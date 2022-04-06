@@ -26,7 +26,7 @@ async def _send_request(
     }
     async with session.post(oneai.URL, headers=headers, json=request) as response:
         if response.status != 200: 
-            handle_unsuccessful_response(response)
+            await handle_unsuccessful_response(response)
         else:
             return Output.build(pipeline, await response.json(), input_type=type(input))
 

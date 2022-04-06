@@ -6,5 +6,5 @@ URL = 'https://api.oneai.com/api/v0/pipeline'
 
 api_key = ''
 
-MAX_CONCURRENT_REQUESTS = 4
+MAX_CONCURRENT_REQUESTS = 2
 PRINT_PROGRESS = True
