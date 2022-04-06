@@ -1,4 +1,11 @@
 # One AI Python SDK
+This SDK provides safe and convenient access to the One AI's pipeline API from Python.
+
+One AI is an NLP as a service platform. Our APIs enables language comprehension in context, transforming texts from any source into structured data to use in code.
+
+## Documentation
+See the [One AI documentation](https://oneai.com/docs)
+
 ## Installation
 `pip install oneai`
 
