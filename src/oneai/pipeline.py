@@ -1,4 +1,4 @@
-import asyncio
+import asyncio, concurrent.futures
 import oneai
 
 from typing import Awaitable, Dict, Iterable, List, Union
@@ -26,7 +26,7 @@ class Pipeline:
         input: Union[str, Input, Iterable[Union[str, Input]]],
         api_key: str=None
     ) -> Output:
-        return asyncio.run(self.run_async(input, api_key))
+        return _async_run_nested(self.run_async(input, api_key))
 
     async def run_async(
         self,
@@ -49,7 +49,7 @@ class Pipeline:
         batch: Iterable[Union[str, Input]],
         api_key: str=None
     ) -> Dict[Union[str, Input], Output]:
-        return asyncio.run(self.run_batch_async(batch, api_key))
+        return _async_run_nested(self.run_batch_async(batch, api_key))
 
     async def run_batch_async(
         self,
@@ -65,3 +65,12 @@ class Pipeline:
 
     def __repr__(self) -> str:
         return f'oneai.Pipeline({self.steps})'
+
+# for jupyter environment, to avoid "asyncio.run() cannot be called from a running event loop"
+pool = concurrent.futures.ThreadPoolExecutor()
+def _async_run_nested(coru):
+    try:
+        asyncio.get_running_loop()
+        return pool.submit(asyncio.run, coru).result()
+    except RuntimeError:
+        return asyncio.run(coru)
