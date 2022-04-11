@@ -53,6 +53,8 @@ pipeline = oneai.Pipeline(steps=[
 ### Output
 The structure of the output is dynamic, and corresponds to the Skills used and their order in the pipeline. Each output object contains the input text (which can be the original input or text produced by generator Skills), and a list of labels detected by analyzer Skills, that contain the extracted data.
 ```python
+output = pipeline.run(my_text)
+
 print(output.entities)
 print(output.summary.text)
 print(output.summary.highlights)
