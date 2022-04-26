@@ -4,6 +4,18 @@ from aiohttp import ClientResponse
 # todo: input type validation errors
 
 class OneAIError(Exception):
+    '''
+    A base class for all errors raised by the API.
+
+    ## Attributes
+
+    `status_code: int`
+        The API status code of the error.
+    `message: str`
+        A human-readable message describing the error.
+    `details: str`
+        A string containing details about the error.
+    '''
     def __init__(self, status_code: int, message: str='', details: str=''):
         self.status_code = status_code
         self.message = message
@@ -17,15 +29,15 @@ class OneAIError(Exception):
     __repr__ = __str__
 
 class InputError(OneAIError):
-    pass
+    '''An error raised when the input is invalid or is of an incompatible type for the pipeline.'''
 
 class APIKeyError(OneAIError):
-    pass
+    '''An error raised when the API key is invalid, expired, or missing quota.'''
 
 class ServerError(OneAIError):
-    pass
+    '''An error raised when the an internal server error occured.'''
 
-errors = {
+errors = { # map http status codes to OneAIError subclasses
     400: InputError,
     401: APIKeyError,
     403: APIKeyError,

@@ -10,13 +10,30 @@ _SkillOutput = Type[Tuple[Union[str, 'Input'], str]]
 @dataclass
 class Skill:
     '''
-    Args:
-        api_name: The name of the Skill in the pipeline API.
-        is_generator: Whether the Skill is a generator.
-        skill_params: Names of the fields of the Skill object that should be passed as parameters to the API.
-        label_type: If the Skill generates labels, the type name of the label.
-        output_attr: The attribute name of the Skill's output in the Output object.
-        output_attr1: Only for Skills with 2 outputs (text / labels)
+    A base class for all Language Skills. Use predefined subclasses of this class, or use this class to define your own Skills.
+    
+    A Language Skill is a package of trained NLP models. Skills accept text and respond with processed texts and extracted metadata.
+    
+    Process texts with Skills using `Pipeline`s
+
+    ### Skill types
+    * Generator Skills (`is_generator=True`) process the input and produce a new text based on it. Examples include `Summarize`, `TranscriptionEnhancer`.
+    * Analyzer Skills (`is_generator=False`) scan the input and extract structured data. Examples include `Emotions`, `Topics`.
+
+    ## Attributes
+
+    `api_name: str`
+        The name of the Skill in the pipeline API.
+    `is_generator: bool` 
+        Whether the Skill is a generator Skill.
+    `skill_params: List[str]` 
+        Names of the fields of the Skill object that should be passed as parameters to the API.
+    `label_type: str`
+        If the Skill generates labels, the type name of the label.
+    `output_attr: str`
+        The attribute name of the Skill's output in the Output object.
+    `output_attr1: str`
+        Only for Skills with 2 outputs (text / labels)
     '''
     api_name: str = ''
     is_generator: bool = False
@@ -35,6 +52,9 @@ def skillclass(
     output_attr: str = '',
     output_attr1: str = ''
 ):
+    '''
+    A decorator for defining a Language Skill class. Decorate subclasses of `Skill` with this decorator to provide default values for instance attributes.
+    '''
     def wrap(cls) -> cls:
         if not issubclass(cls, Skill):
             print(f'warning: class {cls.__name__} decorated with @skillclass does not inherit Skill')
@@ -52,26 +72,94 @@ def skillclass(
 
 
 class Input:
+    '''
+    A base class for all input texts, allowing structured representations of inputs.
+
+    ## Attributes
+
+    `type: str`
+        A type hint for the API, suggesting which models to use when processing the input.
+
+    ## Methods
+
+    `get_text() -> str`
+        Returns the input as a string. Not implemented by default.
+    `parse(text) -> Input`
+        A class method. Parse a string into an instance of the Input class. Not implemented by default.
+    '''
     def __init__(self, type: str):
         self.type = type
 
     @classmethod
     def parse(cls, text: str) -> 'Input':
+        '''
+        A class method. Parse a string into an instance of the Input class. Not implemented by default.
+
+        ## Parameters
+        
+        `text: str`
+            The text to parse.
+
+        ## Returns
+        
+        The `Input` instance produced from `text`.
+        '''
         raise NotImplementedError()
 
     def get_text(self) -> str:
+        '''
+        Returns the input as a string. Not implemented by default.
+
+        ## Returns
+
+        `str` representation of this `Input` instance.
+        '''
         raise NotImplementedError()
 
 class Document(Input):
+    '''
+    Represents any text that doesn't have a structured format
+
+    ## Attributes
+
+    `text: str`
+        The text of the document.
+    
+    ## Methods
+
+    `get_text() -> str`
+        Returns the text of the document.
+    `parse(text) -> Document`
+        A class method. Parse a string into a `Document` instance.
+    '''
     def __init__(self, text: str):
         super().__init__('article')
         self.text = text
 
     @classmethod
     def parse(cls, text: str) -> 'Document':
+        '''
+        A class method. Parse a string into a `Document` instance.
+
+        ## Parameters
+        
+        `text: str`
+            The text to parse.
+
+        ## Returns
+        
+        The `Document` instance produced from `text`.
+        '''
         return cls(text)
 
     def get_text(self) -> str:
+        '''
+        Returns the document as a string.
+
+        ## Returns
+
+        `str` representation of this `Documentation` instance.
+        '''
         return self.text
 
 @dataclass
@@ -83,19 +171,57 @@ class Utterance:
         return f'\n\t{self.speaker}: {self.utterance}'
 
 class Conversation(Input):
+    '''
+    Represents conversations.
+
+    ## Attributes
+
+    `utterances: List[Utterance]`
+        A list of `Utterance` objects, each has `speaker` and `utterance` fields.
+    
+    ## Methods
+
+    `get_text() -> str`
+        Returns the conversation as a JSON string.
+    `parse(text) -> Conversation`
+        A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
+    '''
     def __init__(self, utterances: List[Utterance]=[]):
         super().__init__('conversation')
         self.utterances = utterances
 
     def get_text(self) -> str:
+        '''
+        Returns the conversation as a JSON string.
+
+        ## Returns
+
+        `str` representation of this `Conversation` instance.
+        '''
         return json.dumps(self.utterances, default=lambda o: o.__dict__)
 
     @classmethod
     def parse(cls, text: str) -> 'Conversation':
-        try:
+        '''
+        A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
+
+        ## Parameters
+        
+        `text: str`
+            The text to parse.
+
+        ## Returns
+        
+        The `Conversation` instance produced from `text`.
+
+        ## Raises
+
+        `ValueError` if `text` is not in a valid conversation format.
+        '''
+        try: # try to parse as JSON
             js = json.loads(text)
             return cls([Utterance(**utterance) for utterance in js])
-        except json.JSONDecodeError:
+        except json.JSONDecodeError: # if not JSON, assume it's a structured conversation
             from oneai.parsing import parse_conversation
             return parse_conversation(text)
 
@@ -104,6 +230,22 @@ class Conversation(Input):
 
 @dataclass
 class Label:
+    '''
+    Represents a label, marking a part of the input text. Attribute values largely depend on the Skill the labels were produced by.
+
+    ## Attributes
+
+    `type: str`
+        Label type, e.g. 'entity', 'topic', 'emotion'.
+    `name: str`
+        Label class name, e.g. 'PERSON', 'happiness', 'POS'.
+    `span: Tuple[int, int]`
+        The start (inclusive) and end (exclusive) indices of the label in the input text.
+    `value: str`
+        The value of the label.
+    `data: Dict[str, Any]`
+        Additional data associated with the label.
+    '''
     type: str = ''
     name: str = ''
     span: List[int] = field(default_factory=lambda: [0, 0])
@@ -124,6 +266,21 @@ class Label:
 
 @dataclass
 class Output:
+    '''
+    Represents the output of a pipeline. The structure of the output is dynamic, and corresponds to the Skills used and their order in the pipeline.
+    Skill outputs can be accessed as attributes, either with the `api_name` of the corresponding Skill or the `output_attr` field.
+ 
+    ## Attributes
+
+    `text: str`
+        The input text from which this `Output` instance was produced.
+    `skills: List[Skill]`
+        The Skills used to process `text` and produce this `Output` instance.
+    `data: List[List[Label] | Output]`
+        Output data produced by `skills`, in the same order. Each element can be:
+        * A list of labels, marking data points in `text`, e.g entities.
+        * A nested `Output` instance, with a new `text`, e.g summary.
+    '''
     text: str
     skills: List[Skill] # not a dict since Skills are currently mutable & thus unhashable
     data: List[Union[List[Label], 'Output']]
