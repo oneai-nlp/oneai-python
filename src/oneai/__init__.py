@@ -1,3 +1,5 @@
+__version__ = '0.2.5'
+
 from typing import Final
 import oneai.skills as skills
 from oneai.classes import *
