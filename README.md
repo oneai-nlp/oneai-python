@@ -3,6 +3,11 @@ This SDK provides safe and convenient access to One AI's pipeline API from Pytho
 
 One AI is an NLP as a service platform. Our APIs enables language comprehension in context, transforming texts from any source into structured data to use in code.
 
+## Language Studio
+The Language Studio provides a visual interface to experiment with our APIs and generate calls to use in code.
+
+Visit the [Langauge Studio](https://studio.oneai.com?utm_source=open_source&utm_medium=python_sdk_readme)
+
 ## Documentation
 See the [One AI documentation](https://oneai.com/docs)
 
@@ -15,6 +20,7 @@ Python 3.4+ (PyPy supported)
 
 ### Authentication
 Register and create a key for your project [in the Studio](https://studio.oneai.com/settings/api-keys). As a security measure we only show the key once, so make sure to keep it somewhere safe.
+
 Attach your key via the `oneai.api_key` field or by passing it to individual calls. Requests must be authenticated, and will fail without an active token.
 
 ### Example
@@ -59,3 +65,8 @@ print(output.entities)
 print(output.summary.text)
 print(output.summary.highlights)
 ```
+
+## Contact
+If you need help or are experiencing any issues with the API/SDK, please contact us at [devrel@oneai.com](mailto:devrel@oneai.com).
+
+You're also invited to join our [Discord community](https://discord.gg/ArpMha9n8H).
