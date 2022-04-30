@@ -6,7 +6,7 @@ from oneai.classes import Input, Output, Skill
 
 
 class Pipeline:
-    '''
+    """
     Language AI pipelines allow invoking and chaining multiple Language Skills to process your input text with a single API call.
 
     ## Attributes
@@ -48,28 +48,29 @@ class Pipeline:
     '...' # summary of my_text
     >>> output.summary.entities
     [oneai.Label(type=entity, span=[0, 10], name=entity1), ...] # entities from the summary
-    '''
-    def __init__(self, steps: List[Skill], api_key: str=None) -> None:
+    """
+
+    def __init__(self, steps: List[Skill], api_key: str = None) -> None:
         self.steps = steps  # todo: validate (based on input_type)
         self.api_key = api_key
 
     def to_json(self) -> dict:
         result = []
         for skill in self.steps:
-            result.append({
-                'skill': skill.api_name,
-                'params': {
-                    p: skill.__getattribute__(p) for p in skill._skill_params
+            result.append(
+                {
+                    "skill": skill.api_name,
+                    "params": {
+                        p: skill.__getattribute__(p) for p in skill._skill_params
+                    },
                 }
-            })
+            )
         return result
-        
+
     def run(
-        self,
-        input: Union[str, Input, Iterable[Union[str, Input]]],
-        api_key: str=None
+        self, input: Union[str, Input, Iterable[Union[str, Input]]], api_key: str = None
     ) -> Output:
-        '''
+        """
         Runs the pipeline on the input text.
 
         ## Parameters
@@ -84,19 +85,17 @@ class Pipeline:
         An `Output` object containing the results of the Skills in the pipeline.
 
         ## Raises
-        
+
         `InputError` if the input is is invalid or is of an incompatible type for the pipeline.
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
-        '''
+        """
         return _async_run_nested(self.run_async(input, api_key))
 
     async def run_async(
-        self,
-        input: Union[str, Input, Iterable[Union[str, Input]]],
-        api_key: str=None
+        self, input: Union[str, Input, Iterable[Union[str, Input]]], api_key: str = None
     ) -> Awaitable[Output]:
-        '''
+        """
         Runs the pipeline on the input text asynchronously.
 
         ## Parameters
@@ -111,13 +110,14 @@ class Pipeline:
         An Awaitable with an `Output` object containing the results of the Skills in the pipeline.
 
         ## Raises
-        
+
         `InputError` if the input is is invalid or is of an incompatible type for the pipeline.
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
-        '''
+        """
         if isinstance(input, (str, Input)):
             from oneai.requests import send_single_request
+
             return await send_single_request(
                 input,
                 self,
@@ -125,14 +125,13 @@ class Pipeline:
             )
         elif isinstance(input, Iterable):
             return await self.run_batch_async(input, api_key)
-        else: raise TypeError(f'pipeline input must be Input, str or iterable of inputs')
+        else:
+            raise TypeError(f"pipeline input must be Input, str or iterable of inputs")
 
     def run_batch(
-        self,
-        batch: Iterable[Union[str, Input]],
-        api_key: str=None
+        self, batch: Iterable[Union[str, Input]], api_key: str = None
     ) -> Dict[Union[str, Input], Output]:
-        '''
+        """
         Runs the pipeline on a batch of input texts.
 
         ## Parameters
@@ -147,19 +146,17 @@ class Pipeline:
         A dictionary mapping inputs to the produced `Output` objects, each containing the results of the Skills in the pipeline.
 
         ## Raises
-        
+
         `InputError` if the input is is invalid or is of an incompatible type for the pipeline.
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
-        '''
+        """
         return _async_run_nested(self.run_batch_async(batch, api_key))
 
     async def run_batch_async(
-        self,
-        batch: Iterable[Union[str, Input]],
-        api_key: str=None
+        self, batch: Iterable[Union[str, Input]], api_key: str = None
     ) -> Awaitable[Dict[Union[str, Input], Output]]:
-        '''
+        """
         Runs the pipeline on a batch of input texts asynchronously.
 
         ## Parameters
@@ -174,23 +171,25 @@ class Pipeline:
         An Awaitable with a dictionary mapping inputs to the produced `Output` objects, each containing the results of the Skills in the pipeline.
 
         ## Raises
-        
+
         `InputError` if the input is is invalid or is of an incompatible type for the pipeline.
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
-        '''
+        """
         from oneai.requests import send_batch_request
+
         return await send_batch_request(
-            batch,
-            self,
-            api_key=api_key or self.api_key or oneai.api_key
+            batch, self, api_key=api_key or self.api_key or oneai.api_key
         )
 
     def __repr__(self) -> str:
-        return f'oneai.Pipeline({self.steps})'
+        return f"oneai.Pipeline({self.steps})"
+
 
 # for jupyter environment, to avoid "asyncio.run() cannot be called from a running event loop"
 pool = concurrent.futures.ThreadPoolExecutor()
+
+
 def _async_run_nested(coru):
     try:
         asyncio.get_running_loop()
