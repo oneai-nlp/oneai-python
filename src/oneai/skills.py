@@ -19,7 +19,7 @@ class TranscriptionEnhancer(Skill):
     `enhanced: Output`
         An `Output` object containing the enhanced conversation, and output of the following `Skill`s
     `enhanced.text: str`
-        The generated summary
+        The enhanced conversation
     `enhanced.replacements: list[Label]`
         A list of `Label` objects, representing changes made to the text
 
@@ -300,9 +300,42 @@ class ActionItems(Skill):
     ## Example
 
     >>> pipeline = oneai.Pipeline(steps=[
-    ...     oneai.skills.Entities()
+    ...     oneai.skills.ActionItems()
     ... ])
     >>> output = pipeline.run("It's been a blast talking to you. Let's schedule another meeting for next Sun.")
-    >>> output.entities
+    >>> output.action_items
     [oneai.Label(type=action-item, span=[34, 78], value=Let's schedule another meeting for next Sun.)]
+    """
+
+
+@skillclass(
+    api_name="anonymize",
+    is_generator=True,
+    label_type="anonymized",
+    output_attr="anonymized",
+    output_attr1="anonymizations",
+)
+class Anonymize(Skill):
+    """
+    Anonymize texts, removing personal information
+
+    ## Output Attributes
+
+    `anonymized: Output`
+        An `Output` object containing the anonymized text, and output of the following `Skill`s
+    `anonymized.text: str`
+        The anonymized text
+    `anonymized.anonymizations: list[Label]`
+        A list of `Label` objects, representing anonymized information
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Anonymize()
+    ... ])
+    >>> output = pipeline.run("hello, I'm Michael, my email is michael@abcde.com")
+    >>> output.anonymized.text
+    hello, I'm ***, my email is ***
+    >>> output.anonymized.anonymizations
+    [oneai.Label(type=anonymized, span=[11, 14], value=Michael), oneai.Label(type=anonymized, span=[28, 31], value=michael@abcde.com)]
     """
