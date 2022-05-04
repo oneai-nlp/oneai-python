@@ -59,17 +59,15 @@ class Pipeline:
             return []
         # split into segments of skills, by where these skills should run (custom skills count as a separate segment)
         segments = []
-        current_segment = []
-        for skill in self.steps:
+        current_segment = 0
+        for i, skill in enumerate(self.steps):
             if skill.run_custom is not None:
-                if current_segment:
-                    segments.append(current_segment)
-                    current_segment = []
+                if i - current_segment:
+                    segments.append(self.steps[i:current_segment])
+                    current_segment = i
                 segments.append(skill)
-            else:
-                current_segment.append(skill)
-        if current_segment:
-            segments.append(current_segment)
+        if i - current_segment:
+            segments.append(self.steps[i:current_segment])
         return segments
 
     def run(
