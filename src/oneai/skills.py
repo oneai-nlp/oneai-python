@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from oneai import scraping
 
 from oneai.classes import Skill, skillclass
 
@@ -206,7 +207,7 @@ class Topics(Skill):
     """
 
 
-@skillclass(api_name="extract-html", is_generator=True, output_attr="html_article")
+@skillclass(api_name="extract-html", is_generator=True, output_attr="html_article", run_custom=scraping.extract_article)
 class HTMLExtractArticle(Skill):
     """
     Extracts the main text content of an HTML page. Accepts URLs or HTML strings

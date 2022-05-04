@@ -1,39 +1,74 @@
 import asyncio
 from datetime import datetime, timedelta
-from typing import Awaitable, Dict, Iterable, Union
+from inspect import isawaitable
+from typing import Awaitable, Dict, Iterable, List, Union
 
 import aiohttp
 import oneai
 
-from oneai.classes import Input, Output
+from oneai.classes import Input, Output, Skill
 from oneai.exceptions import handle_unsuccessful_response
 
 
 async def _send_request(
     session: aiohttp.ClientSession,
     input: Union[Input, str],
-    pipeline: oneai.Pipeline,
+    steps: List[Skill],
     api_key: str,
 ) -> Awaitable[Output]:
     headers = {"api-key": api_key, "Content-Type": "application/json"}
     request = {
         "text": input.get_text() if isinstance(input, Input) else str(input),
-        "steps": pipeline.to_json(),
+        "steps": [skill.asdict() for skill in steps],
         "input_type": input.type if isinstance(input, Input) else "article",
     }
     async with session.post(oneai.URL, headers=headers, json=request) as response:
         if response.status != 200:
             await handle_unsuccessful_response(response)
         else:
-            return Output.build(pipeline, await response.json(), input_type=type(input))
+            return Output.build(steps, await response.json(), input_type=type(input))
 
+async def _send_new(
+    session: aiohttp.ClientSession,
+    input: Union[Input, str],
+    pipeline: oneai.Pipeline,
+    api_key: str,
+) -> Awaitable[Output]:
+    segments = pipeline._split_segments()
+    if len(segments) <= 1:
+        return await _send_request(session, input, segments[0], api_key)
+    
+    output = Output(input)
+    input: Output = output
+    for segment in segments:
+        if isinstance(segment, oneai.Skill):
+            first = segment
+            new_output = first.run_custom(input, session)
+            if isawaitable(new_output):
+                new_output = await new_output
+            if isinstance(new_output, str):
+                new_output = Output(new_output)
+            if first.is_generator or not isinstance(new_output, Output):
+                input.attach(first, new_output)
+            else:
+                input.merge(new_output)
+                new_output = input
+        else:
+            first = segment[0]
+            new_output = await _send_request(session, input.text, segment, api_key)
+            input.merge(new_output)
+        while isinstance(new_output, Output):
+            input = new_output
+            new_output = new_output.data[-1] if new_output.data else None
+    return output
+            
 
 async def send_single_request(
     input: Union[Input, str], pipeline: oneai.Pipeline, api_key: str
 ) -> Awaitable[Output]:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        return await _send_request(session, input, pipeline, api_key)
+        return await _send_new(session, input, pipeline, api_key)
 
 
 async def send_batch_request(
@@ -97,7 +132,7 @@ async def send_batch_request(
         input = next_input()
         while input:
             try:
-                results[input] = await _send_request(session, input, pipeline, api_key)
+                results[input] = await _send_new(session, input, pipeline, api_key)
             except Exception as e:
                 print(f"\r\033[KInput {len(results)}:", repr(e))
                 results[input] = e
