@@ -54,22 +54,6 @@ class Pipeline:
         self.steps = steps  # todo: validate (based on input_type)
         self.api_key = api_key
 
-    def _split_segments(self) -> List[Union[List[Skill], Skill]]:
-        if not self.steps:
-            return []
-        # split into segments of skills, by where these skills should run (custom skills count as a separate segment)
-        segments = []
-        current_segment = 0
-        for i, skill in enumerate(self.steps):
-            if skill.run_custom is not None:
-                if i - current_segment:
-                    segments.append(self.steps[i:current_segment])
-                    current_segment = i
-                segments.append(skill)
-        if i - current_segment:
-            segments.append(self.steps[i:current_segment])
-        return segments
-
     def run(
         self, input: Union[str, Input, Iterable[Union[str, Input]]], api_key: str = None
     ) -> Output:
@@ -119,9 +103,9 @@ class Pipeline:
         `ServerError` if an internal server error occured.
         """
         if isinstance(input, (str, Input)):
-            from oneai.requests import send_single_request
+            from oneai._run_internal import _run_single_input
 
-            return await send_single_request(
+            return await _run_single_input(
                 input,
                 self,
                 api_key=api_key or self.api_key or oneai.api_key,
@@ -179,14 +163,30 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        from oneai.requests import send_batch_request
+        from oneai._run_internal import _run_batch
 
-        return await send_batch_request(
+        return await _run_batch(
             batch, self, api_key=api_key or self.api_key or oneai.api_key
         )
 
     def __repr__(self) -> str:
         return f"oneai.Pipeline({self.steps})"
+
+    def _split_segments(self) -> List[Union[List[Skill], Skill]]:
+        if not self.steps:
+            return []
+        # split into segments of skills, by where these skills should run (custom skills count as a separate segment)
+        segments = []
+        current_segment = 0
+        for i, skill in enumerate(self.steps):
+            if skill.run_custom is not None:
+                if i - current_segment:
+                    segments.append(self.steps[i:current_segment])
+                    current_segment = i
+                segments.append(skill)
+        if i - current_segment:
+            segments.append(self.steps[i:current_segment])
+        return segments
 
 
 # for jupyter environment, to avoid "asyncio.run() cannot be called from a running event loop"
