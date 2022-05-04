@@ -18,14 +18,15 @@ class OneAIError(Exception):
         A string containing details about the error.
     """
 
-    def __init__(self, status_code: int, message: str = "", details: str = ""):
+    def __init__(self, status_code: int = 0, message: str = "", details: str = ""):
         self.status_code = status_code
         self.message = message
         self.details = details
 
     def __str__(self) -> str:
         return (
-            f"{type(self).__name__}(status_code={self.status_code}"
+            f"{type(self).__name__}("
+            + (f", status_code={self.status_code}" if self.status_code else "")
             + (f", message={self.message}" if self.message else "")
             + (f", details={self.details})" if self.details else ")")
         )
