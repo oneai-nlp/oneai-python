@@ -54,18 +54,23 @@ class Pipeline:
         self.steps = steps  # todo: validate (based on input_type)
         self.api_key = api_key
 
-    def to_json(self) -> dict:
-        result = []
+    def _split_segments(self) -> List[Union[List[Skill], Skill]]:
+        if not self.steps:
+            return []
+        # split into segments of skills, by where these skills should run (custom skills count as a separate segment)
+        segments = []
+        current_segment = []
         for skill in self.steps:
-            result.append(
-                {
-                    "skill": skill.api_name,
-                    "params": {
-                        p: skill.__getattribute__(p) for p in skill._skill_params
-                    },
-                }
-            )
-        return result
+            if skill.run_custom is not None:
+                if current_segment:
+                    segments.append(current_segment)
+                    current_segment = []
+                segments.append(skill)
+            else:
+                current_segment.append(skill)
+        if current_segment:
+            segments.append(current_segment)
+        return segments
 
     def run(
         self, input: Union[str, Input, Iterable[Union[str, Input]]], api_key: str = None
