@@ -51,7 +51,7 @@ class Pipeline:
     """
 
     def __init__(self, steps: List[Skill], api_key: str = None) -> None:
-        self.steps = steps  # todo: validate (based on input_type)
+        self.steps = tuple(steps)  # todo: validate (based on input_type)
         self.api_key = api_key
 
     def run(

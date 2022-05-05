@@ -49,7 +49,7 @@ class Skill:
     # todo: replace all these w/ an output type object + parse conversations from t. enhancer etc.
     label_type: str = ""
     output_attr: str = ""
-    output_attr1: str = ""
+    output_attr1: str = field(default="", repr=False)
     run_custom: Callable[['Output', aiohttp.ClientSession], Union[str, List['Label'], 'Output']] = None
 
     def asdict(self) -> dict:
@@ -292,7 +292,7 @@ class Label:
     name: str = ""
     span: List[int] = field(default_factory=lambda: [0, 0])
     value: str = ""
-    data: dict = field(default_factory=lambda: dict())
+    data: dict = field(default_factory=dict)
 
     @classmethod
     def from_json(cls, object):
@@ -331,8 +331,8 @@ class Output:
     """
 
     text: Union[Input, str] = ""
-    skills: List[Skill] = field(default_factory=lambda: [], repr=False)  # not a dict since Skills are currently mutable & thus unhashable
-    data: List[Union[List[Label], "Output"]] = field(default_factory=lambda: [], repr=False)
+    skills: List[Skill] = field(default_factory=list, repr=False)  # not a dict since Skills are currently mutable & thus unhashable
+    data: List[Union[List[Label], "Output"]] = field(default_factory=list, repr=False)
 
     def __getitem__(self, name: str) -> Union[List[Label], "Output"]:
         return self.__getattr__(name)
