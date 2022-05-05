@@ -138,13 +138,14 @@ async def _run_segmented_pipeline(
             if isinstance(new_output, str): # skill returned a string, construct an Output object for next outputs
                 new_output = Output(new_output)
             if segment.is_generator or not isinstance(new_output, Output): # either a new text or labels, set them as an attribute of the existing Output object
-                next_input.set(segment, new_output)
+                next_input.add(segment, new_output)
             else:
                 next_input.merge(new_output) # new_output was produced from same text as next_input, merge them
                 new_output = next_input
         else: # API request
             new_output = await send_pipeline_request(session, next_input.text, segment, api_key)
             next_input.merge(new_output)
+            new_output = next_input
         while isinstance(new_output, Output): # find the deepest nested Output object (represents the last text generated in the pipeline) to serve as next_input
             next_input = new_output
             new_output = new_output.data[-1] if new_output.data else None
