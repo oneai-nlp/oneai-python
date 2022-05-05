@@ -45,7 +45,7 @@ def build_output(skills: List[Skill], raw_output: dict, input_type: type=str) ->
             clone = copy(skills[i])
             clone.is_generator = False
             clone.output_attr = skills[i].output_attr1
-            second.insert(0, clone)
+            second = (clone, *second)
         return first, second
 
     def build_internal(
@@ -68,7 +68,7 @@ def build_output(skills: List[Skill], raw_output: dict, input_type: type=str) ->
                         filter(lambda label: label.type == skill.label_type, labels)
                     )
                 )
-        return Output(text=text, skills=skills, data=data)
+        return Output(text=text, skills=list(skills), data=data)
 
     generator = raw_output["output"][0].get("text_generated_by_step_id", 0) - 1
     if generator < 0:
@@ -80,6 +80,6 @@ def build_output(skills: List[Skill], raw_output: dict, input_type: type=str) ->
         skills, next_skills = split_pipeline(skills, generator)
         return Output(
             text=get_text(-1, input_type),
-            skills=skills,
+            skills=list(skills),
             data=[[]] * generator + [build_internal(0, next_skills, str)],
         )

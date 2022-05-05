@@ -139,7 +139,7 @@ async def _run_segmented_pipeline(
                 new_output = Output(new_output)
             if segment.is_generator or not isinstance(new_output, Output): # either a new text or labels, set them as an attribute of the existing Output object
                 next_input.add(segment, new_output)
-            else:
+            else: # this is an edge case which should not happen
                 next_input.merge(new_output) # new_output was produced from same text as next_input, merge them
                 new_output = next_input
         else: # API request
