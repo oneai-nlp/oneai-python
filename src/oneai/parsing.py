@@ -1,8 +1,19 @@
 import re
 import oneai
+from oneai.classes import Utterance
 
 
 def parse_conversation(text: str, strict=False) -> oneai.Conversation:
+    # try to parse SRT format (I think this should be done more explicitly)
+    srt_regex = re.compile(r'\d+\n\d{1,2}:\d{2}:\d{2}[,.]\d{1,3} --> \d{1,2}:\d{2}:\d{2}[,.]\d{1,3}')
+    match = srt_regex.match(text)
+    if match:
+        data_array = srt_regex.split(text)
+        return oneai.Conversation(utterances=[
+            Utterance(speaker='SPEAKER', utterance=line.strip().replace('\n', ' '))
+            for line in data_array[1:]
+        ])
+
     result = []
     lines = re.split(r"\r?\n", text.strip())
     firstLine = True
@@ -10,23 +21,25 @@ def parse_conversation(text: str, strict=False) -> oneai.Conversation:
     currentLineInfo = None
     waitForTextLine = False
     weak = False
+    previousObject = None
 
     for i, line in enumerate(lines):
         if _isEmptyOrWhitespace(line):
             continue
 
         if waitForTextLine:
-            result.append(
-                oneai.Utterance(
-                    speaker=currentLineInfo["speaker"], utterance=line.strip()
-                )
-            )
+            previousObject["text"] = line.strip()
+            previousObject["text_line"] = i
             waitForTextLine = False
             continue
 
         currentLineInfo = _parseSpeakerLine(line)
         if currentLineInfo is None:
-            raise ValueError(f"Invalid conversation format at line {i}")
+            if firstLine:
+                raise ValueError(f"Invalid conversation format at line {i}")
+            previousObject["text"] += "\n" + line.strip()
+            weak = True
+            continue
 
         if firstLine:
             structure = currentLineInfo
@@ -38,23 +51,28 @@ def parse_conversation(text: str, strict=False) -> oneai.Conversation:
                 f"Differing conversation format at line {i}, run with strict=False to ignore"
             )
 
-        if currentLineInfo["text"]:
-            result.append(
-                oneai.Utterance(
-                    speaker=currentLineInfo["speaker"],
-                    utterance=currentLineInfo["text"],
-                )
+        if previousObject: result.append(
+            Utterance(
+                speaker=previousObject["speaker"],
+                utterance=previousObject["text"]
             )
-            waitForTextLine = False
-        else:
-            waitForTextLine = True
-    if waitForTextLine:
-        raise ValueError(
-            "Invalid conversation format: last utterance is empty, at line"
         )
-
-    if weak and len(result) <= 3:
-        raise ValueError("Weak pattern detected, but conversation is too short")
+        previousObject = {
+            "speaker": currentLineInfo["speaker"],
+            "text": currentLineInfo["text"],
+            "speaker_line": i, # what are these properties for? do I want them in Utterance objects?
+            "text_line": i,
+            "speaker_length": currentLineInfo["speaker_end"]
+        }
+        
+        waitForTextLine = not bool(currentLineInfo["text"])
+    if previousObject and not _isEmptyOrWhitespace(previousObject["text"]):
+        result.append(
+            Utterance(
+                speaker=previousObject["speaker"],
+                utterance=previousObject["text"]
+            )
+        )
 
     return oneai.Conversation(utterances=result)
 
@@ -68,6 +86,7 @@ def _parseSpeakerLine(text):
         "weak": True,
         "preTime": False,
         "speaker": None,
+        "speaker_end": None,
         "time": False,
         "separator": False,
         "text": None,
@@ -90,11 +109,13 @@ def _parseSpeakerLine(text):
             return None  # not a valid format - fail
         else:
             value["speaker"] = match.group(0)
+            value["speaker_end"] = len(text)
     else:
         value["weak"] = False
         if match.end() < len(text):
             value["text"] = text[match.end() :].strip()
         value["speaker"] = text[: match.start()]
+        value["speaker_end"] = match.end()
 
         if re.search(r"[:|-]$", match.group(0)):
             value["separator"] = True
@@ -103,6 +124,7 @@ def _parseSpeakerLine(text):
             match = re.match(r"\s*[:|-]", text)
             if match:
                 value["separator"] = True
+                value["speaker_end"] = match.end()
                 value["text"] = (
                     text[match.end() :].strip() if match.end() < len(text) else None
                 )
