@@ -1,6 +1,5 @@
 from copy import copy
-from ctypes import Union
-from typing import Awaitable, List
+from typing import Awaitable, List, Union
 import aiohttp
 import oneai
 
