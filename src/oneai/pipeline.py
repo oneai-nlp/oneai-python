@@ -182,9 +182,9 @@ class Pipeline:
             if skill.run_custom is not None:
                 if i - start:
                     segments.append(self.steps[start:i])
-                    start = i
+                start = i + 1
                 segments.append(skill)
-        if i - start:
+        if i + 1 - start:
             segments.append(self.steps[start:i + 1])
         return segments
 
