@@ -3,7 +3,7 @@ from typing import Awaitable, List, Union
 import aiohttp
 import oneai
 
-from oneai.classes import Input, Label, Output, Skill
+from oneai.classes import Input, Label, Labels, Output, Skill
 from oneai.exceptions import handle_unsuccessful_response
 
 
@@ -37,7 +37,7 @@ def build_output(skills: List[Skill], raw_output: dict, input_type: type=str) ->
             # return input_type.parse(text) if issubclass(input_type, Input) else text
             return text
 
-    def split_pipeline(skills, i):
+    def split_pipeline(skills: List[Skill], i: int):
         # split pipeline at a generator Skill
         first, second = skills[: i + 1], skills[i + 1 :]
         if hasattr(skills[i], "output_attr1") and skills[i].output_attr1:
@@ -64,7 +64,7 @@ def build_output(skills: List[Skill], raw_output: dict, input_type: type=str) ->
                 break
             else:
                 data.append(
-                    list(
+                    Labels(
                         filter(lambda label: label.type == skill.label_type, labels)
                     )
                 )
