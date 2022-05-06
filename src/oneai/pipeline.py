@@ -3,6 +3,7 @@ import oneai
 
 from typing import Awaitable, Dict, Iterable, List, Union
 from oneai.classes import Input, Output, Skill
+from oneai.segments import *
 
 
 class Pipeline:
@@ -54,6 +55,18 @@ class Pipeline:
         self.steps = tuple(steps)  # todo: validate (based on input_type)
         self.api_key = api_key
 
+        # split into segments of skills, by where these skills should run (custom skills count as a separate segment)
+        self._segments = []
+        start = 0
+        for i, skill in enumerate(steps):
+            if skill.run_custom is not None:
+                if i - start:
+                    self._segments.append(APISegment(self.steps[start:i]))
+                start = i + 1
+                self._segments.append(CustomSegment(skill))
+        if i + 1 - start:
+            self._segments.append(APISegment(self.steps[start:i + 1]))
+
     def run(
         self, input: Union[str, Input, Iterable[Union[str, Input]]], api_key: str = None
     ) -> Output:
@@ -103,11 +116,9 @@ class Pipeline:
         `ServerError` if an internal server error occured.
         """
         if isinstance(input, (str, Input)):
-            from oneai._run_internal import _run_single_input
-
-            return await _run_single_input(
+            return await process_single_input(
                 input,
-                self,
+                self._segments,
                 api_key=api_key or self.api_key or oneai.api_key,
             )
         elif isinstance(input, Iterable):
@@ -163,30 +174,12 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        from oneai._run_internal import _run_batch
-
-        return await _run_batch(
-            batch, self, api_key=api_key or self.api_key or oneai.api_key
+        return await process_batch(
+            batch, self._segments, api_key=api_key or self.api_key or oneai.api_key
         )
 
     def __repr__(self) -> str:
         return f"oneai.Pipeline({self.steps})"
-
-    def _split_segments(self) -> List[Union[List[Skill], Skill]]:
-        if not self.steps:
-            return []
-        # split into segments of skills, by where these skills should run (custom skills count as a separate segment)
-        segments = []
-        start = 0
-        for i, skill in enumerate(self.steps):
-            if skill.run_custom is not None:
-                if i - start:
-                    segments.append(self.steps[start:i])
-                start = i + 1
-                segments.append(skill)
-        if i + 1 - start:
-            segments.append(self.steps[start:i + 1])
-        return segments
 
 
 # for jupyter environment, to avoid "asyncio.run() cannot be called from a running event loop"
