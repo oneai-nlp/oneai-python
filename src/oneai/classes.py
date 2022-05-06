@@ -138,13 +138,16 @@ class Input:
 
     def get_text(self) -> str:
         """
-        Returns the input as a string. Not implemented by default.
+        Returns the input as a string (used by `repr`). Not implemented by default.
 
         ## Returns
 
         `str` representation of this `Input` instance.
         """
         raise NotImplementedError()
+
+    def __repr__(self) -> str:
+        return self.get_text()
 
 
 class Document(Input):
@@ -261,7 +264,7 @@ class Conversation(Input):
 
             return parse_conversation(text)
 
-    def __repr__(self) -> str:
+    def __str__(self) -> str:
         return f"oneai.Conversation{repr(self.utterances)}"
 
 
@@ -303,7 +306,7 @@ class Label:
     def __repr__(self) -> str:
         return (
             "oneai.Label("
-            + ", ".join(f"{k}={v}" for k, v in self.__dict__.items() if v)
+            + ", ".join(f"{k}={repr(v)}" for k, v in self.__dict__.items() if v)
             + ")"
         )
 

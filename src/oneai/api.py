@@ -15,7 +15,7 @@ async def send_pipeline_request(
 ) -> Awaitable[Output]:
     headers = {"api-key": api_key, "Content-Type": "application/json"}
     request = {
-        "text": input.get_text() if isinstance(input, Input) else str(input),
+        "text": input if isinstance(input, str) else repr(input),
         "steps": [skill.asdict() for skill in steps],
         "input_type": input.type if isinstance(input, Input) else "article",
     }
