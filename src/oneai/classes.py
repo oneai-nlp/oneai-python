@@ -281,6 +281,8 @@ class Label:
         Label class name, e.g. 'PERSON', 'happiness', 'POS'.
     `span: Tuple[int, int]`
         The start (inclusive) and end (exclusive) indices of the label in the input text.
+    `span_text: str`
+        The text of the label.
     `value: str`
         The value of the label.
     `data: Dict[str, Any]`
@@ -290,18 +292,23 @@ class Label:
     type: str = ""
     name: str = ""
     span: List[int] = field(default_factory=lambda: [0, 0])
+    span_text: str = ""
     value: str = ""
     data: dict = field(default_factory=dict)
 
     @classmethod
-    def from_json(cls, object):
-        return cls(
-            type=object.get("type", ""),
-            name=object.get("name", ""),
-            span=object.get("span", [0, 0]),
-            value=object.get("value", ""),
-            data=object.get("data", {}),
+    def from_json(cls, object: dict) -> "Label":
+        result = cls(
+            type=object.pop("type", ""),
+            name=object.pop("name", ""),
+            span=object.pop("span", [0, 0]),
+            span_text=object.pop("span_text", ""),
+            value=object.pop("value", ""),
+            data=object.pop("data", {}),
         )
+        for k, v in object:
+            result.__setattr__(k, v)
+        return result
 
     def __repr__(self) -> str:
         return (
