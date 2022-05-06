@@ -84,8 +84,8 @@ async def process_batch(
                 "Processed %d inputs - %s/input - %s total - %d successful - %d failed"
                 % (
                     total,
-                    time_format(time_delta),
-                    time_format(time_total),
+                    time_format(time_total / total / oneai.MAX_CONCURRENT_REQUESTS),
+                    time_format(time_total / oneai.MAX_CONCURRENT_REQUESTS),
                     total - exceptions,
                     exceptions,
                 )
@@ -96,7 +96,7 @@ async def process_batch(
                 % (
                     total,
                     time_format(time_delta),
-                    time_format(time_total),
+                    time_format(time_total / oneai.MAX_CONCURRENT_REQUESTS),
                     total - exceptions,
                     exceptions,
                 ),
