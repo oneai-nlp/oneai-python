@@ -50,12 +50,12 @@ class Summarize(Skill):
 
     ##  Attributes
 
-    `min_length: int, default=5`
-        minimal desired length (words) of the summary
-    `max_length: int, default=100`
-        maximal desired length (words) of the summary
+    `min_length: int`
+        Minimal desired length (words) of the summary. Omit for automatic length
+    `max_length: int`
+        Maximal desired length (words) of the summary. Omit for automatic length
     `find_origins: bool, default=False`
-        whether to generate origins of the summary, pointing to the input text
+        Whether to generate origins of the summary, pointing to the input text
 
     ## Output Attributes
 
@@ -76,9 +76,9 @@ class Summarize(Skill):
     oneai.Output(text='SUMMARY', origins=[...])
     """
 
-    min_length: int = 5
-    max_length: int = 100
-    find_origins: bool = True
+    min_length: int = 0
+    max_length: int = 0
+    find_origins: bool = False
 
 
 @skillclass(api_name="emotions", label_type="emotion")

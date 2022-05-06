@@ -1,12 +1,8 @@
-from copy import copy
 from dataclasses import dataclass, field
 import json
 from typing import Callable, Iterable, List, Tuple, Type, Union
 
 import aiohttp
-
-_SkillInput = Type[Union[str, "Input"]]
-_SkillOutput = Type[Tuple[Union[str, "Input"], str]]
 
 
 @dataclass
@@ -56,7 +52,7 @@ class Skill:
         return {
             "skill": self.api_name,
             "params": {
-                p: self.__getattribute__(p) for p in self._skill_params
+                p: self.__getattribute__(p) for p in self._skill_params if self.__getattribute__(p)
             }
         }
 
