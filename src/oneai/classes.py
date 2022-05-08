@@ -32,9 +32,9 @@ class Skill:
         The attribute name of the Skill's output in the Output object.
     `output_attr1: str`
         Only for Skills with 2 outputs (text / labels)
-    `run_custom: (Input, aiohttp.ClientSession) -> str | list[Label] | Output`
+    `run_custom: (Output, aiohttp.ClientSession) -> str | list[Label] | Output`
         A custom function that will be called locally instead of passing the Skill to the API.
-        The `Input` object hold the input text (`Input.__repr__()`), and output of the previous Skills in the pipeline.
+        The `Output` object hold the input text (`Output.text`), and output of the previous Skills in the pipeline.
         Can return a string with generated text (when `is_generator=True`), a list of `Label`s (when `is_generator=False`) or an `Output` object for more complex outputs.
         Can use the `aiohttp.ClientSession` to make HTTP requests.
     """
@@ -46,7 +46,7 @@ class Skill:
     label_type: str = ""
     output_attr: str = ""
     output_attr1: str = field(default="", repr=False)
-    run_custom: Callable[['Input', aiohttp.ClientSession], Union[str, 'Labels', 'Output']] = None
+    run_custom: Callable[['Output', aiohttp.ClientSession], Union[str, 'Labels', 'Output']] = None
 
     def asdict(self) -> dict:
         return {

@@ -7,7 +7,7 @@ import aiohttp
 import oneai
 
 from oneai.api import send_pipeline_request
-from oneai.classes import Document, Input, Output, Skill
+from oneai.classes import Input, Output, Skill
 from oneai.exceptions import OneAIError
 
 
@@ -166,8 +166,8 @@ class CustomSegment(Segment):
         api_key: str,
         session: aiohttp.ClientSession,
     ) -> Output:
-        if isinstance(input, str):
-            input = Document(input)
+        if not isinstance(input, Output):
+            input = Output(input)
         try:
             output = self.skill.run_custom(input, session)
         except Exception as e:
