@@ -7,7 +7,7 @@ import aiohttp
 import oneai
 
 from oneai.api import send_pipeline_request
-from oneai.classes import Input, Output, Skill
+from oneai.classes import Document, Input, Output, Skill
 from oneai.exceptions import OneAIError
 
 
@@ -56,7 +56,8 @@ async def process_batch(
     results = dict()
     exceptions = 0  # number of exceptions occurred
     time_total = timedelta()  # total time spent on all requests
-
+    # length = len(batch) if hasattr(batch, "__len__") else 0
+        
     def next_input():  # distribute batch to workers
         try:
             return next(iterator)
@@ -165,8 +166,8 @@ class CustomSegment(Segment):
         api_key: str,
         session: aiohttp.ClientSession,
     ) -> Output:
-        if not isinstance(input, Output):
-            input = Output(input)
+        if isinstance(input, str):
+            input = Document(input)
         try:
             output = self.skill.run_custom(input, session)
         except Exception as e:

@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 import json
-from typing import Callable, Iterable, List, Tuple, Type, Union
+from typing import Callable, Iterable, List, Type, Union
 
 import aiohttp
 
@@ -32,9 +32,9 @@ class Skill:
         The attribute name of the Skill's output in the Output object.
     `output_attr1: str`
         Only for Skills with 2 outputs (text / labels)
-    `run_custom: (Output, aiohttp.ClientSession) -> str | list[Label] | Output`
+    `run_custom: (Input, aiohttp.ClientSession) -> str | list[Label] | Output`
         A custom function that will be called locally instead of passing the Skill to the API.
-        The `Output` object hold the input text (`Output.text`), and output of the previous Skills in the pipeline.
+        The `Input` object hold the input text (`Input.__repr__()`), and output of the previous Skills in the pipeline.
         Can return a string with generated text (when `is_generator=True`), a list of `Label`s (when `is_generator=False`) or an `Output` object for more complex outputs.
         Can use the `aiohttp.ClientSession` to make HTTP requests.
     """
@@ -46,7 +46,7 @@ class Skill:
     label_type: str = ""
     output_attr: str = ""
     output_attr1: str = field(default="", repr=False)
-    run_custom: Callable[['Output', aiohttp.ClientSession], Union[str, List['Label'], 'Output']] = None
+    run_custom: Callable[['Input', aiohttp.ClientSession], Union[str, 'Labels', 'Output']] = None
 
     def asdict(self) -> dict:
         return {
@@ -64,7 +64,7 @@ def skillclass(
     is_generator: bool = False,
     output_attr: str = "",
     output_attr1: str = "",
-    run_custom: Callable[['Output', aiohttp.ClientSession], Union[str, List['Label'], 'Output']] = None 
+    run_custom: Callable[['Output', aiohttp.ClientSession], Union[str, 'Labels', 'Output']] = None 
 ):
     """
     A decorator for defining a Language Skill class. Decorate subclasses of `Skill` with this decorator to provide default values for instance attributes.
@@ -347,7 +347,7 @@ class Labels(List[Label]):
 
 
 @dataclass
-class Output:
+class Output(Input):
     """
     Represents the output of a pipeline. The structure of the output is dynamic, and corresponds to the Skills used and their order in the pipeline.
     Skill outputs can be accessed as attributes, either with the `api_name` of the corresponding Skill or the `output_attr` field.
@@ -389,6 +389,9 @@ class Output:
         return super().__dir__() + [
             skill.output_attr or skill.api_name for skill in self.skills
         ]
+
+    def get_text(self) -> str:
+        return self.text if isinstance(self.text, str) else repr(self.text)
 
     def add(self, skill: Skill, data: Union['Output', Labels]):
         """
