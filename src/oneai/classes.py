@@ -269,6 +269,23 @@ class Conversation(Input):
 
 
 @dataclass
+class Span:
+    start: int
+    end: int
+    section: int = 0
+    text: str = None
+
+    @classmethod
+    def from_json(cls, objects: List[dict], text: str) -> "List[Span]":
+        return [] if not objects else [cls(
+            start=object.get("start", None),
+            end=object.get("end", None),
+            section=object.get("section", None),
+            text=text
+        ) for object in objects]
+
+
+@dataclass
 class Label:
     """
     Represents a label, marking a part of the input text. Attribute values largely depend on the Skill the labels were produced by.
@@ -279,8 +296,10 @@ class Label:
         Label type, e.g. 'entity', 'topic', 'emotion'.
     `name: str`
         Label class name, e.g. 'PERSON', 'happiness', 'POS'.
-    `span: Tuple[int, int]`
-        The start (inclusive) and end (exclusive) indices of the label in the input text.
+    `output_spans: list[Span]`
+        The spans in the output text that are marked with the label.
+    `input_spans: list[Span]`
+        The spans in the input text that are relevant to the label. Only appears if the label was produced by a Skill that supports input spans.
     `span_text: str`
         The text of the label.
     `value: str`
@@ -292,23 +311,24 @@ class Label:
     type: str = ""
     name: str = ""
     span: List[int] = field(default_factory=lambda: [0, 0])
+    output_spans: List[int] = field(default_factory=list)
+    input_spans: List[int] = field(default_factory=list)
     span_text: str = ""
     value: str = ""
     data: dict = field(default_factory=dict)
 
     @classmethod
     def from_json(cls, object: dict) -> "Label":
-        result = cls(
+        return cls(
             type=object.pop("type", ""),
             name=object.pop("name", ""),
+            output_spans=Span.from_json(object.pop("output_spans", []), object.get('span_text', None)),
+            input_spans=Span.from_json(object.pop("input_spans", []), object.get('span_text', None)),
             span=object.pop("span", [0, 0]),
             span_text=object.pop("span_text", ""),
             value=object.pop("value", ""),
             data=object.pop("data", {}),
         )
-        for k, v in object.items():
-            result.__setattr__(k, v)
-        return result
 
     def __repr__(self) -> str:
         return (
