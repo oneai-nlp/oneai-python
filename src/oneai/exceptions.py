@@ -26,7 +26,7 @@ class OneAIError(Exception):
     def __str__(self) -> str:
         return (
             f"{type(self).__name__}("
-            + (f", status_code={self.status_code}" if self.status_code else "")
+            + (f"status_code={self.status_code}" if self.status_code else "")
             + (f", message={self.message}" if self.message else "")
             + (f", details={self.details})" if self.details else ")")
         )

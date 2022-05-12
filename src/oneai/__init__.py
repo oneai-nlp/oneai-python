@@ -1,6 +1,6 @@
-__version__ = "0.3.0"
+__version__ = "0.3.1"
 
-from typing import Final
+from typing_extensions import Final
 import oneai.skills as skills
 from oneai.classes import *
 from oneai.pipeline import Pipeline
