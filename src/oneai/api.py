@@ -4,7 +4,7 @@ import aiohttp
 import oneai
 
 from oneai.classes import Input, Label, Labels, Output, Skill
-from oneai.exceptions import handle_unsuccessful_response
+from oneai.exceptions import APIKeyError, handle_unsuccessful_response
 
 
 async def send_pipeline_request(
@@ -13,6 +13,9 @@ async def send_pipeline_request(
     steps: List[Skill],
     api_key: str,
 ) -> Awaitable[Output]:
+    if api_key is None or not api_key:
+        raise APIKeyError(60001, 'Missing API key', 'Please provide a valid API key, either by setting the global `oneai.api_key` or passing the `api_key` parameter')
+
     headers = {"api-key": api_key, "Content-Type": "application/json"}
     request = {
         "text": input if isinstance(input, str) else repr(input),
