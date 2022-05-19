@@ -13,7 +13,7 @@ See the [One AI documentation](https://oneai.com/docs)
 
 ## Getting started
 ### Requirements
-Python 3.4+ (PyPy supported)
+Python 3.6.1+ (PyPy supported)
 
 ### Installation
 `pip install oneai`

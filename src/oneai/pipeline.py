@@ -66,7 +66,7 @@ class Pipeline:
                 start = i + 1
                 self._segments.append(CustomSegment(skill))
         if i + 1 - start:
-            self._segments.append(APISegment(self.steps[start:i + 1]))
+            self._segments.append(APISegment(self.steps[start : i + 1]))
 
     def run(
         self, input: Union[str, Input, Iterable[Union[str, Input]]], api_key: str = None
@@ -192,7 +192,7 @@ def _async_run_nested(coru):
     if is_36:
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(coru)
-    else: 
+    else:
         try:
             asyncio.get_running_loop()
             return pool.submit(asyncio.run, coru).result()
