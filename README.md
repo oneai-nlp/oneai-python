@@ -9,7 +9,7 @@ The Language Studio provides a visual interface to experiment with our APIs and 
 Visit the [Langauge Studio](https://studio.oneai.com?utm_source=open_source&utm_medium=python_sdk_readme)
 
 ## Documentation
-See the [One AI documentation](https://oneai.com/docs)
+See the [One AI documentation](https://studio.oneai.com/docs?utm_source=open_source&utm_medium=python_sdk_readme)
 
 ## Getting started
 ### Requirements
@@ -19,7 +19,7 @@ Python 3.6.1+ (PyPy supported)
 `pip install oneai`
 
 ### Authentication
-Register and create a key for your project [in the Studio](https://studio.oneai.com/settings/api-keys). As a security measure we only show the key once, so make sure to keep it somewhere safe.
+Register and create a key for your project [in the Studio](https://studio.oneai.com/settings/api-keys?utm_source=open_source&utm_medium=python_sdk_readme). As a security measure we only show the key once, so make sure to keep it somewhere safe.
 
 Attach your key via the `oneai.api_key` field or by passing it to individual calls. Requests must be authenticated, and will fail without an active token.
 
