@@ -22,6 +22,12 @@ async def send_pipeline_request(
         "steps": [skill.asdict() for skill in steps],
         "input_type": input.type if isinstance(input, Input) else "article",
     }
+    if isinstance(input, Input):
+        if hasattr(input, 'content_type'):
+            request['content_type'] = input.content_type
+        if hasattr(input, 'encoding'):
+            request['encoding'] = input.encoding
+
     async with session.post(oneai.URL, headers=headers, json=request) as response:
         if response.status != 200:
             await handle_unsuccessful_response(response)

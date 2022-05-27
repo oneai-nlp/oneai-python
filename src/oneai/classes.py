@@ -1,8 +1,13 @@
+from base64 import b64encode
 from dataclasses import dataclass, field
+from io import BytesIO
 import json
-from typing import Callable, Iterable, List, Type, Union
+import os
+from typing import BinaryIO, Callable, Iterable, List, Literal, TextIO, Type, Union
 
 import aiohttp
+
+from oneai.exceptions import InputError
 
 
 @dataclass
@@ -166,9 +171,9 @@ class Document(Input):
     `parse(text) -> Document`
         A class method. Parse a string into a `Document` instance.
     """
+    type = 'article'
 
     def __init__(self, text: str):
-        super().__init__("article")
         self.text = text
 
     @classmethod
@@ -224,8 +229,9 @@ class Conversation(Input):
         A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
     """
 
+    type = 'conversation'
+
     def __init__(self, utterances: List[Utterance] = []):
-        super().__init__("conversation")
         self.utterances = utterances
 
     def get_text(self) -> str:
@@ -267,6 +273,71 @@ class Conversation(Input):
     def __str__(self) -> str:
         return f"oneai.Conversation{repr(self.utterances)}"
 
+
+class Audio(Input):
+    """
+    Represents audio inputs.
+
+    ## Attributes
+
+    `data: str`
+        A base64-encoded string of the audio data.
+    `type: str`
+        An input-type hint for the API, either `Conversation.type` or `Document.type`.
+
+    ## Methods
+
+    `get_text() -> str`
+        Returns the encoded audio data.
+    """
+
+    def __init__(
+        self,
+        file: Union[str, BinaryIO, bytes],
+        extension: str=None,
+        type: str=Conversation.type
+    ):
+        """
+        Creates a new `Audio` input instance
+
+        ## Parameters
+
+        `file: Union[str, BinaryIO]`
+            The audio file to encode. Either a `str` file name, `BinaryIO` object or `bytes` data.
+        `extension: str` (optional)
+            The file extension of the audio file. If not provided, it will be guessed from the file name.
+            Only `.wav` files are supported at the time.
+        `type: str` (optional)
+            The input-type hint for the API, either `Conversation.type` or `Document.type`.
+        """
+        super().__init__(type)
+
+        if isinstance(file, str):
+            _, ext = os.path.splitext(file)
+            if extension and extension not in ext:
+                raise InputError(message='file extension does not match', details=f'file name: {file}, extension: {extension}')
+            elif ext in ['.wav']:
+                file = open(file, 'rb').read()
+            else:
+                raise InputError(message=f'unsupported file extension {ext}', details='only .wav files are supported at the time')
+        elif isinstance(file, BytesIO):
+            file = file.read()
+        
+        self.content_type = 'audio/wav'
+        
+        self.data = b64encode(file).decode('utf-8')
+        self.encoding = 'base64'
+    
+    def get_text(self) -> str:
+        """
+        Returns the encoded audio data.
+
+        ## Returns
+
+        `str` representation of this `Audio` instance.
+        """
+
+        return self.data
 
 @dataclass
 class Span:
