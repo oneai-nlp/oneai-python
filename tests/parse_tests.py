@@ -1,5 +1,4 @@
 import sys
-sys.path.append('/Users/michaelgur/VS Code/oneai_sdk_python/src/')
 import oneai.parsing as parsing
 
 def comp4Test(a, b):
