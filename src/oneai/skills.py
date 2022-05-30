@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+from warnings import warn
 from oneai import scraping
 
 from oneai.classes import Skill, skillclass
@@ -105,7 +106,7 @@ class Emotions(Skill):
 @skillclass(api_name="entities", label_type="entity")
 class Entities(Skill):
     """
-    Detects named entities in the input
+    Deprecated- use either `Names` or `Numbers` instead
 
     ## Output Attributes
 
@@ -121,6 +122,9 @@ class Entities(Skill):
     >>> output.entities
     [oneai.Label(type=entity, name=PERSON, span=[0, 3], value=Jim), oneai.Label(type=entity, name=ORG, span=[21, 31], value=Acme Corp.)]
     """
+
+    def __post_init__(self):
+        warn("Entities Skill is deprecated- use either `Names` or `Numbers` instead")
 
 
 @skillclass(api_name="keywords", label_type="keyword")
@@ -207,7 +211,12 @@ class Topics(Skill):
     """
 
 
-@skillclass(api_name="extract-html", is_generator=True, output_attr="html_article", run_custom=scraping.extract_article)
+@skillclass(
+    api_name="extract-html",
+    is_generator=True,
+    output_attr="html_article",
+    run_custom=scraping.extract_article,
+)
 class HTMLExtractArticle(Skill):
     """
     Extracts the main text content of an HTML page. Accepts URLs or HTML strings
@@ -266,6 +275,7 @@ class BusinessEntities(Skill):
     """
     ### 'Labs' Skill- this Skill is still in beta and is may produce incorrect results in some cases
 
+    deprecated- use either `Pricings` instead.
     Detects business entities (quantities, pricings) in the input
 
     ## Output Attributes
@@ -282,6 +292,9 @@ class BusinessEntities(Skill):
     >>> output.business_entities
     [oneai.Label(type=business-entity, name=pricing, data={'amount': 10.0, 'currency': 'USD', 'unit': 'barrel'}, span=[9, 26], value=10 USD per barrel)]
     """
+
+    def __post_init__(self):
+        warn("BusinessEntities Skill is deprecated- use either `Pricings` instead")
 
 
 @skillclass(
@@ -339,4 +352,140 @@ class Anonymize(Skill):
     hello, I'm ***, my email is ***
     >>> output.anonymized.anonymizations
     [oneai.Label(type=anonymized, span=[11, 14], value=Michael), oneai.Label(type=anonymized, span=[28, 31], value=michael@abcde.com)]
+    """
+
+
+@skillclass(
+    api_name="business-entities",
+    is_generator=True,
+    label_type="business-entity",
+    output_attr="labs",
+    output_attr1="pricings",
+)
+class Pricings(Skill):
+    """
+    ### 'Labs' Skill- this Skill is still in beta and is may produce incorrect results in some cases
+
+    Detects pricings and quantities in the input
+
+    ## Output Attributes
+
+    `pricings: list[Label]`
+        A list of `Label` objects, with detected pricings and their data
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Pricings()
+    ... ])
+    >>> output = pipeline.run('it costs 10 USD per barrel')
+    >>> output.pricings
+    [oneai.Label(name=pricing, data={'amount': 10.0, 'currency': 'USD', 'unit': 'barrel'}, span=[9, 26], value=10 USD per barrel)]
+    """
+
+
+@skillclass(api_name="names", label_type="name")
+class Names(Skill):
+    """
+    Detects and classifies names in the input
+
+    ## Output Attributes
+
+    `names: list[Label]`
+        A list of `Label` objects, with detected names and their type
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Names()
+    ... ])
+    >>> output = pipeline.run('Jim bought shares of Acme Corp.')
+    >>> output.names
+    [oneai.Label(type=entity, name=PERSON, span=[0, 3], value=Jim), oneai.Label(type=entity, name=ORG, span=[21, 31], value=Acme Corp.)]
+    """
+
+
+@skillclass(api_name="numbers", label_type="number")
+class Numbers(Skill):
+    """
+    Detects and classifies numbers and dates in the input
+
+    ## Output Attributes
+
+    `entities: list[Label]`
+        A list of `Label` objects, with detected numbers and their type
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Numbers()
+    ... ])
+    >>> output = pipeline.run('Jim bought shares of Acme Corp.')
+    >>> output.numbers
+    """
+
+
+@skillclass(api_name="sentences", label_type="sentence")
+class SplitBySentence(Skill):
+    """
+    Splits input by sentence
+
+    ## Output Attributes
+
+    `sentences: list[Label]`
+        A list of `Label` objects, with detected numbers and their type
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Sentences()
+    ... ])
+    >>> output = pipeline.run('...')
+    >>> output.sentences
+    """
+
+
+@skillclass(
+    api_name="dialogue-segmentation",
+    label_type="dialogue-segment",
+    output_attr="segments",
+)
+class SplitByTopic(Skill):
+    """
+    Splits input by discussed topics
+
+    ## Output Attributes
+
+    `segments: list[Label]`
+        A list of `Label` objects, with generated topic-segments
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.SplitByTopic()
+    ... ])
+    >>> output = pipeline.run('...')
+    >>> output.segments
+    """
+
+
+@skillclass(
+    api_name="sales-insights", label_type="sales-insights", output_attr="sales_insights"
+)
+class SalesInsights(Skill):
+    """
+    Splits input by discussed topics
+
+    ## Output Attributes
+
+    `sales_insights: list[Label]`
+        A list of `Label` objects, with detected sales insights
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.SalesInsights()
+    ... ])
+    >>> output = pipeline.run('...')
+    >>> output.sales_insights
     """
