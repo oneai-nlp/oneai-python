@@ -14,7 +14,7 @@ from oneai.classes import Skill, skillclass
 )
 class TranscriptionEnhancer(Skill):
     """
-    Enhances conversations, removing fillers and mistakes. Only works with `Conversation` inputs
+    Deprecated- use `Proofread` instead
 
     ## Output Attributes
 
@@ -34,6 +34,38 @@ class TranscriptionEnhancer(Skill):
     >>> output = pipeline.run(conversation)
     >>> output.enhanced
     oneai.Output(text='ENHANCED TRANSCRIPTION', replacements=[...])
+    """
+
+
+@skillclass(
+    api_name="enhance",
+    is_generator=True,
+    label_type="replacement",
+    output_attr="proofread",
+    output_attr1="replacements",
+)
+class Proofread(Skill):
+    """
+    Enhances conversations, removing fillers and mistakes. Only works with `Conversation` inputs
+
+    ## Output Attributes
+
+    `proofread: Output`
+        An `Output` object containing the enhanced conversation, and output of the following `Skill`s
+    `proofread.text: str`
+        The enhanced conversation
+    `proofread.replacements: list[Label]`
+        A list of `Label` objects, representing changes made to the text
+
+    ## Example
+
+    >>> conversation = oneai.Conversation([...])
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Proofread()
+    ... ])
+    >>> output = pipeline.run(conversation)
+    >>> output.proofread
+    oneai.Output(text='PROOFREAD TRANSCRIPTION', replacements=[...])
     """
 
 
