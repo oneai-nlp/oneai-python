@@ -404,7 +404,7 @@ class Span:
     text: str = None
 
     @classmethod
-    def from_json(cls, objects: List[dict], text: str) -> "List[Span]":
+    def from_dict(cls, objects: List[dict], text: str) -> "List[Span]":
         return (
             []
             if not objects
@@ -463,15 +463,15 @@ class Label:
         return self._span
 
     @classmethod
-    def from_json(cls, object: dict) -> "Label":
+    def from_dict(cls, object: dict) -> "Label":
         return cls(
             type=object.pop("type", ""),
             skill=object.pop("skill", ""),
             name=object.pop("name", ""),
-            output_spans=Span.from_json(
+            output_spans=Span.from_dict(
                 object.pop("output_spans", []), object.get("span_text", None)
             ),
-            input_spans=Span.from_json(
+            input_spans=Span.from_dict(
                 object.pop("input_spans", []), object.get("span_text", None)
             ),
             _span=object.pop("span", [0, 0]),

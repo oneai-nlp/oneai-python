@@ -72,7 +72,7 @@ def build_output(
         # since output[0].text is corrupted (not parsable) for conversation inputs
         output_index = max(output_index, 0)
         labels = [
-            Label.from_json(label)
+            Label.from_dict(label)
             for label in raw_output["output"][output_index]["labels"]
         ]
         data = []
