@@ -30,9 +30,9 @@ import oneai
 
 oneai.api_key = '<YOUR-API-KEY>'
 pipeline = oneai.Pipeline(steps=[
-    oneai.skills.Entities(),
+    oneai.skills.Names(),
     oneai.skills.Summarize(min_length=20),
-    oneai.skills.Highlights()
+    oneai.skills.Keywords()
 ])
 
 my_text = 'analyze this text.'
@@ -68,14 +68,14 @@ print(output)
 
 ### Multi Skills request
 
-Let's say you're interested in extracting keywords *and* emotions from the text.
+Let's say you're interested in extracting keywords *and* sentiments from the text.
 ```python
 import oneai
 
 oneai.api_key = '<YOUR-API-KEY>'
 pipeline = oneai.Pipeline(steps=[
     oneai.skills.Keywords(),
-    oneai.skills.Emotions()
+    oneai.skills.Sentiments()
 ])
 
 my_text = 'analyze this text.'
@@ -87,7 +87,7 @@ print(output)
 
 Skills can do either text analysis, and then their output are labels and spans (labels location in the analyzed text), or they can be generator skills, in which case they transform the input text into an output text.
 
-Here's an example for a pipeline that combines both type of skills. It will extract keywords and emotions from the text, and then summarize it.
+Here's an example for a pipeline that combines both type of skills. It will extract keywords and sentiments from the text, and then summarize it.
 
 ```python
 import oneai
@@ -95,7 +95,7 @@ import oneai
 oneai.api_key = '<YOUR-API-KEY>'
 pipeline = oneai.Pipeline(steps=[
     oneai.skills.Keywords(),
-    oneai.skills.Emotions(),
+    oneai.skills.Sentiments(),
     oneai.skills.Summarize()
 ])
 
@@ -106,7 +106,7 @@ print(output)
 
 ### Order is Important
 
-When the pipeline is invoked, it is invoked with an original text you submit. If a generator skill is ran, then all following skills will use its generated text rather then the original text. In this example, for instance, we change the order of the pipeline from the previous example, and the results will be different. Instead of extracting keywords and emotions from the original text, keywords and emotions will be extracted from the generated summary.
+When the pipeline is invoked, it is invoked with an original text you submit. If a generator skill is ran, then all following skills will use its generated text rather then the original text. In this example, for instance, we change the order of the pipeline from the previous example, and the results will be different. Instead of extracting keywords and sentiments from the original text, keywords and sentiments will be extracted from the generated summary.
 
 ```python
 import oneai
@@ -115,7 +115,7 @@ oneai.api_key = '<YOUR-API-KEY>'
 pipeline = oneai.Pipeline(steps=[
     oneai.skills.Summarize(),
     oneai.skills.Keywords(),
-    oneai.skills.Emotions()
+    oneai.skills.Sentiments()
 ])
 
 my_text = 'analyze this text.'
@@ -133,7 +133,7 @@ oneai.api_key = '<YOUR-API-KEY>'
 pipeline = oneai.Pipeline(steps=[
     oneai.skills.Summarize(max_length=50),
     oneai.skills.Keywords(),
-    oneai.skills.Emotions()
+    oneai.skills.Sentiments()
 ])
 
 my_text = 'analyze this text.'
@@ -142,23 +142,57 @@ print(output)
 ```
 
 ### Output
-The structure of the output is dynamic, and corresponds to the Skills used and their order in the pipeline. Each output object contains the input text (which can be the original input or text produced by generator Skills), and a list of labels detected by analyzer Skills, that contain the extracted data.
+The structure of the output is dynamic, and corresponds to the Skills used and their order in the pipeline. Each output object contains the input text (which can be the original input or text produced by generator Skills), and a list of labels detected by analyzer Skills, that contain the extracted data. For example:
 ```python
-import oneai
-
-oneai.api_key = '<YOUR-API-KEY>'
 pipeline = oneai.Pipeline(steps=[
+    oneai.skills.Sentiments(),
     oneai.skills.Summarize(max_length=50),
     oneai.skills.Keywords(),
-    oneai.skills.Emotions(),
 ])
 
-my_text = 'analyze this text.'
+my_text = '''Could a voice control microwave be the new norm? The price is unbeatable for a name brand product, an official Amazon brand, so you can trust it at least. Secondly, despite the very low price, if you don't want to use the voice control, you can still use it as a regular microwave.'''
 output = pipeline.run(my_text)
+```
+will generate the following:
+```python
+oneai.Output(
+    text="Could a voice control microwave be the ...",
+    sentiments=[ # list of detected sentiments
+        oneai.Label(
+            type='sentiment',
+            output_spans=[ # where the sentiment appears in the text
+                Span(
+                    start=49,
+                    end=97,
+                    section=0,
+                    text='The price is unbeatable for a name brand product'
+                )
+            ],
+            value='POS' # a positive sentiment
+        ),
+        ...
+    ],
+    summary=oneai.Output(
+        text='The price is unbeatable for a name brand product, an official Amazon brand, so you can trust it at least. Despite the very low price, you can still use it as a regular microwave.',
+        keywords=[ # keyword labels
+            oneai.Label(type='keyword', name='price', output_spans=[Span(start=4, end=9, section=0, text='price')], value=0.253), ...
+        ]
+    )
+)
+```
 
-print(output.entities)
-print(output.summary.text)
-print(output.summary.highlights)
+### File Uploads
+Our API supports the following file extensions:
+* `.txt`- text content
+* `.json`- conversations in the One AI conversation format
+* `.srt`- analyze captions as conversations
+* `.wav`- audio files to be transcribed & analyzed
+* `.jpg`- detect text in pictures via OCR
+Upload a file via the `oneai.File` class, i.e
+```python
+input = oneai.File('./example.txt')
+pipeline = oneai.Pipeline(steps=[...])
+output = pipeline.run(input)
 ```
 
 ### Support
