@@ -36,6 +36,14 @@ class TranscriptionEnhancer(Skill):
     oneai.Output(text='ENHANCED TRANSCRIPTION', replacements=[...])
     """
 
+    def __new__(cls, *args, **kwargs):
+        warn(
+            "TranscriptionEnhancer Skill is deprecated- use `Proofread` instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return super().__new__(cls, *args, **kwargs)
+
 
 @skillclass(
     api_name="enhance",
@@ -155,8 +163,13 @@ class Entities(Skill):
     [oneai.Label(type=entity, name=PERSON, span=[0, 3], value=Jim), oneai.Label(type=entity, name=ORG, span=[21, 31], value=Acme Corp.)]
     """
 
-    def __post_init__(self):
-        warn("Entities Skill is deprecated- use either `Names` or `Numbers` instead", DeprecationWarning)
+    def __new__(cls, *args, **kwargs):
+        warn(
+            "Entities Skill is deprecated- use either `Names` or `Numbers` instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return super().__new__(cls, *args, **kwargs)
 
 
 @skillclass(api_name="keywords", label_type="keyword")
@@ -307,7 +320,7 @@ class BusinessEntities(Skill):
     """
     ### 'Labs' Skill- this Skill is still in beta and is may produce incorrect results in some cases
 
-    deprecated- use either `Pricings` instead.
+    deprecated- use `Pricings` instead.
     Detects business entities (quantities, pricings) in the input
 
     ## Output Attributes
@@ -325,8 +338,13 @@ class BusinessEntities(Skill):
     [oneai.Label(type=business-entity, name=pricing, data={'amount': 10.0, 'currency': 'USD', 'unit': 'barrel'}, span=[9, 26], value=10 USD per barrel)]
     """
 
-    def __post_init__(self):
-        warn("BusinessEntities Skill is deprecated- use either `Pricings` instead", DeprecationWarning)
+    def __new__(cls, *args, **kwargs):
+        warn(
+            "BusinessEntities Skill is deprecated- use `Pricing` instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return super().__new__(cls, *args, **kwargs)
 
 
 @skillclass(

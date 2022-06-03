@@ -82,8 +82,9 @@ def skillclass(
 
     def wrap(cls) -> cls:
         if not issubclass(cls, Skill):
-            print(
-                f"warning: class {cls.__name__} decorated with @skillclass does not inherit Skill"
+            warn(
+                f"warning: class {cls.__name__} decorated with @skillclass does not inherit Skill",
+                stacklevel=2,
             )
 
         def __init__(self, *args, **kwargs):
@@ -454,7 +455,11 @@ class Label:
 
     @property
     def span(self) -> Span:
-        warn("`Label.span` is deprecated, use `Label.output_spans` instead", DeprecationWarning)
+        warn(
+            "`Label.span` is deprecated, use `Label.output_spans` instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         return self._span
 
     @classmethod
@@ -469,7 +474,7 @@ class Label:
             input_spans=Span.from_json(
                 object.pop("input_spans", []), object.get("span_text", None)
             ),
-            span=object.pop("span", [0, 0]),
+            _span=object.pop("span", [0, 0]),
             span_text=object.pop("span_text", ""),
             value=object.pop("value", ""),
             data=object.pop("data", {}),
