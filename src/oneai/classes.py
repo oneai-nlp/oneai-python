@@ -3,6 +3,7 @@ from dataclasses import dataclass, field
 import json
 import os
 from typing import Any, Callable, Iterable, List, Type, Union
+from warnings import warn
 
 import aiohttp
 
@@ -444,12 +445,17 @@ class Label:
     type: str = ""
     skill: str = ""
     name: str = ""
-    span: List[int] = field(default_factory=lambda: [0, 0], repr=False)
+    _span: List[int] = field(default_factory=lambda: [0, 0], repr=False)
     output_spans: List[int] = field(default_factory=list)
     input_spans: List[int] = field(default_factory=list)
     span_text: str = ""
     value: str = ""
     data: dict = field(default_factory=dict)
+
+    @property
+    def span(self) -> Span:
+        warn("`Label.span` is deprecated, use `Label.output_spans` instead", DeprecationWarning)
+        return self._span
 
     @classmethod
     def from_json(cls, object: dict) -> "Label":

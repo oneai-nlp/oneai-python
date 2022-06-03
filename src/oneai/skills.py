@@ -156,7 +156,7 @@ class Entities(Skill):
     """
 
     def __post_init__(self):
-        warn("Entities Skill is deprecated- use either `Names` or `Numbers` instead")
+        warn("Entities Skill is deprecated- use either `Names` or `Numbers` instead", DeprecationWarning)
 
 
 @skillclass(api_name="keywords", label_type="keyword")
@@ -326,7 +326,7 @@ class BusinessEntities(Skill):
     """
 
     def __post_init__(self):
-        warn("BusinessEntities Skill is deprecated- use either `Pricings` instead")
+        warn("BusinessEntities Skill is deprecated- use either `Pricings` instead", DeprecationWarning)
 
 
 @skillclass(
