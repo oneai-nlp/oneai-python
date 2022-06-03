@@ -14,7 +14,11 @@ async def send_pipeline_request(
     api_key: str,
 ) -> Awaitable[Output]:
     if api_key is None or not api_key:
-        raise APIKeyError(60001, 'Missing API key', 'Please provide a valid API key, either by setting the global `oneai.api_key` or passing the `api_key` parameter')
+        raise APIKeyError(
+            60001,
+            "Missing API key",
+            "Please provide a valid API key, either by setting the global `oneai.api_key` or passing the `api_key` parameter",
+        )
 
     headers = {"api-key": api_key, "Content-Type": "application/json"}
     request = {
@@ -25,9 +29,9 @@ async def send_pipeline_request(
         if input.type:
             request["input_type"] = input.type
         if input.content_type:
-            request['content_type'] = input.content_type
+            request["content_type"] = input.content_type
         if input.encoding:
-            request['encoding'] = input.encoding
+            request["encoding"] = input.encoding
 
     async with session.post(oneai.URL, headers=headers, json=request) as response:
         if response.status != 200:
@@ -35,17 +39,19 @@ async def send_pipeline_request(
         else:
             return build_output(steps, await response.json(), input_type=type(input))
 
-def build_output(skills: List[Skill], raw_output: dict, input_type: type=str) -> Output:
+
+def build_output(
+    skills: List[Skill], raw_output: dict, input_type: type = str
+) -> Output:
     def get_text(index, input_type):
-            # get the input text for this Output object. use index=-1 to get the original input text
-            # text can be returned as a simple str or parsed to match a given input type
-            text = (
-                raw_output["output"][index]["text"]
-                if index >= 0
-                else raw_output["input_text"]
-            )
-            # return input_type.parse(text) if issubclass(input_type, Input) else text
-            return text
+        # get the input text for this Output object. use index=-1 to get the original input text
+        # text can be returned as a simple str or parsed to match a given input type
+        text = (
+            raw_output["output"][index]["text"]
+            if index >= 0
+            else raw_output["input_text"]
+        )
+        return input_type.parse(text) if issubclass(input_type, Input) else text
 
     def split_pipeline(skills: List[Skill], i: int):
         # split pipeline at a generator Skill
@@ -61,7 +67,9 @@ def build_output(skills: List[Skill], raw_output: dict, input_type: type=str) ->
     def build_internal(
         output_index: int, skills: List[Skill], input_type: type
     ) -> "Output":
-        text = get_text(output_index, input_type)
+        # temporary fix- if 1st skill is not a generator, use input_text, not output[0].text,
+        # since output[0].text is corrupted (not parsable) for conversation inputs
+        text = get_text(output_index if output_index > 0 else -1, input_type)
         labels = [
             Label.from_json(label)
             for label in raw_output["output"][output_index]["labels"]
@@ -74,9 +82,7 @@ def build_output(skills: List[Skill], raw_output: dict, input_type: type=str) ->
                 break
             else:
                 data.append(
-                    Labels(
-                        filter(lambda label: label.type == skill.label_type, labels)
-                    )
+                    Labels(filter(lambda label: label.type == skill.label_type, labels))
                 )
         return Output(text=text, skills=list(skills), data=data)
 

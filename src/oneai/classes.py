@@ -256,10 +256,13 @@ class Conversation(Input):
         """
         return json.dumps(self.utterances, default=lambda o: o.__dict__)
 
+    def __getitem__(self, index: int) -> Utterance:
+        return self.utterances[index]
+
     @classmethod
     def parse(cls, text: str) -> "Conversation":
         """
-        A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
+        A class method. Parse a string with a structured conversation format or a conversation JSON string into a `Conversation` instance.
 
         ## Parameters
 
@@ -300,7 +303,7 @@ class File(Input):
     `data: str`
         Encoded file data.
     `type: str`
-        An input-type hint for the API, either `Conversation.type` or `Document.type`.
+        An input-type hint for the API, either `Conversation` or `Document`.
     `content_type: str`
         The content type of the file.
     `encoding: str`
@@ -312,9 +315,7 @@ class File(Input):
         Returns the encoded file data.
     """
 
-    def __init__(
-        self, file_path: str, type: str = None
-    ):
+    def __init__(self, file_path: str, type: Union[str, Type[Input]] = None):
         """
         Creates a new `File` input instance
 
@@ -323,9 +324,14 @@ class File(Input):
         `file_path: str`
             The path of the file to encode. Supported file extensions: [.txt, .wav, .srt, .jpg/.jpeg, .json]
         `type: str` (optional)
-            The input-type hint for the API, either `Conversation.type` or `Document.type`.
+            The input-type hint for the API, either `Conversation` or `Document`.
         """
-        super().__init__(type)
+        if type is None or isinstance(type, str):
+            super().__init__(type)
+        elif issubclass(type, Input):
+            super().__init__(type.type)
+        else:
+            raise ValueError(f"Invalid input type {type}")
 
         utf8, b64 = "utf8", "b64"
         _, ext = os.path.splitext(file_path)
@@ -368,6 +374,25 @@ class File(Input):
         """
 
         return self.data
+
+    @classmethod
+    def parse(cls, text: str) -> Input:
+        """
+        A class method. Parse a string into an `Input` instance.
+
+        ## Parameters
+
+        `text: str`
+            The text to parse.
+
+        ## Returns
+
+        The `Input` instance produced from `text`.
+        """
+        try:
+            return Conversation.parse(text)
+        except:
+            return text
 
 
 @dataclass
@@ -419,7 +444,7 @@ class Label:
 
     type: str = ""
     name: str = ""
-    span: List[int] = field(default_factory=lambda: [0, 0])
+    span: List[int] = field(default_factory=lambda: [0, 0], repr=False)
     output_spans: List[int] = field(default_factory=list)
     input_spans: List[int] = field(default_factory=list)
     span_text: str = ""
@@ -473,8 +498,11 @@ class Labels(List[Label]):
     def names(self):
         return [l.name for l in self]
 
-    def spans(self):
-        return [l.span for l in self]
+    def input_spans(self):
+        return [l.input_spans for l in self]
+
+    def output_spans(self):
+        return [l.output_spans for l in self]
 
     def span_texts(self):
         return [l.span_text for l in self]
