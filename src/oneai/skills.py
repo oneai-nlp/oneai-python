@@ -392,26 +392,26 @@ class Anonymize(Skill):
     is_generator=True,
     label_type="business-entity",
     output_attr="labs",
-    output_attr1="pricings",
+    output_attr1="pricing",
 )
-class Pricings(Skill):
+class Pricing(Skill):
     """
     ### 'Labs' Skill- this Skill is still in beta and is may produce incorrect results in some cases
 
-    Detects pricings and quantities in the input
+    Detects pricing and quantities in the input
 
     ## Output Attributes
 
     `pricings: list[Label]`
-        A list of `Label` objects, with detected pricings and their data
+        A list of `Label` objects, with detected pricing and their data
 
     ## Example
 
     >>> pipeline = oneai.Pipeline(steps=[
-    ...     oneai.skills.Pricings()
+    ...     oneai.skills.Pricing()
     ... ])
     >>> output = pipeline.run('it costs 10 USD per barrel')
-    >>> output.pricings
+    >>> output.pricing
     [oneai.Label(name=pricing, data={'amount': 10.0, 'currency': 'USD', 'unit': 'barrel'}, span=[9, 26], value=10 USD per barrel)]
     """
 
