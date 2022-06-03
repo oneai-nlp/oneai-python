@@ -492,18 +492,23 @@ class Labels(List[Label]):
         Returns a list of all span texts of the labels.
     """
 
+    @property
     def values(self):
         return [l.value for l in self]
 
+    @property
     def names(self):
         return [l.name for l in self]
 
+    @property
     def input_spans(self):
         return [l.input_spans for l in self]
 
+    @property
     def output_spans(self):
         return [l.output_spans for l in self]
 
+    @property
     def span_texts(self):
         return [l.span_text for l in self]
 
