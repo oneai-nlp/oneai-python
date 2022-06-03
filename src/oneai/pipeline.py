@@ -1,5 +1,6 @@
 import asyncio, concurrent.futures
 import sys
+import os
 import oneai
 
 from typing import Awaitable, Dict, Iterable, List, Union
@@ -186,6 +187,9 @@ class Pipeline:
 # for jupyter environment, to avoid "asyncio.run() cannot be called from a running event loop"
 pool = concurrent.futures.ThreadPoolExecutor()
 is_36 = sys.version_info[:2] == (3, 6)
+
+if os.name == "nt":  # Windows
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 def _async_run_nested(coru):
