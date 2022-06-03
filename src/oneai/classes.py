@@ -2,7 +2,7 @@ from base64 import b64encode
 from dataclasses import dataclass, field
 import json
 import os
-from typing import BinaryIO, Callable, Iterable, List, Literal, TextIO, Type, Union
+from typing import Callable, Iterable, List, Type, Union
 
 import aiohttp
 
