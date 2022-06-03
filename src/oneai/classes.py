@@ -442,6 +442,7 @@ class Label:
     """
 
     type: str = ""
+    skill: str = ""
     name: str = ""
     span: List[int] = field(default_factory=lambda: [0, 0], repr=False)
     output_spans: List[int] = field(default_factory=list)
@@ -454,6 +455,7 @@ class Label:
     def from_json(cls, object: dict) -> "Label":
         return cls(
             type=object.pop("type", ""),
+            skill=object.pop("skill", ""),
             name=object.pop("name", ""),
             output_spans=Span.from_json(
                 object.pop("output_spans", []), object.get("span_text", None)
@@ -543,8 +545,8 @@ class Output(Input):
 
     def __getattr__(self, name: str) -> Union[Labels, "Output"]:
         #####TEMP#HACK########
-        if name == "business_entities" and hasattr(self, "labs"):
-            return self.__getattr__("labs").business_entities
+        if name in ["business_entities", "pricing"] and hasattr(self, "labs"):
+            return getattr(self.__getattr__("labs"), name)
         ######################
         for i, skill in enumerate(self.skills):
             if (
