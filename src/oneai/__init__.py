@@ -4,6 +4,7 @@ from typing_extensions import Final
 import oneai.skills as skills
 from oneai.classes import *
 from oneai.pipeline import Pipeline
+import oneai.clustering as clustering
 
 URL: Final[str] = "https://api.oneai.com/api/v0/pipeline"
 """
