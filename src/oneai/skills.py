@@ -320,7 +320,7 @@ class BusinessEntities(Skill):
     """
     ### 'Labs' Skill- this Skill is still in beta and is may produce incorrect results in some cases
 
-    deprecated- use `Pricings` instead.
+    deprecated- use `Pricing` instead.
     Detects business entities (quantities, pricings) in the input
 
     ## Output Attributes
@@ -420,7 +420,7 @@ class Pricing(Skill):
 
     ## Output Attributes
 
-    `pricings: list[Label]`
+    `pricing: list[Label]`
         A list of `Label` objects, with detected pricing and their data
 
     ## Example
