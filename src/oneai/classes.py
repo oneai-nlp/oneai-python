@@ -483,7 +483,7 @@ class Label:
     def __repr__(self) -> str:
         return (
             "oneai.Label("
-            + ", ".join(f"{k}={repr(v)}" for k, v in self.__dict__.items() if v)
+            + ", ".join(f"{k}={repr(v)}" for k, v in self.__dict__.items() if v and not k.startswith("_"))
             + ")"
         )
 

@@ -67,9 +67,10 @@ def build_output(
     def build_internal(
         output_index: int, skills: List[Skill], input_type: type
     ) -> "Output":
+        text = get_text(output_index, input_type)
         # temporary fix- if 1st skill is not a generator, use input_text, not output[0].text,
         # since output[0].text is corrupted (not parsable) for conversation inputs
-        text = get_text(output_index if output_index > 0 else -1, input_type)
+        output_index = max(output_index, 0)
         labels = [
             Label.from_json(label)
             for label in raw_output["output"][output_index]["labels"]
@@ -88,7 +89,7 @@ def build_output(
 
     generator = raw_output["output"][0].get("text_generated_by_step_id", 0) - 1
     if generator < 0:
-        return build_internal(0, skills, input_type)
+        return build_internal(-1, skills, input_type)
     else:
         # edge case- first Skill is a generator, or a generator preceded by Skills that didn't generate output
         # in this case the API will skip these Skills,
