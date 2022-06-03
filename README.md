@@ -163,5 +163,5 @@ print(output.summary.highlights)
 
 ### Support
 
-Feel free to submit issues in this repo, contact us at [devrel@oneai.com](mailto:devrel@oneai.com), or chat with us on [Disocrd](https://discord.gg/ArpMha9n8H)
+Feel free to submit issues in this repo, contact us at [devrel@oneai.com](mailto:devrel@oneai.com), or chat with us on [Discord](https://discord.gg/ArpMha9n8H)
 
