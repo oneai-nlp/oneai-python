@@ -2,7 +2,8 @@ from base64 import b64encode
 from dataclasses import dataclass, field
 import json
 import os
-from typing import Callable, Iterable, List, Type, Union
+from re import S
+from typing import Any, Callable, Iterable, List, Type, Union
 
 import aiohttp
 
@@ -480,36 +481,38 @@ class Labels(List[Label]):
     """
     Wrapper object for a list of `Label` objects. Provides convenience methods to query labels by attribute.
 
-    ## Methods
+    ## Properties
 
-    `values() -> list[str]`
-        Returns a list of all values of the labels.
-    `names() -> list[str]`
-        Returns a list of all names of the labels.
-    `spans() -> list[list[int]]`
-        Returns a list of all spans of the labels.
-    `values() -> list[str]`
-        Returns a list of all span texts of the labels.
+    `values: list[str]`
+        A list of all values of the labels.
+    `names: list[str]`
+        A list of all names of the labels.
+    `input_spans: list[list[Span]]`
+        A list of all input spans of the labels.
+    `output_spans: list[list[Span]]`
+        A list of all output spans of the labels.
+    `span_texts: list[str]`
+        A list of all span texts of the labels.
     """
 
     @property
-    def values(self):
+    def values(self) -> List[Any]:
         return [l.value for l in self]
 
     @property
-    def names(self):
+    def names(self) -> List[str]:
         return [l.name for l in self]
 
     @property
-    def input_spans(self):
+    def input_spans(self) -> List[List[Span]]:
         return [l.input_spans for l in self]
 
     @property
-    def output_spans(self):
+    def output_spans(self) -> List[List[Span]]:
         return [l.output_spans for l in self]
 
     @property
-    def span_texts(self):
+    def span_texts(self) -> List[str]:
         return [l.span_text for l in self]
 
 
