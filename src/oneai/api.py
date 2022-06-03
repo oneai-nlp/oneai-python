@@ -20,12 +20,13 @@ async def send_pipeline_request(
     request = {
         "text": input if isinstance(input, str) else repr(input),
         "steps": [skill.asdict() for skill in steps],
-        "input_type": input.type if isinstance(input, Input) else "article",
     }
     if isinstance(input, Input):
-        if hasattr(input, 'content_type'):
+        if input.type:
+            request["input_type"] = input.type
+        if input.content_type:
             request['content_type'] = input.content_type
-        if hasattr(input, 'encoding'):
+        if input.encoding:
             request['encoding'] = input.encoding
 
     async with session.post(oneai.URL, headers=headers, json=request) as response:

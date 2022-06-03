@@ -1,6 +1,5 @@
 from base64 import b64encode
 from dataclasses import dataclass, field
-from io import BytesIO
 import json
 import os
 from typing import BinaryIO, Callable, Iterable, List, Literal, TextIO, Type, Union
@@ -51,14 +50,18 @@ class Skill:
     label_type: str = ""
     output_attr: str = ""
     output_attr1: str = field(default="", repr=False)
-    run_custom: Callable[['Output', aiohttp.ClientSession], Union[str, 'Labels', 'Output']] = None
+    run_custom: Callable[
+        ["Output", aiohttp.ClientSession], Union[str, "Labels", "Output"]
+    ] = None
 
     def asdict(self) -> dict:
         return {
             "skill": self.api_name,
             "params": {
-                p: self.__getattribute__(p) for p in self._skill_params if self.__getattribute__(p)
-            }
+                p: self.__getattribute__(p)
+                for p in self._skill_params
+                if self.__getattribute__(p)
+            },
         }
 
 
@@ -69,7 +72,9 @@ def skillclass(
     is_generator: bool = False,
     output_attr: str = "",
     output_attr1: str = "",
-    run_custom: Callable[['Output', aiohttp.ClientSession], Union[str, 'Labels', 'Output']] = None 
+    run_custom: Callable[
+        ["Output", aiohttp.ClientSession], Union[str, "Labels", "Output"]
+    ] = None,
 ):
     """
     A decorator for defining a Language Skill class. Decorate subclasses of `Skill` with this decorator to provide default values for instance attributes.
@@ -113,6 +118,10 @@ class Input:
 
     `type: str`
         A type hint for the API, suggesting which models to use when processing the input.
+    `content_type: str`
+        The content type of the input.
+    `encoding: str`
+        The encoding of the input.
 
     ## Methods
 
@@ -122,8 +131,10 @@ class Input:
         A class method. Parse a string into an instance of the Input class. Not implemented by default.
     """
 
-    def __init__(self, type: str):
+    def __init__(self, type: str, content_type: str = None, encoding: str = None):
         self.type = type
+        self.content_type = content_type
+        self.encoding = encoding
 
     @classmethod
     def parse(cls, text: str) -> "Input":
@@ -171,7 +182,8 @@ class Document(Input):
     `parse(text) -> Document`
         A class method. Parse a string into a `Document` instance.
     """
-    type = 'article'
+
+    type = "article"
 
     def __init__(self, text: str):
         self.text = text
@@ -229,7 +241,7 @@ class Conversation(Input):
         A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
     """
 
-    type = 'conversation'
+    type = "conversation"
 
     def __init__(self, utterances: List[Utterance] = []):
         self.utterances = utterances
@@ -274,70 +286,89 @@ class Conversation(Input):
         return f"oneai.Conversation{repr(self.utterances)}"
 
 
-class Audio(Input):
+class File(Input):
     """
-    Represents audio inputs.
+    Represents file inputs. Supported file extensions:
+    * .txt (text files)
+    * .wav (transcribe)
+    * .srt (captions)
+    * .jpg (OCR)
+    * .json (One AI conversation JSON format)
 
     ## Attributes
 
     `data: str`
-        A base64-encoded string of the audio data.
+        Encoded file data.
     `type: str`
         An input-type hint for the API, either `Conversation.type` or `Document.type`.
+    `content_type: str`
+        The content type of the file.
+    `encoding: str`
+        The encoding of the file.
 
     ## Methods
 
     `get_text() -> str`
-        Returns the encoded audio data.
+        Returns the encoded file data.
     """
 
     def __init__(
-        self,
-        file: Union[str, BinaryIO, bytes],
-        extension: str=None,
-        type: str=Conversation.type
+        self, file_path: str, type: str = None
     ):
         """
-        Creates a new `Audio` input instance
+        Creates a new `File` input instance
 
         ## Parameters
 
-        `file: Union[str, BinaryIO]`
-            The audio file to encode. Either a `str` file name, `BinaryIO` object or `bytes` data.
-        `extension: str` (optional)
-            The file extension of the audio file. If not provided, it will be guessed from the file name.
-            Only `.wav` files are supported at the time.
+        `file_path: str`
+            The path of the file to encode. Supported file extensions: [.txt, .wav, .srt, .jpg/.jpeg, .json]
         `type: str` (optional)
             The input-type hint for the API, either `Conversation.type` or `Document.type`.
         """
         super().__init__(type)
 
-        if isinstance(file, str):
-            _, ext = os.path.splitext(file)
-            if extension and extension not in ext:
-                raise InputError(message='file extension does not match', details=f'file name: {file}, extension: {extension}')
-            elif ext in ['.wav']:
-                file = open(file, 'rb').read()
-            else:
-                raise InputError(message=f'unsupported file extension {ext}', details='only .wav files are supported at the time')
-        elif isinstance(file, BytesIO):
-            file = file.read()
-        
-        self.content_type = 'audio/wav'
-        
-        self.data = b64encode(file).decode('utf-8')
-        self.encoding = 'base64'
-    
+        utf8, b64 = "utf8", "b64"
+        _, ext = os.path.splitext(file_path)
+        if ext == ".json":
+            self.content_type = "application/json"
+            self.encoding = utf8
+        elif ext == ".txt":
+            self.content_type = "text/plain"
+            self.encoding = utf8
+        elif ext == ".srt":
+            self.data = Conversation.parse(open(file_path).read()).get_text()
+            return
+        elif ext in [".jpg", ".jpeg"]:
+            self.content_type = "image/jpeg"
+            self.encoding = b64
+        elif ext == ".wav":
+            self.content_type = "audio/wav"
+            self.encoding = b64
+        elif ext == ".html":
+            self.content_type = "text/html"
+            self.encoding = utf8
+        else:
+            raise InputError(
+                message=f"unsupported file extension {ext}",
+                details="see supported files in docs",
+            )
+
+        if self.encoding == utf8:
+            self.data = open(file_path).read()
+        else:
+            self.data = b64encode(file_path).decode("utf-8")
+
     def get_text(self) -> str:
         """
-        Returns the encoded audio data.
+        Returns the encoded file data.
 
         ## Returns
 
-        `str` representation of this `Audio` instance.
+        `str` representation of this `File` instance.
         """
 
         return self.data
+
 
 @dataclass
 class Span:
@@ -348,12 +379,19 @@ class Span:
 
     @classmethod
     def from_json(cls, objects: List[dict], text: str) -> "List[Span]":
-        return [] if not objects else [cls(
-            start=object.get("start", None),
-            end=object.get("end", None),
-            section=object.get("section", None),
-            text=text
-        ) for object in objects]
+        return (
+            []
+            if not objects
+            else [
+                cls(
+                    start=object.get("start", None),
+                    end=object.get("end", None),
+                    section=object.get("section", None),
+                    text=text,
+                )
+                for object in objects
+            ]
+        )
 
 
 @dataclass
@@ -393,8 +431,12 @@ class Label:
         return cls(
             type=object.pop("type", ""),
             name=object.pop("name", ""),
-            output_spans=Span.from_json(object.pop("output_spans", []), object.get('span_text', None)),
-            input_spans=Span.from_json(object.pop("input_spans", []), object.get('span_text', None)),
+            output_spans=Span.from_json(
+                object.pop("output_spans", []), object.get("span_text", None)
+            ),
+            input_spans=Span.from_json(
+                object.pop("input_spans", []), object.get("span_text", None)
+            ),
             span=object.pop("span", [0, 0]),
             span_text=object.pop("span_text", ""),
             value=object.pop("value", ""),
@@ -424,6 +466,7 @@ class Labels(List[Label]):
     `values() -> list[str]`
         Returns a list of all span texts of the labels.
     """
+
     def values(self):
         return [l.value for l in self]
 
@@ -456,7 +499,9 @@ class Output(Input):
     """
 
     text: Union[Input, str] = ""
-    skills: List[Skill] = field(default_factory=list, repr=False)  # not a dict since Skills are currently mutable & thus unhashable
+    skills: List[Skill] = field(
+        default_factory=list, repr=False
+    )  # not a dict since Skills are currently mutable & thus unhashable
     data: List[Union[Labels, "Output"]] = field(default_factory=list, repr=False)
 
     def __getitem__(self, name: str) -> Union[Labels, "Output"]:
@@ -484,12 +529,12 @@ class Output(Input):
     def get_text(self) -> str:
         return self.text if isinstance(self.text, str) else repr(self.text)
 
-    def add(self, skill: Skill, data: Union['Output', Labels]):
+    def add(self, skill: Skill, data: Union["Output", Labels]):
         """
         Add data generated by a `Skill` to the output. Data can be a nested `Output` instance or a list of `Label`s.
 
         ## Parameters
-        
+
         `skill: Skill`
             The Skill which generated the data.
         `data: Output | list[Label]`
