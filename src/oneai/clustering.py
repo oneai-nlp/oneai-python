@@ -8,8 +8,7 @@ import oneai
 
 base_url = "https://staging.oneai.com/clustering/v1/collections"
 
-
-def fetch_collections(api_key: str = None):
+def _get_req(path: str, api_key: str = None):
     api_key = api_key or oneai.api_key
     if not api_key:
         raise Exception("API key is required")
@@ -17,9 +16,23 @@ def fetch_collections(api_key: str = None):
         "api-key": api_key,
         "Content-Type": "application/json",
     }
-    url = base_url
-    response = requests.get(url, headers=headers)
-    return [Collection(name) for name in json.loads(response.content)]
+    response = requests.get(f"{base_url}/{path}", headers=headers)
+    return json.loads(response.content)
+
+def _post_req(path: str, data: dict, api_key: str = None):
+    api_key = api_key or oneai.api_key
+    if not api_key:
+        raise Exception("API key is required")
+    headers = {
+        "api-key": api_key,
+        "Content-Type": "application/json",
+    }
+    response = requests.post(f"{base_url}/{path}", headers=headers, json=data)
+    return json.loads(response.content)
+
+
+def fetch_collections(api_key: str = None):
+    return [Collection(name) for name in _get_req("", api_key)]
 
 
 @dataclass
@@ -55,16 +68,8 @@ class Phrase:
 
     @property
     def items(self) -> List[Item]:
-        url = f"{base_url}/{self.collection.name}/phrases/{self.id}/items"
-        headers = {
-            "api-key": self.collection.api_key,
-            "Content-Type": "application/json",
-        }
-        response = requests.get(url, headers=headers)
-        return [Item.from_dict(self, item) for item in json.loads(response.content)]
-
-    def __len__(self):
-        return self.item_count
+        url = f"phrases/{self.id}/items"
+        return [Item.from_dict(self, item) for item in _get_req(url, self.collection.api_key)]
 
     @classmethod
     def from_dict(cls, cluster: "Cluster", object: dict) -> "Phrase":
@@ -91,26 +96,8 @@ class Cluster:
         # refetch? cache?
         return self._phrases
 
-        url = f"{base_url}/{self.collection.name}/clusters/{self.id}/items"
-        headers = {
-            "api-key": self.collection.api_key,
-            "Content-Type": "application/json",
-        }
-        response = requests.get(url, headers=headers)
-        print(json.loads(response.content))
-        return [
-            Phrase.from_dict(self, phrase) for phrase in json.loads(response.content)
-        ]
-
-    def __len__(self):
-        return self.phrase_count
-
     def add_items(self, *items: str):
-        url = f"{base_url}/{self.collection.name}/items"
-        headers = {
-            "api-key": self.collection.api_key,
-            "Content-Type": "application/json",
-        }
+        url = f"{self.collection.name}/items"
         data = [
             {
                 "text": item,
@@ -118,8 +105,7 @@ class Cluster:
             }
             for item in items
         ]
-        response = requests.post(url, headers=headers, json=data)
-        return response.status_code
+        _post_req(url, data, self.collection.api_key)
 
     @classmethod
     def from_dict(cls, collection: "Collection", object: dict) -> "Cluster":
@@ -144,34 +130,20 @@ class Collection:
     @property
     def clusters(self) -> List[Cluster]:
         # generator w pagination? caching?
-        url = f"{base_url}/{self.name}/clusters"
-        headers = {
-            "api-key": self.api_key,
-            "Content-Type": "application/json",
-        }
-        response = requests.get(url, headers=headers)
+        url = f"{self.name}/clusters"
         return [
-            Cluster.from_dict(self, cluster) for cluster in json.loads(response.content)
+            Cluster.from_dict(self, cluster) for cluster in _get_req(url, self.api_key)
         ]
 
     @property
     def find(self) -> List[Cluster]:
-        url = f"{base_url}/{self.name}/clusters/find"
-        headers = {
-            "api-key": self.api_key,
-            "Content-Type": "application/json",
-        }
-        response = requests.get(url, headers=headers)
+        url = f"{self.name}/clusters/find"
         return [
-            Cluster.from_dict(self, cluster) for cluster in json.loads(response.content)
+            Cluster.from_dict(self, cluster) for cluster in _get_req(url, self.api_key)
         ]
 
     def add_items(self, *items: str, force_new_cluster: bool = False):
-        url = f"{base_url}/{self.name}/items"
-        headers = {
-            "api-key": self.api_key,
-            "Content-Type": "application/json",
-        }
+        url = f"{self.name}/items"
         data = [
             {
                 "text": item,
@@ -179,8 +151,7 @@ class Collection:
             }
             for item in items
         ]
-        response = requests.post(url, headers=headers, json=data)
-        return json.loads(response.content)
+        _post_req(url, data, self.api_key)
 
     def __repr__(self) -> str:
         return f"oneai.Collection({self.name})"
