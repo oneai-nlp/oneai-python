@@ -266,8 +266,6 @@ class HTMLExtractArticle(Skill):
     """
     Extracts the main text content of an HTML page. Accepts URLs or HTML strings
 
-    Using URLs is deprecated, send HTML strings or extract HTML content manually instead (try [BeautifulSoup4](https://pypi.org/project/beautifulsoup4/))
-
     ## Output
 
     Main text content from the HTML page
@@ -285,13 +283,19 @@ class HTMLExtractArticle(Skill):
     // Bringing human-level language AI to everyday life, one developer a...
     """
 
+    def __new__(cls, *args, **kwargs):
+        warn(
+            "BusinessEntities Skill is deprecated- use `Pricing` instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return super().__new__(cls, *args, **kwargs)
+
 
 @skillclass(api_name="html-extract-text", is_generator=True, output_attr="html_text")
 class HTMLExtractText(Skill):
     """
     Extracts all text content of an HTML page (including text from control elements). Accepts URLs or HTML strings. Use HTMLExtractArticle to extract the main content only
-
-    Using URLs is deprecated, send HTML strings or extract HTML content manually instead (try [BeautifulSoup4](https://pypi.org/project/beautifulsoup4/))
 
     ## Output
 
@@ -302,6 +306,63 @@ class HTMLExtractText(Skill):
     >>> resp = requests.get('https://oneai.com/about-us/')
     >>> pipeline = oneai.Pipeline(steps=[
     ...     oneai.skills.HTMLExtractText()
+    ... ])
+    >>> output = pipeline.run(resp.text)
+    >>> output.html_text.text[:100] + '...'
+    One AI - About usSkip to main contentAPIStudioSkillsIndustriesPricingResearchAboutAbout UsLeadership...
+    """
+
+    def __new__(cls, *args, **kwargs):
+        warn(
+            "BusinessEntities Skill is deprecated- use `Pricing` instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
+        return super().__new__(cls, *args, **kwargs)
+
+
+@skillclass(
+    api_name="extract-html",
+    is_generator=True,
+    output_attr="html_article",
+    run_custom=scraping.extract_article,
+)
+class HtmlToArticle(Skill):
+    """
+    Extracts the main text content of an HTML page. Accepts URLs or HTML strings
+
+    ## Output
+
+    Main text content from the HTML page
+
+    ## Example
+
+    >>> resp = requests.get('https://oneai.com/about-us/')
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.HtmlToArticle()
+    ... ])
+    >>> output = pipeline.run(resp.text)
+    >>> output.html_article.text[:100] + '...'
+    One AI - About us
+    ABOUT ONE AI
+    // Bringing human-level language AI to everyday life, one developer a...
+    """
+
+
+@skillclass(api_name="html-extract-text", is_generator=True, output_attr="html_text")
+class HtmlAllText(Skill):
+    """
+    Extracts all text content of an HTML page (including text from control elements). Accepts URLs or HTML strings. Use HTMLExtractArticle to extract the main content only
+
+    ## Output
+
+    Text content from the HTML page
+
+    ## Example
+
+    >>> resp = requests.get('https://oneai.com/about-us/')
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.HtmlAllText()
     ... ])
     >>> output = pipeline.run(resp.text)
     >>> output.html_text.text[:100] + '...'
