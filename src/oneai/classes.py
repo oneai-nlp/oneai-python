@@ -294,7 +294,7 @@ class File(Input):
     """
     Represents file inputs. Supported file extensions:
     * .txt (text files)
-    * .wav (transcribe)
+    * .wav, .mp3 (transcribe)
     * .srt (captions)
     * .jpg (OCR)
     * .json (One AI conversation JSON format)
@@ -323,7 +323,7 @@ class File(Input):
         ## Parameters
 
         `file_path: str`
-            The path of the file to encode. Supported file extensions: [.txt, .wav, .srt, .jpg/.jpeg, .json]
+            The path of the file to encode. Supported file extensions: [.txt, .wav, .mp3, .srt, .jpg/.jpeg, .json]
         `type: str` (optional)
             The input-type hint for the API, either `Conversation` or `Document`.
         """
@@ -350,6 +350,9 @@ class File(Input):
             self.encoding = b64
         elif ext == ".wav":
             self.content_type = "audio/wav"
+            self.encoding = b64
+        elif ext == ".mp3":
+            self.content_type = "audio/mp3"
             self.encoding = b64
         elif ext == ".html":
             self.content_type = "text/html"
