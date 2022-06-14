@@ -4,35 +4,11 @@ import json
 from typing import List
 import requests
 import oneai
-
-
-base_url = "https://staging.oneai.com/clustering/v1/collections"
-
-def _get_req(path: str, api_key: str = None):
-    api_key = api_key or oneai.api_key
-    if not api_key:
-        raise Exception("API key is required")
-    headers = {
-        "api-key": api_key,
-        "Content-Type": "application/json",
-    }
-    response = requests.get(f"{base_url}/{path}", headers=headers)
-    return json.loads(response.content)
-
-def _post_req(path: str, data: dict, api_key: str = None):
-    api_key = api_key or oneai.api_key
-    if not api_key:
-        raise Exception("API key is required")
-    headers = {
-        "api-key": api_key,
-        "Content-Type": "application/json",
-    }
-    response = requests.post(f"{base_url}/{path}", headers=headers, json=data)
-    return json.loads(response.content)
+from oneai.api import get_clustering, post_clustering
 
 
 def fetch_collections(api_key: str = None):
-    return [Collection(name) for name in _get_req("", api_key)]
+    return [Collection(name) for name in get_clustering("", api_key)]
 
 
 @dataclass
@@ -69,7 +45,7 @@ class Phrase:
     @property
     def items(self) -> List[Item]:
         url = f"phrases/{self.id}/items"
-        return [Item.from_dict(self, item) for item in _get_req(url, self.collection.api_key)]
+        return [Item.from_dict(self, item) for item in get_clustering(url, self.collection.api_key)]
 
     @classmethod
     def from_dict(cls, cluster: "Cluster", object: dict) -> "Phrase":
@@ -105,7 +81,7 @@ class Cluster:
             }
             for item in items
         ]
-        _post_req(url, data, self.collection.api_key)
+        post_clustering(url, data, self.collection.api_key)
 
     @classmethod
     def from_dict(cls, collection: "Collection", object: dict) -> "Cluster":
@@ -132,14 +108,14 @@ class Collection:
         # generator w pagination? caching?
         url = f"{self.name}/clusters"
         return [
-            Cluster.from_dict(self, cluster) for cluster in _get_req(url, self.api_key)
+            Cluster.from_dict(self, cluster) for cluster in get_clustering(url, self.api_key)
         ]
 
     @property
     def find(self) -> List[Cluster]:
         url = f"{self.name}/clusters/find"
         return [
-            Cluster.from_dict(self, cluster) for cluster in _get_req(url, self.api_key)
+            Cluster.from_dict(self, cluster) for cluster in get_clustering(url, self.api_key)
         ]
 
     def add_items(self, *items: str, force_new_cluster: bool = False):
@@ -151,7 +127,7 @@ class Collection:
             }
             for item in items
         ]
-        _post_req(url, data, self.api_key)
+        post_clustering(url, data, self.api_key)
 
     def __repr__(self) -> str:
         return f"oneai.Collection({self.name})"

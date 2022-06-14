@@ -6,8 +6,10 @@ import oneai
 from oneai.classes import Input, Label, Labels, Output, Skill
 from oneai.exceptions import APIKeyError, handle_unsuccessful_response
 
+ENDPOINT = 'api/v0/pipeline'
 
-async def send_pipeline_request(
+
+async def post_pipeline(
     session: aiohttp.ClientSession,
     input: Union[Input, str],
     steps: List[Skill],
@@ -33,7 +35,7 @@ async def send_pipeline_request(
         if input.encoding:
             request["encoding"] = input.encoding
 
-    async with session.post(oneai.URL, headers=headers, json=request) as response:
+    async with session.post(f'{oneai.URL}/{ENDPOINT}', headers=headers, json=request) as response:
         if response.status != 200:
             await handle_unsuccessful_response(response)
         else:

@@ -6,7 +6,7 @@ from typing import Awaitable, Dict, Iterable, List, Union
 import aiohttp
 import oneai
 
-from oneai.api import send_pipeline_request
+from oneai.api import post_pipeline
 from oneai.classes import Input, Output, Skill
 from oneai.exceptions import OneAIError
 
@@ -202,11 +202,11 @@ class APISegment(Segment):
         session: aiohttp.ClientSession,
     ) -> Output:
         if isinstance(input, Output):
-            output = await send_pipeline_request(
+            output = await post_pipeline(
                 session, input.text, self.skills, api_key
             )
             input.merge(output)
             output = input
         else:
-            output = await send_pipeline_request(session, input, self.skills, api_key)
+            output = await post_pipeline(session, input, self.skills, api_key)
         return output

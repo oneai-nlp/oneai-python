@@ -7,7 +7,7 @@ from oneai.classes import *
 from oneai.pipeline import Pipeline
 import oneai.clustering as clustering
 
-URL: Final[str] = "https://api.oneai.com/api/v0/pipeline"
+URL: Final[str] = "https://api.oneai.com"
 """
 Base URL for the pipeline API. Only change if you know what you're doing.
 """
