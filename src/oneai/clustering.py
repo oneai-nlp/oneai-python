@@ -1,8 +1,6 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-import json
 from typing import List
-import requests
 import oneai
 from oneai.api import get_clustering, post_clustering
 
@@ -44,7 +42,7 @@ class Phrase:
 
     @property
     def items(self) -> List[Item]:
-        url = f"phrases/{self.id}/items"
+        url = f"{self.collection.name}/phrases/{self.id}/items"
         return [Item.from_dict(self, item) for item in get_clustering(url, self.collection.api_key)]
 
     @classmethod
@@ -111,14 +109,13 @@ class Collection:
             Cluster.from_dict(self, cluster) for cluster in get_clustering(url, self.api_key)
         ]
 
-    @property
     def find(self) -> List[Cluster]:
         url = f"{self.name}/clusters/find"
         return [
             Cluster.from_dict(self, cluster) for cluster in get_clustering(url, self.api_key)
         ]
 
-    def add_items(self, *items: str, force_new_cluster: bool = False):
+    def add_items(self, items: List[str], force_new_cluster: bool = False):
         url = f"{self.name}/items"
         data = [
             {
