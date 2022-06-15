@@ -285,14 +285,14 @@ class HTMLExtractArticle(Skill):
 
     def __new__(cls, *args, **kwargs):
         warn(
-            "BusinessEntities Skill is deprecated- use `Pricing` instead",
+            "HTMLExtractArticle Skill is deprecated- use `HtmlToArticle` instead",
             DeprecationWarning,
             stacklevel=2,
         )
         return super().__new__(cls, *args, **kwargs)
 
 
-@skillclass(api_name="html-extract-text", is_generator=True, output_attr="html_text")
+@skillclass(api_name="html-extract-text", is_generator=True, output_attr="html_text", run_custom=scraping.extract_text)
 class HTMLExtractText(Skill):
     """
     Extracts all text content of an HTML page (including text from control elements). Accepts URLs or HTML strings. Use HTMLExtractArticle to extract the main content only
@@ -314,7 +314,7 @@ class HTMLExtractText(Skill):
 
     def __new__(cls, *args, **kwargs):
         warn(
-            "BusinessEntities Skill is deprecated- use `Pricing` instead",
+            "HTMLExtractText Skill is deprecated- use `HtmlAllText` instead",
             DeprecationWarning,
             stacklevel=2,
         )
@@ -349,7 +349,7 @@ class HtmlToArticle(Skill):
     """
 
 
-@skillclass(api_name="html-extract-text", is_generator=True, output_attr="html_text")
+@skillclass(api_name="html-extract-text", is_generator=True, output_attr="html_text", run_custom=scraping.extract_text)
 class HtmlAllText(Skill):
     """
     Extracts all text content of an HTML page (including text from control elements). Accepts URLs or HTML strings. Use HTMLExtractArticle to extract the main content only
