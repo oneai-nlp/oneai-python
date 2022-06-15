@@ -2,7 +2,7 @@ from base64 import b64encode
 from dataclasses import dataclass, field
 import json
 import os
-from typing import Any, Callable, Iterable, List, Type, Union
+from typing import Any, Callable, Dict, Iterable, List, Type, Union
 from warnings import warn
 
 import aiohttp
@@ -123,6 +123,8 @@ class Input:
         The content type of the input.
     `encoding: str`
         The encoding of the input.
+    `metadata: dict`
+        Optional metadata to be associated with the input in clustering collections. Not implemented by default. 
 
     ## Methods
 
@@ -153,9 +155,10 @@ class Input:
         """
         raise NotImplementedError()
 
-    def get_text(self) -> str:
+    @property
+    def text(self) -> str:
         """
-        Returns the input as a string (used by `repr`). Not implemented by default.
+        Returns the input as a string. Not implemented by default.
 
         ## Returns
 
@@ -163,8 +166,16 @@ class Input:
         """
         raise NotImplementedError()
 
-    def __repr__(self) -> str:
-        return self.get_text()
+    @property
+    def metadata(self) -> Dict[str, Any]:
+        """
+        Returns the metadata of the input. Not implemented by default.
+
+        ## Returns
+
+        A `str`-key dict of input-associated metadata.
+        """
+        raise NotImplementedError()
 
 
 class Document(Input):
@@ -343,7 +354,7 @@ class File(Input):
             self.content_type = "text/plain"
             self.encoding = utf8
         elif ext == ".srt":
-            self.data = Conversation.parse(open(file_path).read()).get_text()
+            self.data = Conversation.parse(open(file_path).read()).text
             return
         elif ext in [".jpg", ".jpeg"]:
             self.content_type = "image/jpeg"

@@ -1,8 +1,10 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-from typing import List
+import json
+from typing import List, Union
 import oneai
 from oneai.api import get_clustering, post_clustering
+from oneai.classes import Input
 
 
 def fetch_collections(api_key: str = None):
@@ -70,11 +72,12 @@ class Cluster:
         # refetch? cache?
         return self._phrases
 
-    def add_items(self, *items: str):
+    def add_items(self, items: List[Union[str, Input]]):
         url = f"{self.collection.name}/items"
         data = [
             {
-                "text": item,
+                "text": item.text if isinstance(item, Input) else item,
+                "metadata": item.metadata if isinstance(item, Input) else None,
                 "force-cluster-id": self.id,
             }
             for item in items
@@ -115,11 +118,12 @@ class Collection:
             Cluster.from_dict(self, cluster) for cluster in get_clustering(url, self.api_key)
         ]
 
-    def add_items(self, items: List[str], force_new_cluster: bool = False):
+    def add_items(self, items: List[Union[str, Input]], force_new_cluster: bool = False):
         url = f"{self.name}/items"
         data = [
             {
-                "text": item,
+                "text": item.text if isinstance(item, Input) else item,
+                "metadata": json.dumps(item.metadata) if isinstance(item, Input) else None,
                 "force-new-cluster": force_new_cluster,
             }
             for item in items
