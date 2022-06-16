@@ -30,9 +30,9 @@ async def post_pipeline(
     if isinstance(input, Input):
         if input.type:
             request["input_type"] = input.type
-        if input.content_type:
+        if hasattr(input, 'content_type') and input.content_type:
             request["content_type"] = input.content_type
-        if input.encoding:
+        if hasattr(input, 'encoding') and input.encoding:
             request["encoding"] = input.encoding
 
     async with session.post(f'{oneai.URL}/{ENDPOINT}', headers=headers, json=request) as response:

@@ -188,7 +188,7 @@ class Pipeline:
 pool = concurrent.futures.ThreadPoolExecutor()
 is_36 = sys.version_info[:2] == (3, 6)
 
-if os.name == "nt":  # Windows
+if os.name == "nt" and not is_36:  # Windows
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
