@@ -1,4 +1,4 @@
-__version__ = "0.3.9"
+__version__ = "0.4.0"
 
 from typing_extensions import Final
 import oneai.skills as skills
