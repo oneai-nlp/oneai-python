@@ -76,7 +76,7 @@ class Cluster:
         url = f"{self.collection.name}/items"
         data = [
             {
-                "text": item.text if isinstance(item, Input) else item,
+                "text": item.raw if isinstance(item, Input) else item,
                 "metadata": item.metadata if isinstance(item, Input) else None,
                 "force-cluster-id": self.id,
             }
@@ -122,7 +122,7 @@ class Collection:
         url = f"{self.name}/items"
         data = [
             {
-                "text": item.text if isinstance(item, Input) else item,
+                "text": item.raw if isinstance(item, Input) else item,
                 "metadata": json.dumps(item.metadata) if isinstance(item, Input) else None,
                 "force-new-cluster": force_new_cluster,
             }

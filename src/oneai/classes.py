@@ -156,9 +156,9 @@ class Input:
         raise NotImplementedError()
 
     @property
-    def text(self) -> str:
+    def raw(self) -> str:
         """
-        Returns the input as a string. Not implemented by default.
+        Returns the input as a raw string. Not implemented by default.
 
         ## Returns
 
@@ -198,7 +198,7 @@ class Document(Input):
     type = "article"
 
     def __init__(self, text: str):
-        self.text = text
+        self.raw = text
 
     @classmethod
     def parse(cls, text: str) -> "Document":
@@ -216,14 +216,8 @@ class Document(Input):
         """
         return cls(text)
 
-    def get_text(self) -> str:
-        """
-        Returns the document as a string.
-
-        ## Returns
-
-        `str` representation of this `Documentation` instance.
-        """
+    @property
+    def raw(self) -> str:
         return self.text
 
 
@@ -258,7 +252,8 @@ class Conversation(Input):
     def __init__(self, utterances: List[Utterance] = []):
         self.utterances = utterances
 
-    def get_text(self) -> str:
+    @property
+    def raw(self) -> str:
         """
         Returns the conversation as a JSON string.
 
@@ -297,7 +292,7 @@ class Conversation(Input):
 
             return parse_conversation(text)
 
-    def __str__(self) -> str:
+    def __repr__(self) -> str:
         return f"oneai.Conversation{repr(self.utterances)}"
 
 
@@ -354,7 +349,7 @@ class File(Input):
             self.content_type = "text/plain"
             self.encoding = utf8
         elif ext == ".srt":
-            self.data = Conversation.parse(open(file_path).read()).text
+            self.data = Conversation.parse(open(file_path).read()).raw
             return
         elif ext in [".jpg", ".jpeg"]:
             self.content_type = "image/jpeg"
@@ -376,7 +371,8 @@ class File(Input):
         else:
             self.data = b64encode(file_path).decode("utf-8")
 
-    def get_text(self) -> str:
+    @property
+    def raw(self) -> str:
         """
         Returns the encoded file data.
 
@@ -584,8 +580,9 @@ class Output(Input):
             skill.output_attr or skill.api_name for skill in self.skills
         ]
 
-    def get_text(self) -> str:
-        return self.text if isinstance(self.text, str) else repr(self.text)
+    @property
+    def raw(self) -> str:
+        return self.text if isinstance(self.text, str) else self.raw
 
     def add(self, skill: Skill, data: Union["Output", Labels]):
         """

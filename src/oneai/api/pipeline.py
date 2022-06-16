@@ -24,7 +24,7 @@ async def post_pipeline(
 
     headers = {"api-key": api_key, "Content-Type": "application/json"}
     request = {
-        "text": input if isinstance(input, str) else repr(input),
+        "text": input if isinstance(input, str) else input.raw,
         "steps": [skill.asdict() for skill in steps],
     }
     if isinstance(input, Input):
