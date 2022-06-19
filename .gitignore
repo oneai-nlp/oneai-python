@@ -130,3 +130,4 @@ dmypy.json
 
 .DS_Store
 src/example*
+src/oneai/api/.uuid

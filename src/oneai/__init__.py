@@ -1,4 +1,5 @@
 __version__ = "0.4.1"
+__package__ = "oneai"
 
 from typing_extensions import Final
 import oneai.skills as skills

@@ -1,7 +1,7 @@
 from copy import copy
 from typing import Awaitable, List, Union
 import aiohttp
-import oneai
+import oneai, oneai.api
 
 from oneai.classes import Input, Label, Labels, Output, Skill
 from oneai.exceptions import APIKeyError, handle_unsuccessful_response
@@ -25,7 +25,7 @@ async def post_pipeline(
     headers = {
         "api-key": api_key,
         "Content-Type": "application/json",
-        "User-Agent": f"python-sdk/{oneai.__version__}",
+        "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
     }
     request = {
         "text": input if isinstance(input, str) else input.raw,
