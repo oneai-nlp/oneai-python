@@ -45,7 +45,10 @@ class Phrase:
     @property
     def items(self) -> List[Item]:
         url = f"{self.collection.name}/phrases/{self.id}/items"
-        return [Item.from_dict(self, item) for item in get_clustering(url, self.collection.api_key)]
+        return [
+            Item.from_dict(self, item)
+            for item in get_clustering(url, self.collection.api_key)
+        ]
 
     @classmethod
     def from_dict(cls, cluster: "Cluster", object: dict) -> "Phrase":
@@ -109,21 +112,27 @@ class Collection:
         # generator w pagination? caching?
         url = f"{self.name}/clusters"
         return [
-            Cluster.from_dict(self, cluster) for cluster in get_clustering(url, self.api_key)
+            Cluster.from_dict(self, cluster)
+            for cluster in get_clustering(url, self.api_key)
         ]
 
     def find(self) -> List[Cluster]:
         url = f"{self.name}/clusters/find"
         return [
-            Cluster.from_dict(self, cluster) for cluster in get_clustering(url, self.api_key)
+            Cluster.from_dict(self, cluster)
+            for cluster in get_clustering(url, self.api_key)
         ]
 
-    def add_items(self, items: List[Union[str, Input]], force_new_cluster: bool = False):
+    def add_items(
+        self, items: List[Union[str, Input]], force_new_cluster: bool = False
+    ):
         url = f"{self.name}/items"
         data = [
             {
                 "text": item.raw if isinstance(item, Input) else item,
-                "metadata": json.dumps(item.metadata) if isinstance(item, Input) else None,
+                "metadata": json.dumps(item.metadata)
+                if isinstance(item, Input)
+                else None,
                 "force-new-cluster": force_new_cluster,
             }
             for item in items

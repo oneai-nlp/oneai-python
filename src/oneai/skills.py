@@ -292,7 +292,12 @@ class HTMLExtractArticle(Skill):
         return super().__new__(cls, *args, **kwargs)
 
 
-@skillclass(api_name="html-extract-text", is_generator=True, output_attr="html_text", run_custom=scraping.extract_text)
+@skillclass(
+    api_name="html-extract-text",
+    is_generator=True,
+    output_attr="html_text",
+    run_custom=scraping.extract_text,
+)
 class HTMLExtractText(Skill):
     """
     Extracts all text content of an HTML page (including text from control elements). Accepts URLs or HTML strings. Use HTMLExtractArticle to extract the main content only
@@ -349,7 +354,12 @@ class HtmlToArticle(Skill):
     """
 
 
-@skillclass(api_name="html-extract-text", is_generator=True, output_attr="html_text", run_custom=scraping.extract_text)
+@skillclass(
+    api_name="html-extract-text",
+    is_generator=True,
+    output_attr="html_text",
+    run_custom=scraping.extract_text,
+)
 class HtmlAllText(Skill):
     """
     Extracts all text content of an HTML page (including text from control elements). Accepts URLs or HTML strings. Use HTMLExtractArticle to extract the main content only

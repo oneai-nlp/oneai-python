@@ -124,7 +124,7 @@ class Input:
     `encoding: str`
         The encoding of the input.
     `metadata: dict`
-        Optional metadata to be associated with the input in clustering collections. Not implemented by default. 
+        Optional metadata to be associated with the input in clustering collections. Not implemented by default.
 
     ## Methods
 
@@ -493,7 +493,11 @@ class Label:
     def __repr__(self) -> str:
         return (
             "oneai.Label("
-            + ", ".join(f"{k}={repr(v)}" for k, v in self.__dict__.items() if v and not k.startswith("_"))
+            + ", ".join(
+                f"{k}={repr(v)}"
+                for k, v in self.__dict__.items()
+                if v and not k.startswith("_")
+            )
             + ")"
         )
 

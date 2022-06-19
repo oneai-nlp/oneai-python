@@ -57,7 +57,7 @@ async def process_batch(
     exceptions = 0  # number of exceptions occurred
     time_total = timedelta()  # total time spent on all requests
     # length = len(batch) if hasattr(batch, "__len__") else 0
-        
+
     def next_input():  # distribute batch to workers
         try:
             return next(iterator)
@@ -202,9 +202,7 @@ class APISegment(Segment):
         session: aiohttp.ClientSession,
     ) -> Output:
         if isinstance(input, Output):
-            output = await post_pipeline(
-                session, input.text, self.skills, api_key
-            )
+            output = await post_pipeline(session, input.text, self.skills, api_key)
             input.merge(output)
             output = input
         else:

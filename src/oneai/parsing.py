@@ -5,14 +5,18 @@ from oneai.classes import Utterance
 
 def parse_conversation(text: str, strict=False) -> oneai.Conversation:
     # try to parse SRT format (I think this should be done more explicitly)
-    srt_regex = re.compile(r'\d+\n\d{1,2}:\d{2}:\d{2}[,.]\d{1,3} --> \d{1,2}:\d{2}:\d{2}[,.]\d{1,3}')
+    srt_regex = re.compile(
+        r"\d+\n\d{1,2}:\d{2}:\d{2}[,.]\d{1,3} --> \d{1,2}:\d{2}:\d{2}[,.]\d{1,3}"
+    )
     match = srt_regex.match(text)
     if match:
         data_array = srt_regex.split(text)
-        return oneai.Conversation(utterances=[
-            Utterance(speaker='SPEAKER', utterance=line.strip().replace('\n', ' '))
-            for line in data_array[1:]
-        ])
+        return oneai.Conversation(
+            utterances=[
+                Utterance(speaker="SPEAKER", utterance=line.strip().replace("\n", " "))
+                for line in data_array[1:]
+            ]
+        )
 
     result = []
     lines = re.split(r"\r?\n", text.strip())
@@ -51,26 +55,25 @@ def parse_conversation(text: str, strict=False) -> oneai.Conversation:
                 f"Differing conversation format at line {i}, run with strict=False to ignore"
             )
 
-        if previousObject: result.append(
-            Utterance(
-                speaker=previousObject["speaker"],
-                utterance=previousObject["text"]
+        if previousObject:
+            result.append(
+                Utterance(
+                    speaker=previousObject["speaker"], utterance=previousObject["text"]
+                )
             )
-        )
         previousObject = {
             "speaker": currentLineInfo["speaker"],
             "text": currentLineInfo["text"],
-            "speaker_line": i, # what are these properties for? do I want them in Utterance objects?
+            "speaker_line": i,  # what are these properties for? do I want them in Utterance objects?
             "text_line": i,
-            "speaker_length": currentLineInfo["speaker_end"]
+            "speaker_length": currentLineInfo["speaker_end"],
         }
-        
+
         waitForTextLine = not bool(currentLineInfo["text"])
     if previousObject and not _isEmptyOrWhitespace(previousObject["text"]):
         result.append(
             Utterance(
-                speaker=previousObject["speaker"],
-                utterance=previousObject["text"]
+                speaker=previousObject["speaker"], utterance=previousObject["text"]
             )
         )
 
