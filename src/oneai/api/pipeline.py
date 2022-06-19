@@ -6,7 +6,7 @@ import oneai
 from oneai.classes import Input, Label, Labels, Output, Skill
 from oneai.exceptions import APIKeyError, handle_unsuccessful_response
 
-ENDPOINT = 'api/v0/pipeline'
+ENDPOINT = "api/v0/pipeline"
 
 
 async def post_pipeline(
@@ -22,7 +22,11 @@ async def post_pipeline(
             "Please provide a valid API key, either by setting the global `oneai.api_key` or passing the `api_key` parameter",
         )
 
-    headers = {"api-key": api_key, "Content-Type": "application/json"}
+    headers = {
+        "api-key": api_key,
+        "Content-Type": "application/json",
+        "User-Agent": f"python-sdk/{oneai.__version__}",
+    }
     request = {
         "text": input if isinstance(input, str) else input.raw,
         "steps": [skill.asdict() for skill in steps],
@@ -30,12 +34,14 @@ async def post_pipeline(
     if isinstance(input, Input):
         if input.type:
             request["input_type"] = input.type
-        if hasattr(input, 'content_type') and input.content_type:
+        if hasattr(input, "content_type") and input.content_type:
             request["content_type"] = input.content_type
-        if hasattr(input, 'encoding') and input.encoding:
+        if hasattr(input, "encoding") and input.encoding:
             request["encoding"] = input.encoding
 
-    async with session.post(f'{oneai.URL}/{ENDPOINT}', headers=headers, json=request) as response:
+    async with session.post(
+        f"{oneai.URL}/{ENDPOINT}", headers=headers, json=request
+    ) as response:
         if response.status != 200:
             await handle_unsuccessful_response(response)
         else:
