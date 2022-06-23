@@ -87,7 +87,7 @@ def build_output(
         for i, skill in enumerate(skills):
             if skill.is_generator:
                 skills, next_skills = split_pipeline(skills, i)
-                data.append(build_internal(output_index + 1, next_skills, str))
+                data.append(build_internal(output_index + 1, next_skills, skill.output_type or input_type))
                 break
             else:
                 data.append(
@@ -102,9 +102,10 @@ def build_output(
         # edge case- first Skill is a generator, or a generator preceded by Skills that didn't generate output
         # in this case the API will skip these Skills,
         # so we need to create filler objects to match the expected structure
+        next_input_type = skills[generator].output_type or input_type
         skills, next_skills = split_pipeline(skills, generator)
         return Output(
             text=get_text(-1, input_type),
             skills=list(skills),
-            data=[[]] * generator + [build_internal(0, next_skills, str)],
+            data=[[]] * generator + [build_internal(0, next_skills, next_input_type)],
         )

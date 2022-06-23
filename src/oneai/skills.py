@@ -83,6 +83,7 @@ class Proofread(Skill):
     label_type="origin",
     output_attr="summary",
     output_attr1="origins",
+    output_type=str,
 )
 @dataclass
 class Summarize(Skill):
