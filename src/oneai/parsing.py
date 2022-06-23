@@ -95,7 +95,7 @@ def _parseSpeakerLine(text):
         "text": None,
     }
 
-    match = re.match(r"\s*\[?[0-9]+:[0-9]+\]?\s*", text)
+    match = re.match(r"\s*\[?[0-9:,\sPAM/]{4,23}\]?\s*", text)
     if match:
         text = text[match.end() :]
         value["preTime"] = True

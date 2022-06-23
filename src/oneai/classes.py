@@ -226,6 +226,10 @@ class Utterance:
     speaker: str
     utterance: str
 
+    # temporary fix, for outputs to be supported by parser
+    def __post_init__(self):
+        self.speaker = self.speaker.upper()
+
     def __repr__(self) -> str:
         return f"\n\t{self.speaker}: {self.utterance}"
 
@@ -589,7 +593,7 @@ class Output(Input):
 
     @property
     def raw(self) -> str:
-        return self.text if isinstance(self.text, str) else self.raw
+        return self.text if isinstance(self.text, str) else self.text.raw
 
     def add(self, skill: Skill, data: Union["Output", Labels]):
         """

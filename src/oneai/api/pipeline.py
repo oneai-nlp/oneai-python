@@ -97,14 +97,14 @@ def build_output(
 
     generator = raw_output["output"][0].get("text_generated_by_step_id", 0) - 1
     if generator < 0:
-        return build_internal(-1, skills, str)
+        return build_internal(-1, skills, input_type)
     else:
         # edge case- first Skill is a generator, or a generator preceded by Skills that didn't generate output
         # in this case the API will skip these Skills,
         # so we need to create filler objects to match the expected structure
         skills, next_skills = split_pipeline(skills, generator)
         return Output(
-            text=get_text(-1, str),
+            text=get_text(-1, input_type),
             skills=list(skills),
             data=[[]] * generator + [build_internal(0, next_skills, str)],
         )
