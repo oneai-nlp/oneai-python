@@ -134,8 +134,8 @@ class Input:
 
     ## Methods
 
-    `get_text() -> str`
-        Returns the input as a string. Not implemented by default.
+    `raw() -> str`
+        Property method. Returns the input as a string. Not implemented by default.
     `parse(text) -> Input`
         A class method. Parse a string into an instance of the Input class. Not implemented by default.
     """
@@ -195,8 +195,8 @@ class Document(Input):
 
     ## Methods
 
-    `get_text() -> str`
-        Returns the text of the document.
+    `raw() -> str`
+        Property Method. Returns the text of the document.
     `parse(text) -> Document`
         A class method. Parse a string into a `Document` instance.
     """
@@ -251,8 +251,8 @@ class Conversation(Input):
 
     ## Methods
 
-    `get_text() -> str`
-        Returns the conversation as a JSON string.
+    `raw() -> str`
+        Property method. Returns the conversation as a JSON string.
     `parse(text) -> Conversation`
         A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
     """
@@ -328,8 +328,8 @@ class File(Input):
 
     ## Methods
 
-    `get_text() -> str`
-        Returns the encoded file data.
+    `raw() -> str`
+        Property method. Returns the encoded file data.
     """
 
     def __init__(self, file_path: str, type: Union[str, Type[Input]] = None):
