@@ -350,7 +350,7 @@ class File(Input):
         else:
             raise ValueError(f"Invalid input type {type}")
 
-        utf8, b64 = "utf8", "b64"
+        utf8, b64 = "utf8", "base64"
         _, ext = os.path.splitext(file_path)
         if ext == ".json":
             self.content_type = "application/json"
@@ -379,12 +379,10 @@ class File(Input):
                 details="see supported files in docs",
             )
 
-        file_content = open(file_path)
-        
         if self.encoding == utf8:
-            self.data = file_content.read()
+            self.data = open(file_path, 'r').read()
         else:
-            self.data = b64encode(file_content).decode("utf-8")
+            self.data = b64encode(open(file_path, 'rb').read()).decode("utf-8")
 
     @property
     def raw(self) -> str:
