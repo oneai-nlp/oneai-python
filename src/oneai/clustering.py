@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
-from typing import List, Union
+from typing import Generator, List, Union
 import oneai
 from oneai.api import get_clustering, post_clustering
 from oneai.classes import Input
@@ -108,13 +108,19 @@ class Collection:
         self.api_key = api_key or oneai.api_key
 
     @property
-    def clusters(self) -> List[Cluster]:
+    def clusters(self) -> Generator[Cluster, None, None]:
         # generator w pagination? caching?
         url = f"{self.name}/clusters"
-        return [
-            Cluster.from_dict(self, cluster)
-            for cluster in get_clustering(url, self.api_key)
-        ]
+        
+        page = 0
+        clusters = [None]
+        while clusters:
+            clusters = [
+                Cluster.from_dict(self, cluster)
+                for cluster in get_clustering(url, self.api_key, page)
+            ]
+            yield from clusters
+            page += 1
 
     def find(self) -> List[Cluster]:
         url = f"{self.name}/clusters/find"
