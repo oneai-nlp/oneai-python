@@ -380,9 +380,9 @@ class File(Input):
             )
 
         if self.encoding == utf8:
-            self.data = open(file_path, 'r').read()
+            self.data = open(file_path, "r").read()
         else:
-            self.data = b64encode(open(file_path, 'rb').read()).decode("utf-8")
+            self.data = b64encode(open(file_path, "rb").read()).decode("utf-8")
 
     @property
     def raw(self) -> str:

@@ -109,9 +109,8 @@ class Collection:
 
     @property
     def clusters(self) -> Generator[Cluster, None, None]:
-        # generator w pagination? caching?
         url = f"{self.name}/clusters"
-        
+
         page = 0
         clusters = [None]
         while clusters:

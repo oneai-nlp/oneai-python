@@ -613,11 +613,7 @@ class SalesInsights(Skill):
     """
 
 
-@skillclass(
-    api_name="transcribe",
-    is_generator=True,
-    output_attr="transcription"
-)
+@skillclass(api_name="transcribe", is_generator=True, output_attr="transcription")
 class TranscribeAudio(Skill):
     """
     Transcribes audio files

@@ -19,7 +19,7 @@ async def extract_base(input, session: aiohttp.ClientSession, extractor):
                 f"Failed to retrieve the input URL {text}.",
             )
     try:
-        return extractor(text.encode('unicode-escape'))
+        return extractor(text.encode("unicode-escape"))
     except:
         raise InputError(
             40008,

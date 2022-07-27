@@ -87,7 +87,11 @@ def build_output(
         for i, skill in enumerate(skills):
             if skill.is_generator:
                 skills, next_skills = split_pipeline(skills, i)
-                data.append(build_internal(output_index + 1, next_skills, skill.output_type or input_type))
+                data.append(
+                    build_internal(
+                        output_index + 1, next_skills, skill.output_type or input_type
+                    )
+                )
                 break
             else:
                 data.append(
