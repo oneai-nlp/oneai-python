@@ -77,13 +77,14 @@ async def process_batch(
         time_total += time_delta
         if start:
             print(
-                f"Starting processing batch with {oneai.MAX_CONCURRENT_REQUESTS} workers",
+                f"{oneai.__prefix__} Starting processing batch with {oneai.MAX_CONCURRENT_REQUESTS} workers",
                 end="\r",
             )
         elif end:
             print(
-                "Processed %d inputs - %s/input - %s total - %d successful - %d failed"
+                "%s Processed %d inputs - %s/input - %s total - %d successful - %d failed"
                 % (
+                    oneai.__prefix__,
                     total,
                     time_format(time_total / total / oneai.MAX_CONCURRENT_REQUESTS),
                     time_format(time_total / oneai.MAX_CONCURRENT_REQUESTS),
@@ -93,8 +94,9 @@ async def process_batch(
             )
         else:
             print(
-                "Input %d - %s/input - %s total - %d successful - %d failed        "
+                "%s Input %d - %s/input - %s total - %d successful - %d failed        "
                 % (
+                    oneai.__prefix__,
                     total,
                     time_format(time_delta),
                     time_format(time_total / oneai.MAX_CONCURRENT_REQUESTS),
@@ -113,7 +115,7 @@ async def process_batch(
             try:
                 results[input] = await _run_segments(session, input, segments, api_key)
             except Exception as e:  # todo: break loop for some error types
-                print(f"\r\033[KInput {len(results)}:", repr(e))
+                print(f"\r\033[K{oneai.__prefix__} Input {len(results)}:", repr(e))
                 results[input] = e
                 exceptions += 1
 

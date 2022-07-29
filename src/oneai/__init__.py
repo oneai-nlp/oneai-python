@@ -1,5 +1,6 @@
 __version__ = "0.4.6"
 __package__ = "oneai"
+__prefix__ = "\33[34m●\33[36m▲\33[35m▮\33[0m"
 
 from typing_extensions import Final
 import oneai.skills as skills
