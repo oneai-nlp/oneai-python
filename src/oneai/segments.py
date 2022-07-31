@@ -1,7 +1,7 @@
 import asyncio
 from datetime import datetime, timedelta
 from inspect import isawaitable
-from typing import Awaitable, Dict, Iterable, List, Union
+from typing import Awaitable, Callable, Dict, Iterable, List, Union
 
 import aiohttp
 import oneai
@@ -50,11 +50,15 @@ async def process_single_input(
 
 # open a client session with multiple workers and send concurrent requests
 async def process_batch(
-    batch: Iterable[Union[str, Input]], segments: List[Segment], api_key: str
-) -> Awaitable[Dict[Union[str, Input], Output]]:
+    batch: Iterable[Union[str, Input]],
+    segments: List[Segment],
+    on_output: Callable[[Input, Output], None],
+    on_error: Callable[[Input, Exception], None],
+    api_key: str,
+):
     iterator = iter(batch)
-    results = dict()
-    exceptions = 0  # number of exceptions occurred
+    successful = 0  # total successful responses
+    failed = 0  # number of exceptions occurred
     time_total = timedelta()  # total time spent on all requests
     # length = len(batch) if hasattr(batch, "__len__") else 0
 
@@ -67,13 +71,12 @@ async def process_batch(
     def print_progress(
         time_delta=timedelta(), start=False, end=False
     ):  # todo progress bar for iterables with __len__
-        nonlocal time_total
+        nonlocal successful, failed, time_total
 
         def time_format(time: timedelta):
             minutes = f"{time.seconds // 60}m " if time.seconds > 59 else ""
             return minutes + f"{time.seconds % 60}s {time.microseconds // 1000}ms"
 
-        total = len(results)
         time_total += time_delta
         if start:
             print(
@@ -85,11 +88,11 @@ async def process_batch(
                 "%s Processed %d inputs - %s/input - %s total - %d successful - %d failed"
                 % (
                     oneai.__prefix__,
-                    total,
-                    time_format(time_total / total / oneai.MAX_CONCURRENT_REQUESTS),
+                    successful + failed,
+                    time_format(time_total / successful / oneai.MAX_CONCURRENT_REQUESTS),
                     time_format(time_total / oneai.MAX_CONCURRENT_REQUESTS),
-                    total - exceptions,
-                    exceptions,
+                    successful,
+                    failed,
                 )
             )
         else:
@@ -97,27 +100,29 @@ async def process_batch(
                 "%s Input %d - %s/input - %s total - %d successful - %d failed        "
                 % (
                     oneai.__prefix__,
-                    total,
+                    successful + failed,
                     time_format(time_delta),
                     time_format(time_total / oneai.MAX_CONCURRENT_REQUESTS),
-                    total - exceptions,
-                    exceptions,
+                    successful,
+                    failed,
                 ),
                 end="\r",
             )
 
     async def req_worker(session):  # run requests sequentially
-        nonlocal exceptions
+        nonlocal successful, failed
 
         time_start = datetime.now()
         input = next_input()
         while input:
             try:
-                results[input] = await _run_segments(session, input, segments, api_key)
+                output = await _run_segments(session, input, segments, api_key)
+                on_output(input, output)
+                successful += 1
             except Exception as e:  # todo: break loop for some error types
-                print(f"\r\033[K{oneai.__prefix__} Input {len(results)}:", repr(e))
-                results[input] = e
-                exceptions += 1
+                print(f"\r\033[K{oneai.__prefix__} Input {successful + failed}:", repr(e))
+                on_error(input, e)
+                failed += 1
 
             time_end = datetime.now()
             if oneai.PRINT_PROGRESS:
@@ -134,7 +139,6 @@ async def process_batch(
         print_progress(start=True)
         await asyncio.gather(*workers)
         print_progress(end=True)
-        return results
 
 
 async def _run_segments(

@@ -3,7 +3,7 @@ import sys
 import os
 import oneai
 
-from typing import Awaitable, Dict, Iterable, List, Union
+from typing import Awaitable, Callable, Dict, Iterable, List, Union
 from oneai.classes import Input, Output, Skill
 from oneai.segments import *
 
@@ -129,7 +129,11 @@ class Pipeline:
             raise TypeError(f"pipeline input must be Input, str or iterable of inputs")
 
     def run_batch(
-        self, batch: Iterable[Union[str, Input]], api_key: str = None
+        self,
+        batch: Iterable[Union[str, Input]],
+        api_key: str = None,
+        on_output: Callable[[Input, Output], None] = None,
+        on_error: Callable[[Input, Exception], None] = None,
     ) -> Dict[Union[str, Input], Output]:
         """
         Runs the pipeline on a batch of input texts.
@@ -140,10 +144,14 @@ class Pipeline:
             The input texts to be processed.
         `api_key: str, optional`
             An API key to be used in this API call. If not provided, `self.api_key` is used.
+        `on_output: Callable[[Input, Output], None]`
+            Action to perform on successful output, by default creates a dict mapping inputs to outputs
+        `on_error: Callable[[Input, Exception], None]`
+            Action to perform on error, by default creates a dict mapping inputs to errors
 
         ## Returns
 
-        A dictionary mapping inputs to the produced `Output` objects, each containing the results of the Skills in the pipeline.
+        Unless on_output/on_error are modified, returns a dictionary mapping inputs to the produced `Output` objects, each containing the results of the Skills in the pipeline.
 
         ## Raises
 
@@ -151,10 +159,16 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        return _async_run_nested(self.run_batch_async(batch, api_key))
+        return _async_run_nested(
+            self.run_batch_async(batch, api_key, on_output, on_error)
+        )
 
     async def run_batch_async(
-        self, batch: Iterable[Union[str, Input]], api_key: str = None
+        self,
+        batch: Iterable[Union[str, Input]],
+        api_key: str = None,
+        on_output: Callable[[Input, Output], None] = None,
+        on_error: Callable[[Input, Exception], None] = None,
     ) -> Awaitable[Dict[Union[str, Input], Output]]:
         """
         Runs the pipeline on a batch of input texts asynchronously.
@@ -165,10 +179,14 @@ class Pipeline:
             The input texts to be processed.
         `api_key: str, optional`
             An API key to be used in this API call. If not provided, `self.api_key` is used.
+        `on_output: Callable[[Input, Output], None]`
+            Action to perform on successful output, by default creates a dict mapping inputs to outputs
+        `on_error: Callable[[Input, Exception], None]`
+            Action to perform on error, by default creates a dict mapping inputs to errors
 
         ## Returns
 
-        An Awaitable with a dictionary mapping inputs to the produced `Output` objects, each containing the results of the Skills in the pipeline.
+        Unless on_output/on_error are modified, returns an Awaitable with a dictionary mapping inputs to the produced `Output` objects, each containing the results of the Skills in the pipeline.
 
         ## Raises
 
@@ -176,9 +194,15 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        return await process_batch(
-            batch, self._segments, api_key=api_key or self.api_key or oneai.api_key
+        outputs = dict()
+        await process_batch(
+            batch,
+            self._segments,
+            on_output if on_output else outputs.__setitem__,
+            on_error if on_error else outputs.__setitem__,
+            api_key=api_key or self.api_key or oneai.api_key,
         )
+        return outputs
 
     def __repr__(self) -> str:
         return f"oneai.Pipeline({self.steps})"
