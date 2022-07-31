@@ -204,7 +204,7 @@ class Document(Input):
     type = "article"
 
     def __init__(self, text: str):
-        self.raw = text
+        self.text = text
 
     @classmethod
     def parse(cls, text: str) -> "Document":
