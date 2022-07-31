@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from warnings import warn
 from oneai import scraping
 
-from oneai.classes import Skill, skillclass
+from oneai.classes import Labels, Skill, skillclass, Output
 
 
 @skillclass(
@@ -632,3 +632,27 @@ class TranscribeAudio(Skill):
     >>> str(output.transcription.text)[:20] + ' ...'
     oneai.Conversation([ ...
     """
+
+
+class OutputAttrs:
+    summary: "Output" = None
+    proofread: "Output" = None
+    html_article: "Output" = None
+    html_text: "Output" = None
+    transcription: "Output" = None
+    anonymized: "Output" = None
+    emotions: Labels = None
+    names: Labels = None
+    numbers: Labels = None
+    keywords: Labels = None
+    highlights: Labels = None
+    sentiments: Labels = None
+    topics: Labels = None
+    sales_insights: Labels = None
+    action_items: Labels = None
+    pricing: Labels = None
+    replacements: Labels = None
+    origins: Labels = None
+    segments: Labels = None
+    sentences: Labels = None
+    anonymizations: Labels = None

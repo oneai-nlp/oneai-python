@@ -2,12 +2,15 @@ from base64 import b64encode
 from dataclasses import dataclass, field
 import json
 import os
-from typing import Any, Callable, Dict, Iterable, List, Type, Union
+from typing import Any, Callable, Dict, Iterable, List, Type, Union, TYPE_CHECKING
 from warnings import warn
 
 import aiohttp
 
 from oneai.exceptions import InputError
+
+if TYPE_CHECKING:
+    from oneai.skills import OutputAttrs
 
 
 @dataclass
@@ -552,7 +555,7 @@ class Labels(List[Label]):
 
 
 @dataclass
-class Output(Input):
+class Output(Input, OutputAttrs if TYPE_CHECKING else object):
     """
     Represents the output of a pipeline. The structure of the output is dynamic, and corresponds to the Skills used and their order in the pipeline.
     Skill outputs can be accessed as attributes, either with the `api_name` of the corresponding Skill or the `output_attr` field.
