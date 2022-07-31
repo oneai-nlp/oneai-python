@@ -18,17 +18,19 @@ class OneAIError(Exception):
         A string containing details about the error.
     """
 
-    def __init__(self, status_code: int = 0, message: str = "", details: str = ""):
+    def __init__(self, status_code: int = 0, message: str = "", details: str = "", request_id: str = ""):
         self.status_code = status_code
         self.message = message
         self.details = details
+        self.request_id = request_id
 
     def __str__(self) -> str:
         return (
             f"{type(self).__name__}("
             + (f"status_code={self.status_code}, " if self.status_code else "")
             + (f"message={self.message}" if self.message else "")
-            + (f", details={self.details})" if self.details else ")")
+            + (f", details={self.details}" if self.details else "")
+            + (f", request_id={self.request_id})" if self.request_id else ")")
         )
 
     __repr__ = __str__
@@ -64,4 +66,5 @@ async def handle_unsuccessful_response(response: ClientResponse):
         content.get("status_code", response.status),
         content.get("message", response.reason),
         content.get("details", ""),
+        content.get("request_id", ""),
     )
