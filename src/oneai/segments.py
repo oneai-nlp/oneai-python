@@ -120,7 +120,7 @@ async def process_batch(
                 on_output(input, output)
                 successful += 1
             except Exception as e:  # todo: break loop for some error types
-                print(f"\r\033[K{oneai.__prefix__} Input {successful + failed}:", repr(e))
+                print(f"\r\033[KInput {successful + failed}:", repr(e))
                 on_error(input, e)
                 failed += 1
 
