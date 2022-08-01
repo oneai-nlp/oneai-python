@@ -16,7 +16,7 @@ def get_clustering(path: str, api_key: str = None, page: int = None):
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
     }
     response = requests.get(
-        f"{oneai.URL}/{ENDPOINT}/{path}" + (f"?{page=}" if page else ""),
+        f"{oneai.URL}/{ENDPOINT}/{path}" + (f"?page={page}" if page else ""),
         headers=headers,
     )
     return json.loads(response.content)

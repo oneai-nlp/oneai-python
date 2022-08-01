@@ -1,4 +1,4 @@
-__version__ = "0.5.0"
+__version__ = "0.5.1"
 __package__ = "oneai"
 __prefix__ = "\33[34m●\33[36m▲\33[35m▮\33[0m"
 
