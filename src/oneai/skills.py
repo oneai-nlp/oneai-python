@@ -613,6 +613,28 @@ class SalesInsights(Skill):
     """
 
 
+@skillclass(
+    api_name="detect-language", label_type="detect-language", output_attr="language"
+)
+class DetectLanguage(Skill):
+    """
+    Detects language of input
+
+    ## Output Attributes
+
+    `language: list[Label]`
+        A list of `Label` objects, containing the detected language
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.DetectLanguage()
+    ... ])
+    >>> output = pipeline.run('...')
+    >>> output.language[0]
+    """
+
+
 @skillclass(api_name="transcribe", is_generator=True, output_attr="transcription")
 class TranscribeAudio(Skill):
     """
@@ -656,3 +678,4 @@ class OutputAttrs:
     segments: Labels = None
     sentences: Labels = None
     anonymizations: Labels = None
+    language: Labels = None
