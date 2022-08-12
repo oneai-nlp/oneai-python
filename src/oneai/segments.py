@@ -89,7 +89,9 @@ async def process_batch(
                 % (
                     oneai.__prefix__,
                     successful + failed,
-                    time_format(time_total / successful / oneai.MAX_CONCURRENT_REQUESTS),
+                    time_format(
+                        time_total / successful / oneai.MAX_CONCURRENT_REQUESTS
+                    ),
                     time_format(time_total / oneai.MAX_CONCURRENT_REQUESTS),
                     successful,
                     failed,
@@ -207,7 +209,7 @@ class APISegment(Segment):
         api_key: str,
         session: aiohttp.ClientSession,
     ) -> Output:
-        if isinstance(input, Output):
+        if isinstance(input, Output) and not oneai.DEBUG_RAW_RESPONSES:
             output = await post_pipeline(session, input.text, self.skills, api_key)
             input.merge(output)
             output = input

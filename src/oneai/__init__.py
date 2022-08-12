@@ -1,4 +1,4 @@
-__version__ = "0.5.1"
+__version__ = "0.5.2"
 __package__ = "oneai"
 __prefix__ = "\33[34m●\33[36m▲\33[35m▮\33[0m"
 
@@ -25,5 +25,9 @@ Currently only enforced on `pipeline.run_batch`, other calls may be limited by t
 """
 PRINT_PROGRESS = True
 """
-Wether to print progress of batch processing in `Pipeline.run_batch` calls
+Whether to print progress of batch processing in `Pipeline.run_batch` calls
+"""
+DEBUG_RAW_RESPONSES = False
+"""
+Debug flag, return raw API responses instead of structured `Output` object. Only enable if you know what you're doing
 """

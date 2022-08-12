@@ -61,7 +61,7 @@ class Pipeline:
         self._segments = []
         start = 0
         for i, skill in enumerate(steps):
-            if skill.run_custom is not None:
+            if skill.run_custom is not None and not oneai.DEBUG_RAW_RESPONSES:
                 if i - start:
                     self._segments.append(APISegment(self.steps[start:i]))
                 start = i + 1
