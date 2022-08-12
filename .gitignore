@@ -132,3 +132,4 @@ dmypy.json
 src/example*
 src/oneai/api/.uuid
 .vscode
+credentials.py
