@@ -113,5 +113,5 @@ def build_output(
         return Output(
             text=get_text(-1, input_type),
             skills=list(skills),
-            data=[[]] * generator + [build_internal(0, next_skills, next_input_type)],
+            data=[Labels()] * generator + [build_internal(0, next_skills, next_input_type)],
         )
