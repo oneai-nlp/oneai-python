@@ -656,6 +656,27 @@ class TranscribeAudio(Skill):
     """
 
 
+@skillclass(api_name="transcribe", is_generator=True, output_attr="transcription")
+class Transcribe(Skill):
+    """
+    Transcribes audio files
+
+    ## Output
+
+    Speech-to-text transcription of the audio data
+
+    ## Example
+
+    >>> input = oneai.File('./my_audio_file.wav')
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Transcribe()
+    ... ])
+    >>> output = pipeline.run(input)
+    >>> str(output.transcription.text)[:20] + ' ...'
+    oneai.Conversation([ ...
+    """
+
+
 class OutputAttrs:
     summary: "Output" = None
     proofread: "Output" = None
