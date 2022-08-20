@@ -1,5 +1,5 @@
 import aiohttp
-import trafilatura as tf
+import trafilatura as tf, trafilatura.settings as tfsettings
 import validators
 import lxml.html, lxml.html.clean
 
@@ -42,4 +42,6 @@ async def extract_text(input, session: aiohttp.ClientSession):
 
 
 async def extract_article(input, session: aiohttp.ClientSession):
-    return await extract_base(input, session, lambda text: tf.extract(text))
+    newconfig = tfsettings.use_config()
+    newconfig.set("DEFAULT", "EXTRACTION_TIMEOUT", "0")
+    return await extract_base(input, session, lambda text: tf.extract(text, config=newconfig))
