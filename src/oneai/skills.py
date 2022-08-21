@@ -572,6 +572,7 @@ class SplitBySentence(Skill):
     label_type="dialogue-segment",
     output_attr="segments",
 )
+@dataclass
 class SplitByTopic(Skill):
     """
     Splits input by discussed topics
@@ -589,6 +590,9 @@ class SplitByTopic(Skill):
     >>> output = pipeline.run('...')
     >>> output.segments
     """
+
+    std_ratio: float = 0
+    use_discourse_parser: bool = False
 
 
 @skillclass(
@@ -629,6 +633,27 @@ class DetectLanguage(Skill):
 
     >>> pipeline = oneai.Pipeline(steps=[
     ...     oneai.skills.DetectLanguage()
+    ... ])
+    >>> output = pipeline.run('...')
+    >>> output.language[0]
+    """
+
+@skillclass(
+    api_name="headline", label_type="headline", output_attr="headlines"
+)
+class Headline(Skill):
+    """
+    Generates a headline based on input
+
+    ## Output Attributes
+
+    `healdines: list[Label]`
+        A list of `Label` objects, containing the generated headline
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Headline()
     ... ])
     >>> output = pipeline.run('...')
     >>> output.language[0]
@@ -700,3 +725,4 @@ class OutputAttrs:
     sentences: Labels = None
     anonymizations: Labels = None
     language: Labels = None
+    headlines: Labels = None

@@ -225,4 +225,6 @@ def _async_run_nested(coru):
             asyncio.get_running_loop()
             return pool.submit(asyncio.run, coru).result()
         except RuntimeError:
-            return asyncio.run(coru)
+            pass
+
+        return asyncio.run(coru)
