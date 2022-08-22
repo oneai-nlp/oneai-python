@@ -198,7 +198,7 @@ class Collection:
         ]
 
     def add_items(
-        self, items: List[Union[str, Input]], force_new_cluster: bool = False
+        self, items: List[Union[str, Input]], force_new_clusters: bool = False
     ):
         url = f"{self.name}/items"
         data = [
@@ -207,7 +207,7 @@ class Collection:
                 "metadata": json.dumps(item.metadata)
                 if isinstance(item, Input)
                 else None,
-                "force-new-cluster": force_new_cluster,
+                "force-new-cluster": force_new_clusters,
             }
             for item in items
         ]
