@@ -74,3 +74,11 @@ async def handle_unsuccessful_response(response: ClientResponse):
         content.get("details", ""),
         content.get("request_id", ""),
     )
+
+def validate_api_key(api_key: str):
+    if api_key is None or not api_key:
+        raise APIKeyError(
+            60001,
+            "Missing API key",
+            "Please provide a valid API key, either by setting the global `oneai.api_key` or passing the `api_key` parameter",
+        )
