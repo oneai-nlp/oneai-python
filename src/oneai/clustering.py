@@ -121,8 +121,8 @@ class Collection:
             yield from clusters
             page += 1
 
-    def find(self) -> List[Cluster]:
-        url = f"{self.name}/clusters/find"
+    def find(self, query: Union[str, Input], threshold: float=0.5) -> List[Cluster]:
+        url = f"{self.name}/clusters/find?text={query.raw if isinstance(query, Input) else query}&similarity-threshold={threshold}"
         return [
             Cluster.from_dict(self, cluster)
             for cluster in get_clustering(url, self.api_key)
