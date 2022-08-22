@@ -6,7 +6,7 @@ import oneai, oneai.api
 ENDPOINT = "clustering/v1/collections"
 
 
-def get_clustering(path: str, api_key: str = None, page: int = None):
+def get_clustering(path: str, api_key: str = None):
     api_key = api_key or oneai.api_key
     if not api_key:
         raise Exception("API key is required")
@@ -16,7 +16,7 @@ def get_clustering(path: str, api_key: str = None, page: int = None):
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
     }
     response = requests.get(
-        f"{oneai.URL}/{ENDPOINT}/{path}" + (f"?page={page}" if page else ""),
+        f"{oneai.URL}/{ENDPOINT}/{path}",
         headers=headers,
     )
     return json.loads(response.content)

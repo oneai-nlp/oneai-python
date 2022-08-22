@@ -1,14 +1,29 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 import json
-from typing import Generator, List, Union
+import urllib.parse
+from typing import Generator, List, Literal, Union
 import oneai
 from oneai.api import get_clustering, post_clustering
 from oneai.classes import Input
 
 
-def fetch_collections(api_key: str = None):
-    return [Collection(name) for name in get_clustering("", api_key)]
+def get_collections(
+    api_key: str = None,
+    limit: int = None,
+) -> Generator["Collection", None, None]:
+    page = 0
+    collections = [None]
+    while collections:
+        params = {"page": page}
+        if limit:
+            params["limit"] = limit
+        collections = [
+            Collection(name)
+            for name in get_clustering(f"?{urllib.parse.urlencode(params)}", api_key)
+        ]
+        yield from collections
+        page += 1
 
 
 @dataclass
@@ -42,9 +57,13 @@ class Phrase:
     cluster: "Cluster" = field(repr=False)
     collection: "Collection" = field(repr=False)
 
-    @property
-    def items(self) -> List[Item]:
-        url = f"{self.collection.name}/phrases/{self.id}/items"
+    def get_items(self, item_metadata: str = None) -> List[Item]:
+        params = {
+            "item-metadata": item_metadata,
+        }
+        url = f"{self.collection.name}/phrases/{self.id}/items" + (
+            f"?{urllib.parse.urlencode(params)}" if item_metadata else ""
+        )
         return [
             Item.from_dict(self, item)
             for item in get_clustering(url, self.collection.api_key)
@@ -70,10 +89,22 @@ class Cluster:
     collection: "Collection" = field(repr=False)
     _phrases: List[Phrase] = field(default_factory=list, repr=False)
 
-    @property
-    def phrases(self) -> List[Phrase]:
+    def get_phrases(self, item_metadata: str = None) -> List[Phrase]:
         # refetch? cache?
-        return self._phrases
+        if self._phrases:
+            return self._phrases
+
+        params = {
+            "item-metadata": item_metadata,
+        }
+        url = f"{self.collection.name}/clusters/{self.id}/items" + (
+            f"?{urllib.parse.urlencode(params)}" if item_metadata else ""
+        )
+
+        return [
+            Phrase.from_dict(self, phrase)
+            for phrase in get_clustering(url, self.collection.api_key)
+        ]
 
     def add_items(self, items: List[Union[str, Input]]):
         url = f"{self.collection.name}/items"
@@ -103,26 +134,64 @@ class Cluster:
 
 
 class Collection:
+    api_date_format = "%Y-%m-%d"
+
     def __init__(self, name: str, api_key: str = None):
         self.name = name
         self.api_key = api_key or oneai.api_key
 
-    @property
-    def clusters(self) -> Generator[Cluster, None, None]:
-        url = f"{self.name}/clusters"
+    def get_clusters(
+        self,
+        *,
+        sort: Literal["ASC", "DESC"] = "ASC",
+        limit: int = None,
+        from_date: Union[datetime, str] = None,
+        to_date: Union[datetime, str] = None,
+        date_format: str = api_date_format,
+        include_phrases: bool = True,
+        phrase_limit: int = None,
+        item_metadata: str = None,
+    ) -> Generator[Cluster, None, None]:
+        if from_date:
+            if isinstance(from_date, str):
+                from_date = datetime.strptime(from_date, date_format)
+            from_date = from_date.strftime(self.api_date_format)
+
+        if to_date:
+            if isinstance(to_date, str):
+                to_date = datetime.strptime(to_date, date_format)
+            to_date = to_date.strftime(self.api_date_format)
 
         page = 0
         clusters = [None]
+
         while clusters:
+            params = {
+                "sort": sort,
+                "limit": limit,
+                "from-date": from_date,
+                "to-date": to_date,
+                "include-phrases": include_phrases,
+                "phrases-limit": phrase_limit,
+                "item-metadata": item_metadata,
+                "page": page,
+            }
+            url = f"{self.name}/clusters?{urllib.parse.urlencode({k: v for k, v in params.items() if v})}"
+
             clusters = [
                 Cluster.from_dict(self, cluster)
-                for cluster in get_clustering(url, self.api_key, page)
+                for cluster in get_clustering(url, self.api_key)
             ]
             yield from clusters
             page += 1
 
-    def find(self, query: Union[str, Input], threshold: float=0.5) -> List[Cluster]:
-        url = f"{self.name}/clusters/find?text={query.raw if isinstance(query, Input) else query}&similarity-threshold={threshold}"
+    def find(self, query: Union[str, Input], threshold: float = 0.5) -> List[Cluster]:
+        params = {
+            "text": query.raw if isinstance(query, Input) else query,
+            "similarity-threshold": threshold,
+        }
+
+        url = f"{self.name}/clusters/find?{urllib.parse.urlencode(params)}"
         return [
             Cluster.from_dict(self, cluster)
             for cluster in get_clustering(url, self.api_key)
