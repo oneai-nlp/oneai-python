@@ -656,7 +656,7 @@ class Headline(Skill):
     ...     oneai.skills.Headline()
     ... ])
     >>> output = pipeline.run('...')
-    >>> output.language[0]
+    >>> output.headlines[0]
     """
 
 
