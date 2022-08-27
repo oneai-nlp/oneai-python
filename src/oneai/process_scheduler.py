@@ -114,7 +114,7 @@ async def process_batch(
         input = next_input()
         while input:
             try:
-                output = await _run_internal(session, input, steps, api_key, True)
+                output = await _run_internal(session, input, steps, api_key)
                 on_output(input, output)
                 successful += 1
             except Exception as e:  # todo: break loop for some error types

@@ -202,7 +202,7 @@ class Pipeline:
         outputs = dict()
         await process_batch(
             batch,
-            self._segments,
+            self.steps,
             on_output if on_output else outputs.__setitem__,
             on_error if on_error else outputs.__setitem__,
             api_key=api_key or self.api_key or oneai.api_key,
