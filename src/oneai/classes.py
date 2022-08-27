@@ -1,8 +1,9 @@
 from base64 import b64encode
 from dataclasses import dataclass, field
 import json
+import mimetypes
 import os
-from typing import Any, Callable, Dict, Iterable, List, Type, Union, TYPE_CHECKING
+from typing import Any, BinaryIO, Callable, Dict, Iterable, List, TextIO, Type, Union, TYPE_CHECKING
 from warnings import warn
 
 import aiohttp
@@ -12,6 +13,16 @@ from oneai.exceptions import InputError
 if TYPE_CHECKING:
     from oneai.skills import OutputAttrs
 
+TextContent = Union[str, List['Utterance'], TextIO, BinaryIO]
+
+CONVERSATION_CONTENT_TYPES = set([
+    'application/json',
+    'text/vtt',
+    'application/x-subrip',
+    'audio/wav',
+    'audio/mpeg',
+    'audio/mp3',
+])
 
 @dataclass
 class Skill:
@@ -186,6 +197,28 @@ class Input:
         """
         raise NotImplementedError()
 
+    @classmethod
+    def wrap(cls, content: TextContent, sync: bool=True):
+        if isinstance(content, str):
+            return Document(content)
+        elif isinstance(content, list) and (len(content) == 0 or isinstance(content[0], Utterance)):
+            return Conversation(content)
+        elif all(hasattr(content, attr) for attr in ['name', 'mode', 'read']):
+            name, mode = content.name, content.mode
+            content_type = mimetypes.guess_type(name)[0]
+            if 'b' not in mode:
+                return (Conversation if content_type in CONVERSATION_CONTENT_TYPES else Document).parse(content.read())
+            elif sync:
+                data = b64encode(content.read()).decode('ascii')
+                input = (Conversation if content_type in CONVERSATION_CONTENT_TYPES else Document)(data)
+                input.encoding = 'base64'
+                input.content_type = content_type
+                return input
+            else:
+                input = (Conversation if content_type in CONVERSATION_CONTENT_TYPES else Document)(content)
+                input.content_type = content_type
+                return input
+
 
 class Document(Input):
     """
@@ -274,7 +307,7 @@ class Conversation(Input):
 
         `str` representation of this `Conversation` instance.
         """
-        return json.dumps(self.utterances, default=lambda o: o.__dict__)
+        return json.dumps(self.utterances, default=lambda o: o.__dict__) if isinstance(self.utterances, list) else self.utterances
 
     def __getitem__(self, index: int) -> Utterance:
         return self.utterances[index]
