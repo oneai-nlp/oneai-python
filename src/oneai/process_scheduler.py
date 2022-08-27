@@ -10,7 +10,7 @@ import oneai
 from oneai.api.output import build_output
 from oneai.api.pipeline import post_pipeline, post_pipeline_async_file, get_task_status
 from oneai.classes import Input, Output, PipelineInput, Skill
-from oneai.exceptions import handle_unsuccessful_response
+from oneai.exceptions import ServerError, handle_unsuccessful_response
 
 logger = logging.getLogger('oneai')
 
@@ -142,6 +142,14 @@ async def process_batch(
         log_progress(end=True)
 
 
+
+async def fetch_url(session: aiohttp.ClientSession, url: str):
+    with session.get(url) as response:
+        if response.status != 200:
+            raise ServerError(50001, "Retrieve URL failed", f"Failed to retrieve the input from url '{url}'.")
+        return Input(await response.text, type='article', content_type='text/html')
+
+
 async def _run_internal(
     session: aiohttp.ClientSession,
     input: Input,
@@ -151,6 +159,7 @@ async def _run_internal(
     if not skills:  # no skills
         return Output(input.text)
 
-    output = await post_pipeline(session, input, skills, api_key)
+    if input.content_type == 'text/uri-list':
+        input = await(fetch_url(session, input.text))
 
-    return output
+    return await post_pipeline(session, input, skills, api_key)

@@ -3,6 +3,7 @@ import io
 import json
 import os
 from base64 import b64encode
+import validators
 from dataclasses import dataclass, field
 from typing import (TYPE_CHECKING, Any, BinaryIO, Dict, Generic,
                     Iterable, List, TextIO, Tuple, Type, TypeVar, Union)
@@ -171,7 +172,10 @@ class Input(Generic[TextContent]):
         if isinstance(text, cls):
             return text
         elif isinstance(text, str):
-            return cls(text, type='article', content_type='text/plain')
+            if validators.url(text):
+                return cls(text, type='article', content_type='text/uri-list')
+            else:
+                return cls(text, type='article', content_type='text/plain')
         elif isinstance(text, list) and (len(text) == 0 or isinstance(text[0], Utterance)):
             return cls(text, type='conversation', content_type='application/json')
         elif isinstance(text, io.IOBase):
