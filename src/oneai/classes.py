@@ -1,13 +1,13 @@
+from datetime import datetime, timedelta
 import io
 import json
 import os
 from base64 import b64encode
 from dataclasses import dataclass, field
-from typing import (TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Generic,
+from typing import (TYPE_CHECKING, Any, BinaryIO, Dict, Generic,
                     Iterable, List, TextIO, Tuple, Type, TypeVar, Union)
 from warnings import warn
 
-import aiohttp
 
 from oneai.exceptions import InputError
 
@@ -345,6 +345,17 @@ class File(Input):
             self.text = b64encode(open(file_path, "rb").read()).decode("utf-8")
 
 
+def timestamp_to_timedelta(timestamp: str) -> timedelta:
+    if not timestamp:
+        return None
+    dt = datetime.strptime(timestamp, "%H:%M:%S.%f")
+    return timedelta(
+        hours=dt.hour,
+        minutes=dt.minute,
+        seconds=dt.second,
+        microseconds=dt.microsecond
+    )
+
 @dataclass
 class Span:
     start: int
@@ -386,6 +397,10 @@ class Label:
         The spans in the input text that are relevant to the label. Only appears if the label was produced by a Skill that supports input spans.
     `span_text: str`
         The text of the label.
+    `timestamp: str`
+        For audio inputs, the timestamp of the start of the label.
+    `timestamp_end: str`
+        For audio inputs, the timestamp of the end of the label.
     `value: str`
         The value of the label.
     `data: Dict[str, Any]`
@@ -399,6 +414,8 @@ class Label:
     output_spans: List[int] = field(default_factory=list)
     input_spans: List[int] = field(default_factory=list)
     span_text: str = ""
+    timestamp: timedelta = None
+    timestamp_end: timedelta = None
     value: str = ""
     data: dict = field(default_factory=dict)
 
@@ -427,6 +444,8 @@ class Label:
             span_text=object.pop("span_text", ""),
             value=object.pop("value", ""),
             data=object.pop("data", {}),
+            timestamp=timestamp_to_timedelta(object.pop('timestamp', '')),
+            timestamp_end=timestamp_to_timedelta(object.pop('timestamp_end', ''))
         )
 
     def __repr__(self) -> str:
