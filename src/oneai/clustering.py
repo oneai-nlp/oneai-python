@@ -5,7 +5,7 @@ import urllib.parse
 from typing import Generator, List, Literal, Union
 import oneai
 from oneai.api import get_clustering, post_clustering
-from oneai.classes import Input
+from oneai.classes import Input, PipelineInput
 
 
 def get_collections(
@@ -106,11 +106,11 @@ class Cluster:
             for phrase in get_clustering(url, self.collection.api_key)
         ]
 
-    def add_items(self, items: List[Union[str, Input]]):
+    def add_items(self, items: List[PipelineInput[str]]):
         url = f"{self.collection.name}/items"
         data = [
             {
-                "text": item.raw if isinstance(item, Input) else item,
+                "text": item.text if isinstance(item, Input) else item,
                 "metadata": item.metadata if isinstance(item, Input) else None,
                 "force-cluster-id": self.id,
             }
@@ -185,9 +185,9 @@ class Collection:
             yield from clusters
             page += 1
 
-    def find(self, query: Union[str, Input], threshold: float = 0.5) -> List[Cluster]:
+    def find(self, query: str, threshold: float = 0.5) -> List[Cluster]:
         params = {
-            "text": query.raw if isinstance(query, Input) else query,
+            "text": query,
             "similarity-threshold": threshold,
         }
 
@@ -198,12 +198,12 @@ class Collection:
         ]
 
     def add_items(
-        self, items: List[Union[str, Input]], force_new_clusters: bool = False
+        self, items: List[PipelineInput[str]], force_new_clusters: bool = False
     ):
         url = f"{self.name}/items"
         data = [
             {
-                "text": item.raw if isinstance(item, Input) else item,
+                "text": item.text if isinstance(item, Input) else item,
                 "metadata": json.dumps(item.metadata)
                 if isinstance(item, Input)
                 else None,
