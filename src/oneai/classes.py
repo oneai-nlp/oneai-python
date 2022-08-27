@@ -1,9 +1,10 @@
-from base64 import b64encode
-from dataclasses import dataclass, field
 import io
 import json
 import os
-from typing import Any, BinaryIO, Callable, Dict, Generic, Iterable, List, TextIO, Tuple, Type, TypeVar, Union, TYPE_CHECKING
+from base64 import b64encode
+from dataclasses import dataclass, field
+from typing import (TYPE_CHECKING, Any, BinaryIO, Callable, Dict, Generic,
+                    Iterable, List, TextIO, Tuple, Type, TypeVar, Union)
 from warnings import warn
 
 import aiohttp
@@ -27,8 +28,8 @@ class Utterance:
         return f"\n\t{self.speaker}: {self.utterance}"
 
 
-TextContent = TypeVar('TextContent', bound=Union[str, List['Utterance'], TextIO, BinaryIO])
-PipelineInput = Union['Input', str, List['Utterance'], TextIO, BinaryIO]
+TextContent = TypeVar('TextContent', bound=Union[str, List['Utterance']])
+PipelineInput = Union['Input[TextContent]', TextContent, TextIO, BinaryIO]
 
 # extension -> content_type, input_type
 CONTENT_TYPES: Dict[str, Tuple[str, str]] = {
@@ -171,7 +172,7 @@ class Input(Generic[TextContent]):
     """
 
     def __init__(self, text: TextContent, *, type: str, content_type: str = None, encoding: str = None):
-        self.text = text
+        self.text: TextContent = text
         self.type = type
         self.content_type = content_type
         self.encoding = encoding
@@ -215,7 +216,7 @@ class Input(Generic[TextContent]):
         raise NotImplementedError()
 
     @classmethod
-    def wrap(cls, text: PipelineInput, sync: bool=True) -> Input[TextContent]:
+    def wrap(cls, text: PipelineInput[TextContent], sync: bool=True) -> 'Input[TextContent]':
         if isinstance(text, Input):
             return text
         elif isinstance(text, str):
@@ -534,7 +535,7 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
 
     ## Attributes
 
-    `text: str`
+    `text: TextContent`
         The input text from which this `Output` instance was produced.
     `skills: List[Skill]`
         The Skills used to process `text` and produce this `Output` instance.
@@ -570,10 +571,6 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
         return super().__dir__() + [
             skill.output_attr or skill.api_name for skill in self.skills
         ]
-
-    @property
-    def raw(self) -> str:
-        return self.text if isinstance(self.text, str) else self.text.raw
 
     def add(self, skill: Skill, data: Union["Output", Labels]):
         """
