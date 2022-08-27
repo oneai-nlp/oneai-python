@@ -144,10 +144,10 @@ async def process_batch(
 
 
 async def fetch_url(session: aiohttp.ClientSession, url: str):
-    with session.get(url) as response:
+    async with session.get(url) as response:
         if response.status != 200:
             raise ServerError(50001, "Retrieve URL failed", f"Failed to retrieve the input from url '{url}'.")
-        return Input(await response.text, type='article', content_type='text/html')
+        return Input(await response.text(), type='article', content_type='text/plain')
 
 
 async def _run_internal(

@@ -39,7 +39,7 @@ CONTENT_TYPES: Dict[str, Tuple[str, str]] = {
     '.srt': ('text/plain', 'conversation'),
     '.wav': ('audio/wav', 'conversation'),
     '.mp3': ('audio/mpeg', 'conversation'),
-    '.html': ('text/html', 'article'),
+    '.html': ('text/plain', 'article'),
 }
 
 @dataclass
