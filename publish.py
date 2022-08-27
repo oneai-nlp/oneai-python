@@ -1,4 +1,4 @@
-from distutils.command.upload import upload
+from twine.commands.upload import upload
 import os
 import shutil
 import subprocess
