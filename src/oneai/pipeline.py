@@ -92,7 +92,15 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        return _async_run_nested(self.run_async(input, api_key))
+        # if not isinstance(input, Input):
+        #     input = Input.wrap(input)
+        return _async_run_nested(
+            process_single_input(
+                input,
+                self._segments,
+                api_key=api_key or self.api_key or oneai.api_key,
+            )
+        )
 
     async def run_async(
         self, input: PipelineInput, api_key: str = None
@@ -117,8 +125,8 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        if not isinstance(input, Input):
-            input = Input.wrap(input)
+        # if not isinstance(input, Input):
+        #     input = Input.wrap(input)
         return await process_single_input(
             input,
             self._segments,
