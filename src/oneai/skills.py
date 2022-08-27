@@ -1,7 +1,8 @@
 from dataclasses import dataclass
+from typing import List
 from warnings import warn
 
-from oneai.classes import Document, Labels, Skill, skillclass, Output
+from oneai.classes import Document, Labels, Skill, Utterance, skillclass, Output
 
 
 @skillclass(
@@ -697,11 +698,11 @@ class Transcribe(Skill):
 
 
 class OutputAttrs:
-    summary: "Output" = None
-    proofread: "Output" = None
-    html_article: "Output" = None
-    html_text: "Output" = None
-    transcription: "Output" = None
+    summary: "Output[str]" = None
+    proofread: "Output[List[Utterance]]" = None
+    html_article: "Output[str]" = None
+    html_text: "Output[str]" = None
+    transcription: "Output[List[Utterance]]" = None
     anonymized: "Output" = None
     emotions: Labels = None
     names: Labels = None
