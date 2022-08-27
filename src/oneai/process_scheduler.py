@@ -6,19 +6,42 @@ from typing import Awaitable, Callable, Iterable, List
 import aiohttp
 
 import oneai
-from oneai.api import post_pipeline
-from oneai.api.async_api import monitor_task
-from oneai.api.pipeline import post_pipeline_async_file
+from oneai.api.output import build_output
+from oneai.api.pipeline import post_pipeline, post_pipeline_async_file, get_task_status
 from oneai.classes import Input, Output, PipelineInput, Skill
+from oneai.exceptions import handle_unsuccessful_response
 
 
 # open a client session and send a request
 async def process_single_input(
-    input: PipelineInput, steps: List[Skill], api_key: str, sync: bool
+    input: PipelineInput, steps: List[Skill], api_key: str
 ) -> Awaitable[Output]:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        return await _run_internal(session, Input.wrap(input, sync), steps, api_key, sync)
+        return await _run_internal(session, Input.wrap(input), steps, api_key)
+
+
+STATUS_COMPLETED = 'COMPLETED'
+STATUS_FAILED = 'FAILED'
+
+async def process_file_async(
+    input: PipelineInput, steps: List[Skill], api_key: str, interval: int,
+) -> Awaitable[Output]:
+    input = Input.wrap(input, False)
+    timeout = aiohttp.ClientTimeout(total=6000)
+    async with aiohttp.ClientSession(timeout=timeout) as session:
+        task_id = (await post_pipeline_async_file(session, input, steps, api_key))['task_id']
+        
+        status = ''
+        # time_total = timedelta()
+        while status != STATUS_COMPLETED:
+            print("dwdowmd")
+            if status == STATUS_FAILED:
+                await handle_unsuccessful_response(response['result'])
+            response = await get_task_status(session, task_id, api_key)
+            status = response['status']
+            await asyncio.sleep(interval)
+        return build_output(steps, response['result'])
 
 
 # open a client session with multiple workers and send concurrent requests
@@ -121,15 +144,10 @@ async def _run_internal(
     input: Input,
     skills: List[Skill],
     api_key: str,
-    sync: bool,
 ) -> Awaitable[Output]:
     if not skills:  # no skills
         return Output(input.text)
 
-    if (not sync) and isinstance(input.text, io.IOBase):
-        task_id = (await post_pipeline_async_file(session, input.text, skills, api_key))['task_id']
-        output = await monitor_task(session, task_id, oneai.api_key)
-    else:
-        output = await post_pipeline(session, input, skills, api_key)
+    output = await post_pipeline(session, input, skills, api_key)
 
     return output

@@ -1,4 +1,5 @@
 import json
+from typing import Dict, Union
 from aiohttp import ClientResponse
 
 # todo: input type validation errors
@@ -63,16 +64,21 @@ errors = {  # map http status codes to OneAIError subclasses
 }
 
 
-async def handle_unsuccessful_response(response: ClientResponse):
-    try:
-        content = json.loads(await response.content.read())
-    except:
-        content = {}
-    raise errors.get(response.status, ServerError)(
-        content.get("status_code", response.status),
-        content.get("message", response.reason),
-        content.get("details", ""),
-        content.get("request_id", ""),
+async def handle_unsuccessful_response(response: Union[ClientResponse, Dict]):
+    status, reason = 0, ""
+    if isinstance(response, ClientResponse):
+        try:
+            status, reason = response.status, response.reason
+            response = json.loads(await response.content.read())
+        except:
+            response = {}
+    else:
+        status = int(str(response.get("status_code", 0))[:3])
+    raise errors.get(status, ServerError)(
+        response.get("status_code", status),
+        response.get("message", reason),
+        response.get("details", ""),
+        response.get("request_id", ""),
     )
 
 def validate_api_key(api_key: str):

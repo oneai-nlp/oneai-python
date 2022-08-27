@@ -10,7 +10,7 @@ from oneai.exceptions import handle_unsuccessful_response, validate_api_key
 
 endpoint_default = "api/v0/pipeline"
 endpoint_async_file = "api/v0/pipeline/async/file"
-endpoint_task = "api/v0/pipeline/async/tasks"
+endpoint_async_tasks = "api/v0/pipeline/async/tasks"
 
 
 def build_request(input: Input, steps: List[Skill], include_text: True):
@@ -27,6 +27,7 @@ def build_request(input: Input, steps: List[Skill], include_text: True):
         if hasattr(input, "encoding") and input.encoding:
             request["encoding"] = input.encoding
     return json.dumps(request, default=lambda x: x.__dict__)
+
 
 async def post_pipeline(
     session: aiohttp.ClientSession,
@@ -52,6 +53,7 @@ async def post_pipeline(
         else:
             return build_output(steps, await response.json())
 
+
 async def post_pipeline_async_file(
     session: aiohttp.ClientSession,
     input: Input,
@@ -61,14 +63,34 @@ async def post_pipeline_async_file(
     validate_api_key(api_key)
 
     request = build_request(input, steps, False)
-    url = f"{oneai.URL}/{endpoint_async_file}?pipeline=" + urllib.parse.quote(json.dumps(request))
+    url = f"{oneai.URL}/{endpoint_async_file}?pipeline=" + urllib.parse.quote(request)
     headers = {
         "api-key": api_key,
         "Content-Type": "application/json",
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
     }
 
-    async with session.post(url, headers=headers, data=input.raw) as response:
+    async with session.post(url, headers=headers, data=input.text) as response:
+        if response.status != 200:
+            await handle_unsuccessful_response(response)
+        else:
+            return await response.json()
+
+
+async def get_task_status(
+    session: aiohttp.ClientSession,
+    task_id: str,
+    api_key: str,
+):
+    validate_api_key(api_key)
+
+    url = f"{oneai.URL}/{endpoint_async_tasks}/{task_id}"
+    headers = {
+        "api-key": api_key,
+        "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
+    }
+
+    async with session.get(url, headers=headers) as response:
         if response.status != 200:
             await handle_unsuccessful_response(response)
         else:

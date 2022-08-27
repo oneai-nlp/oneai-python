@@ -1,12 +1,13 @@
 import asyncio
 import concurrent.futures
+from io import IOBase
 import os
 import sys
 from typing import Awaitable, Callable, Dict, Iterable, List
 
 import oneai
 from oneai.classes import Output, PipelineInput, Skill, TextContent
-from oneai.segments import *
+from oneai.process_scheduler import *
 
 
 class Pipeline:
@@ -86,12 +87,11 @@ class Pipeline:
                 input,
                 self.steps,
                 api_key or self.api_key or oneai.api_key,
-                True,
             )
         )
 
     async def run_async(
-        self, input: PipelineInput[TextContent], api_key: str = None
+        self, input: PipelineInput[TextContent], api_key: str = None, interval: int = 1
     ) -> Awaitable[Output[TextContent]]:
         """
         Runs the pipeline on the input text asynchronously.
@@ -113,18 +113,29 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        return await process_single_input(
-            input,
-            self.steps,
-            api_key or self.api_key or oneai.api_key,
-            False,
+        return await (
+            process_file_async(
+                input,
+                self.steps,
+                api_key or self.api_key or oneai.api_key,
+                interval,
+            )
+            if isinstance(input, io.IOBase)
+            or (isinstance(input, Input) and isinstance(input.text, io.IOBase))
+            else process_single_input(
+                input,
+                self.steps,
+                api_key or self.api_key or oneai.api_key,
+            )
         )
 
     def run_batch(
         self,
         batch: Iterable[PipelineInput[TextContent]],
         api_key: str = None,
-        on_output: Callable[[PipelineInput[TextContent], Output[TextContent]], None] = None,
+        on_output: Callable[
+            [PipelineInput[TextContent], Output[TextContent]], None
+        ] = None,
         on_error: Callable[[PipelineInput[TextContent], Exception], None] = None,
     ) -> Dict[PipelineInput[TextContent], Output[TextContent]]:
         """
@@ -159,7 +170,9 @@ class Pipeline:
         self,
         batch: Iterable[PipelineInput[TextContent]],
         api_key: str = None,
-        on_output: Callable[[PipelineInput[TextContent], Output[TextContent]], None] = None,
+        on_output: Callable[
+            [PipelineInput[TextContent], Output[TextContent]], None
+        ] = None,
         on_error: Callable[[PipelineInput[TextContent], Exception], None] = None,
     ) -> Awaitable[Dict[PipelineInput, Output]]:
         """
