@@ -187,11 +187,17 @@ Our API supports the following file extensions:
 * `.srt`- analyze captions as conversations
 * `.wav`- audio files to be transcribed & analyzed
 * `.jpg`- detect text in pictures via OCR
-Upload a file via the `oneai.File` class, i.e
+Upload a file by passing the the FileIO object to the pipeline
 ```python
-input = oneai.File('./example.txt')
-pipeline = oneai.Pipeline(steps=[...])
-output = pipeline.run(input)
+with open('./example.txt', 'r') as inputf:
+    pipeline = oneai.Pipeline(steps=[...])
+    output = pipeline.run(inputf)
+```
+For large audio files, use the asyncronous `Pipeline.run_async`
+```python
+with open('./example.mp3', 'rb') as inputf:
+    pipeline = oneai.Pipeline(steps=[oneai.skills.Transcribe(), ...])
+    output = await pipeline.run(inputf)
 ```
 
 ### Support
