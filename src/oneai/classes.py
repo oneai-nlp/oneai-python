@@ -2,9 +2,8 @@ from base64 import b64encode
 from dataclasses import dataclass, field
 import io
 import json
-import mimetypes
 import os
-from typing import Any, BinaryIO, Callable, Dict, Iterable, List, TextIO, Type, Union, TYPE_CHECKING
+from typing import Any, BinaryIO, Callable, Dict, Generic, Iterable, List, TextIO, Tuple, Type, TypeVar, Union, TYPE_CHECKING
 from warnings import warn
 
 import aiohttp
@@ -14,17 +13,32 @@ from oneai.exceptions import InputError
 if TYPE_CHECKING:
     from oneai.skills import OutputAttrs
 
-TextContent = Union[str, List['Utterance'], TextIO, BinaryIO]
-PipelineInput = Union[TextContent, 'Input']
 
-CONVERSATION_CONTENT_TYPES = set([
-    'application/json',
-    'text/vtt',
-    'application/x-subrip',
-    'audio/wav',
-    'audio/mpeg',
-    'audio/mp3',
-])
+@dataclass
+class Utterance:
+    speaker: str
+    utterance: str
+
+    # temporary fix, for outputs to be supported by parser
+    def __post_init__(self):
+        self.speaker = self.speaker.upper()
+
+    def __repr__(self) -> str:
+        return f"\n\t{self.speaker}: {self.utterance}"
+
+
+TextContent = TypeVar('TextContent', bound=Union[str, List['Utterance'], TextIO, BinaryIO])
+PipelineInput = Union[TextContent, 'Input[TextContent]']
+
+# extension -> content_type, input_type
+CONTENT_TYPES: Dict[str, Tuple[str, str]] = {
+    '.json': ('application/json', 'conversation'),
+    '.txt': ('text/plain', 'article'),
+    '.srt': ('text/plain', 'conversation'),
+    '.wav': ('audio/wav', 'conversation'),
+    '.mp3': ('audio/mpeg', 'conversation'),
+    '.html': ('text/html', 'article'),
+}
 
 @dataclass
 class Skill:
@@ -133,7 +147,7 @@ def skillclass(
     return wrap if cls is None else wrap(cls)
 
 
-class Input:
+class Input(Generic[TextContent]):
     """
     A base class for all input texts, allowing structured representations of inputs.
 
@@ -156,7 +170,8 @@ class Input:
         A class method. Parse a string into an instance of the Input class. Not implemented by default.
     """
 
-    def __init__(self, type: str, content_type: str = None, encoding: str = None):
+    def __init__(self, text: TextContent, *, type: str, content_type: str = None, encoding: str = None):
+        self.text = text
         self.type = type
         self.content_type = content_type
         self.encoding = encoding
@@ -200,33 +215,33 @@ class Input:
         raise NotImplementedError()
 
     @classmethod
-    def wrap(cls, content: TextContent, sync: bool=True):
-        if isinstance(content, Input):
-            return content
-        elif isinstance(content, str):
-            return Document(content)
-        elif isinstance(content, list) and (len(content) == 0 or isinstance(content[0], Utterance)):
-            return Conversation(content)
-        elif isinstance(content, io.IOBase):
-            name, mode = content.name, content.mode
-            content_type = mimetypes.guess_type(name)[0]
+    def wrap(cls, text: Union[TextContent, 'Input[TextContent]'], sync: bool=True) -> 'Input[TextContent]':
+        if isinstance(text, Input):
+            return text
+        elif isinstance(text, str):
+            return Input(text, type='article', content_type='text/plain')
+        elif isinstance(text, list) and (len(text) == 0 or isinstance(text[0], Utterance)):
+            return Input(text, type='conversation', content_type='application/json')
+        elif isinstance(text, io.IOBase):
+            name, mode = text.name, text.mode
+            _, ext = os.path.splitext(name)
+            if ext not in CONTENT_TYPES:
+                raise InputError(
+                    message=f"unsupported file extension {ext}",
+                    details="see supported files in docs",
+                )
+            content_type, input_type = CONTENT_TYPES[ext]
             if 'b' not in mode:
-                return (Conversation if content_type in CONVERSATION_CONTENT_TYPES else Document).parse(content.read())
+                return Input(text.read(), type=input_type, content_type=content_type)
             elif sync:
-                data = b64encode(content.read()).decode('ascii')
-                input = (Conversation if content_type in CONVERSATION_CONTENT_TYPES else Document)(data)
-                input.encoding = 'base64'
-                input.content_type = content_type
-                return input
+                data = b64encode(text.read()).decode('ascii')
+                return Input(data, type=input_type, content_type=content_type, encoding='base64')
             else:
-                input = (Conversation if content_type in CONVERSATION_CONTENT_TYPES else Document)(content)
-                input.content_type = content_type
-                return input
+                return Input(text, type=input_type, content_type=content_type)
         else:
-            raise ValueError(f"invalid content type {type(content)}")
+            raise ValueError(f"invalid content type {type(text)}")
 
-
-class Document(Input):
+class Document(Input[str]):
     """
     Represents any text that doesn't have a structured format
 
@@ -242,47 +257,11 @@ class Document(Input):
     `parse(text) -> Document`
         A class method. Parse a string into a `Document` instance.
     """
-
-    type = "article"
-
     def __init__(self, text: str):
-        self.text = text
-
-    @classmethod
-    def parse(cls, text: str) -> "Document":
-        """
-        A class method. Parse a string into a `Document` instance.
-
-        ## Parameters
-
-        `text: str`
-            The text to parse.
-
-        ## Returns
-
-        The `Document` instance produced from `text`.
-        """
-        return cls(text)
-
-    @property
-    def raw(self) -> str:
-        return self.text
+        super().__init__(text, type='article', content_type='text/plain')
 
 
-@dataclass
-class Utterance:
-    speaker: str
-    utterance: str
-
-    # temporary fix, for outputs to be supported by parser
-    def __post_init__(self):
-        self.speaker = self.speaker.upper()
-
-    def __repr__(self) -> str:
-        return f"\n\t{self.speaker}: {self.utterance}"
-
-
-class Conversation(Input):
+class Conversation(Input[List[Utterance]]):
     """
     Represents conversations.
 
@@ -298,23 +277,16 @@ class Conversation(Input):
     `parse(text) -> Conversation`
         A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
     """
-
-    type = "conversation"
-
     def __init__(self, utterances: List[Utterance] = []):
-        self.utterances = utterances
-        self.content_type = 'application/json'
+        super().__init__(utterances, content_type='application/json')
 
     @property
-    def raw(self) -> str:
-        """
-        Returns the conversation as a JSON string.
+    def utterances(self):
+        return self.text
 
-        ## Returns
-
-        `str` representation of this `Conversation` instance.
-        """
-        return self.utterances
+    @utterances.setter
+    def utterances(self, value: List[Utterance]):
+        self.text = value
 
     def __getitem__(self, index: int) -> Utterance:
         return self.utterances[index]
@@ -343,7 +315,7 @@ class Conversation(Input):
         except json.JSONDecodeError:  # if not JSON, assume it's a structured conversation
             from oneai.parsing import parse_conversation
 
-            return parse_conversation(text)
+            return Input(parse_conversation(text), type='conversation', content_type='application/json')
 
     def __repr__(self) -> str:
         return f"oneai.Conversation{repr(self.utterances)}"
@@ -595,7 +567,7 @@ class Labels(List[Label]):
 
 
 @dataclass
-class Output(Input, OutputAttrs if TYPE_CHECKING else object):
+class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
     """
     Represents the output of a pipeline. The structure of the output is dynamic, and corresponds to the Skills used and their order in the pipeline.
     Skill outputs can be accessed as attributes, either with the `api_name` of the corresponding Skill or the `output_attr` field.
@@ -612,7 +584,6 @@ class Output(Input, OutputAttrs if TYPE_CHECKING else object):
         * A nested `Output` instance, with a new `text`, e.g summary.
     """
 
-    text: Union[Input, str] = ""
     skills: List[Skill] = field(
         default_factory=list, repr=False
     )  # not a dict since Skills are currently mutable & thus unhashable
