@@ -160,6 +160,6 @@ async def _run_internal(
         return Output(input.text)
 
     if input.content_type == 'text/uri-list':
-        input = await(fetch_url(session, input.text))
+        input = await fetch_url(session, input.text)
 
     return await post_pipeline(session, input, skills, api_key)

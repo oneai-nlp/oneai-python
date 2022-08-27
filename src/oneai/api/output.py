@@ -16,11 +16,12 @@ def build_output(
             if index >= 0
             else raw_output["input_text"]
         )
-        try:
-            if input_type == 'conversation':
+        if input_type == 'conversation':
+            try:
                 return parse_conversation(text)
-        finally:
-            return text
+            except:
+                pass
+        return text
 
     def split_pipeline(skills: List[Skill], i: int):
         # split pipeline at a generator Skill
