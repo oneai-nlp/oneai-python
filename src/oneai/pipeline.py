@@ -4,7 +4,7 @@ import os
 import oneai
 
 from typing import Awaitable, Callable, Dict, Iterable, List, Union
-from oneai.classes import Input, Output, Skill
+from oneai.classes import Input, Output, PipelineInput, Skill
 from oneai.segments import *
 
 
@@ -70,15 +70,15 @@ class Pipeline:
             self._segments.append(APISegment(self.steps[start : i + 1]))
 
     def run(
-        self, input: Union[str, Input, Iterable[Union[str, Input]]], api_key: str = None
+        self, input: PipelineInput, api_key: str = None
     ) -> Output:
         """
         Runs the pipeline on the input text.
 
         ## Parameters
 
-        `input: str | Input | Iterable[str | Input]]`
-            The input text (or multiple input texts) to be processed.
+        `input: TextContent | Input`
+            The input text to be processed.
         `api_key: str, optional`
             An API key to be used in this API call. If not provided, `self.api_key` is used.
 
@@ -95,14 +95,14 @@ class Pipeline:
         return _async_run_nested(self.run_async(input, api_key))
 
     async def run_async(
-        self, input: Union[str, Input, Iterable[Union[str, Input]]], api_key: str = None
+        self, input: PipelineInput, api_key: str = None
     ) -> Awaitable[Output]:
         """
         Runs the pipeline on the input text asynchronously.
 
         ## Parameters
 
-        `input: str | Input | Iterable[str | Input]]`
+        `input: TextContent | Input`
             The input text (or multiple input texts) to be processed.
         `api_key: str, optional`
             An API key to be used in this API call. If not provided, `self.api_key` is used.
@@ -117,20 +117,18 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        if isinstance(input, (str, Input)):
-            return await process_single_input(
-                input,
-                self._segments,
-                api_key=api_key or self.api_key or oneai.api_key,
-            )
-        elif isinstance(input, Iterable):
-            return await self.run_batch_async(input, api_key)
-        else:
-            raise TypeError(f"pipeline input must be Input, str or iterable of inputs")
+        if not isinstance(input, Input):
+            input = Input.wrap(input)
+        return await process_single_input(
+            input,
+            self._segments,
+            api_key=api_key or self.api_key or oneai.api_key,
+        )
+
 
     def run_batch(
         self,
-        batch: Iterable[Union[str, Input]],
+        batch: Iterable[PipelineInput],
         api_key: str = None,
         on_output: Callable[[Input, Output], None] = None,
         on_error: Callable[[Input, Exception], None] = None,
@@ -140,7 +138,7 @@ class Pipeline:
 
         ## Parameters
 
-        `batch: Iterable[str | Input]`
+        `batch: Iterable[PipelineInput]`
             The input texts to be processed.
         `api_key: str, optional`
             An API key to be used in this API call. If not provided, `self.api_key` is used.
