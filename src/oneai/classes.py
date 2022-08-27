@@ -1,5 +1,6 @@
 from base64 import b64encode
 from dataclasses import dataclass, field
+import io
 import json
 import mimetypes
 import os
@@ -204,7 +205,7 @@ class Input:
             return Document(content)
         elif isinstance(content, list) and (len(content) == 0 or isinstance(content[0], Utterance)):
             return Conversation(content)
-        elif all(hasattr(content, attr) for attr in ['name', 'mode', 'read']):
+        elif isinstance(content, io.IOBase):
             name, mode = content.name, content.mode
             content_type = mimetypes.guess_type(name)[0]
             if 'b' not in mode:
