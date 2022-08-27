@@ -1,22 +1,37 @@
 import re
+from typing import List
 import oneai
 from oneai.classes import Utterance
 
 
-def parse_conversation(text: str, strict=False) -> oneai.Conversation:
-    # try to parse SRT format (I think this should be done more explicitly)
+def parse_conversation(text: str, strict=False) -> List[Utterance]:
+    """
+    Parse a string with a conversation format into a structured `Utterance` list representing the conversation.
+
+    ## Parameters
+
+    `text: str`
+        The text to parse.
+
+    ## Returns
+
+    A list of `Utterance` objects produced from `text`.
+
+    ## Raises
+
+    `ValueError` if `text` is not in a valid conversation format.
+    """
+    
     srt_regex = re.compile(
         r"\d+\n\d{1,2}:\d{2}:\d{2}[,.]\d{1,3} --> \d{1,2}:\d{2}:\d{2}[,.]\d{1,3}"
     )
     match = srt_regex.match(text)
     if match:
         data_array = srt_regex.split(text)
-        return oneai.Conversation(
-            utterances=[
-                Utterance(speaker="SPEAKER", utterance=line.strip().replace("\n", " "))
-                for line in data_array[1:]
-            ]
-        )
+        return [
+            Utterance(speaker="SPEAKER", utterance=line.strip().replace("\n", " "))
+            for line in data_array[1:]
+        ]
 
     result = []
     lines = re.split(r"\r?\n", text.strip())
@@ -77,7 +92,7 @@ def parse_conversation(text: str, strict=False) -> oneai.Conversation:
             )
         )
 
-    return oneai.Conversation(utterances=result)
+    return result
 
 
 def _isEmptyOrWhitespace(text):
