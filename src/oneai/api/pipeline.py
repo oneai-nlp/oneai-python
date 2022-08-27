@@ -51,7 +51,7 @@ async def post_pipeline(
         elif oneai.DEBUG_RAW_RESPONSES:
             return await response.json()
         else:
-            return build_output(steps, await response.json())
+            return build_output(steps, await response.json(), input.type)
 
 
 async def post_pipeline_async_file(

@@ -6,7 +6,7 @@ from oneai.parsing import parse_conversation
 
 
 def build_output(
-    skills: List[Skill], raw_output: dict,
+    skills: List[Skill], raw_output: dict, input_type: str,
 ) -> Output:
     def get_text(index) -> TextContent:
         # get the input text for this Output object. use index=-1 to get the original input text
@@ -17,8 +17,9 @@ def build_output(
             else raw_output["input_text"]
         )
         try:
-            return parse_conversation(text)
-        except:
+            if input_type == 'conversation':
+                return parse_conversation(text)
+        finally:
             return text
 
     def split_pipeline(skills: List[Skill], i: int):

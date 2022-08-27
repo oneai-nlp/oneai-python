@@ -52,7 +52,7 @@ async def process_file_async(
             logger.debug(f"Processing file '{name}' - status {status} - {time_format(datetime.now() - start)}")
             await asyncio.sleep(interval)
         logger.debug(f"Processing of file '{name}' complete - {time_format(datetime.now() - start)} total\n")
-        return build_output(steps, response['result'])
+        return build_output(steps, response['result'], input.type)
 
 
 # open a client session with multiple workers and send concurrent requests
