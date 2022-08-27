@@ -13,7 +13,7 @@ async def monitor_task(
     session: aiohttp.ClientSession,
     task_id: str,
     api_key: str,
-    poll_interval: int = 1,
+    interval: int = 1,
 ):
     validate_api_key(api_key)
 
@@ -37,5 +37,5 @@ async def monitor_task(
             else:
                 body = await response.json()
                 status = body['status']
-        await asyncio.sleep(poll_interval)
+        await asyncio.sleep(interval)
     return body

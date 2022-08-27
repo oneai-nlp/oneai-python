@@ -1,12 +1,15 @@
 import asyncio
 from datetime import datetime, timedelta
 from inspect import isawaitable
+import io
 from typing import Awaitable, Callable, Dict, Iterable, List, Union
 
 import aiohttp
 import oneai
 
 from oneai.api import post_pipeline
+from oneai.api.async_api import monitor_task
+from oneai.api.pipeline import post_pipeline_async_file
 from oneai.classes import Input, Output, Skill
 from oneai.exceptions import OneAIError
 
@@ -209,10 +212,17 @@ class APISegment(Segment):
         api_key: str,
         session: aiohttp.ClientSession,
     ) -> Output:
+        async def run_internal(content):
+            if isinstance(content.raw, io.IOBase):
+                task_id = (await post_pipeline_async_file(session, content, self.skills, api_key))['task_id']
+                return await monitor_task(session, task_id, oneai.api_key)
+            else:
+                return await post_pipeline(session, content, self.skills, api_key)
+
         if isinstance(input, Output) and not oneai.DEBUG_RAW_RESPONSES:
-            output = await post_pipeline(session, input.text, self.skills, api_key)
+            output = await run_internal(input.text)
             input.merge(output)
             output = input
         else:
-            output = await post_pipeline(session, input, self.skills, api_key)
+            output = await run_internal(input)
         return output
