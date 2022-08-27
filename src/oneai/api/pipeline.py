@@ -18,7 +18,7 @@ def build_request(input: Input, steps: List[Skill], include_text: True):
         "steps": [skill.asdict() for skill in steps],
     }
     if include_text:
-        request["text"] = input.raw
+        request["text"] = input.text
     if isinstance(input, Input):
         if input.type:
             request["input_type"] = input.type
@@ -50,7 +50,7 @@ async def post_pipeline(
         elif oneai.DEBUG_RAW_RESPONSES:
             return await response.json()
         else:
-            return build_output(steps, await response.json(), input_type=type(input))
+            return build_output(steps, await response.json())
 
 async def post_pipeline_async_file(
     session: aiohttp.ClientSession,

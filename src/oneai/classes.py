@@ -154,6 +154,8 @@ class Input(Generic[TextContent]):
 
     ## Attributes
 
+    `text: TextContent`
+        Input text. Either `str` or `list[Utterance]` (conversation).
     `type: str`
         A type hint for the API, suggesting which models to use when processing the input.
     `content_type: str`
@@ -162,13 +164,6 @@ class Input(Generic[TextContent]):
         The encoding of the input.
     `metadata: dict`
         Optional metadata to be associated with the input in clustering collections. Not implemented by default.
-
-    ## Methods
-
-    `raw() -> str`
-        Property method. Returns the input as a string. Not implemented by default.
-    `parse(text) -> Input`
-        A class method. Parse a string into an instance of the Input class. Not implemented by default.
     """
 
     def __init__(self, text: TextContent, *, type: str, content_type: str = None, encoding: str = None):
@@ -176,33 +171,6 @@ class Input(Generic[TextContent]):
         self.type = type
         self.content_type = content_type
         self.encoding = encoding
-
-    @classmethod
-    def parse(cls, text: str) -> "Input":
-        """
-        A class method. Parse a string into an instance of the Input class. Not implemented by default.
-
-        ## Parameters
-
-        `text: str`
-            The text to parse.
-
-        ## Returns
-
-        The `Input` instance produced from `text`.
-        """
-        raise NotImplementedError()
-
-    @property
-    def raw(self) -> str:
-        """
-        Returns the input as a raw string. Not implemented by default.
-
-        ## Returns
-
-        `str` representation of this `Input` instance.
-        """
-        raise NotImplementedError()
 
     @property
     def metadata(self) -> Dict[str, Any]:
@@ -527,7 +495,6 @@ class Labels(List[Label]):
         return [l.span_text for l in self]
 
 
-@dataclass
 class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
     """
     Represents the output of a pipeline. The structure of the output is dynamic, and corresponds to the Skills used and their order in the pipeline.
@@ -545,10 +512,15 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
         * A nested `Output` instance, with a new `text`, e.g summary.
     """
 
-    skills: List[Skill] = field(
-        default_factory=list, repr=False
-    )  # not a dict since Skills are currently mutable & thus unhashable
-    data: List[Union[Labels, "Output"]] = field(default_factory=list, repr=False)
+    def __init__(self, text: TextContent, skills: List[Skill]=[], data: List[Union[Labels, "Output"]] = []):
+        super().__init__(
+            text,
+            type='article' if isinstance(text, str) else 'conversation',
+            content_type='text/plain' if isinstance(text, str) else 'application/json',
+        )
+
+        self.skills = skills  # not a dict since Skills are currently mutable & thus unhashable
+        self.data = data
 
     def __getitem__(self, name: str) -> Union[Labels, "Output"]:
         return self.__getattr__(name)

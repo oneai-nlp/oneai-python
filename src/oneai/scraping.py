@@ -7,7 +7,7 @@ from oneai.exceptions import InputError, ServerError
 
 
 async def extract_base(input, session: aiohttp.ClientSession, extractor):
-    text = input if isinstance(input, str) else input.raw
+    text = input.text
     if validators.url(text):
         try:
             async with session.get(text) as response:

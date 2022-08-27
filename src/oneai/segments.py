@@ -10,7 +10,7 @@ import oneai
 from oneai.api import post_pipeline
 from oneai.api.async_api import monitor_task
 from oneai.api.pipeline import post_pipeline_async_file
-from oneai.classes import Input, Output, PipelineInput, Skill
+from oneai.classes import Input, Labels, Output, PipelineInput, Skill
 from oneai.exceptions import OneAIError
 
 
@@ -51,7 +51,7 @@ async def process_single_input(
 ) -> Awaitable[Output]:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        return await _run_segments(session, Input.wrap(input, sync), segments, api_key)
+        return await _run_segments(session, Input.wrap(input, sync), segments, api_key, sync)
 
 
 # open a client session with multiple workers and send concurrent requests
@@ -151,13 +151,13 @@ async def process_batch(
 
 async def _run_segments(
     session: aiohttp.ClientSession,
-    input: Union[Input, str],
+    input: Input,
     segments: List[Segment],
     api_key: str,
     sync: bool,
 ) -> Awaitable[Output]:
     if not segments:  # no skills
-        return Output(input)
+        return Output(input.text)
 
     output_top = await segments[0].run(input, api_key, session, sync)
     output = output_top
@@ -192,8 +192,10 @@ class CustomSegment(Segment):
             )
         if isawaitable(output):  # support async custom skills
             output = await output
-        if isinstance(
-            output, (str, Input)
+        if isinstance(output, Input):
+            output = Output(output.text)
+        elif isinstance(
+            output, str
         ):  # skill returned a string, construct an Output object for next segment
             output = Output(output)
         if self.skill.is_generator or not isinstance(
