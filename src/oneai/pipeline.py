@@ -78,7 +78,7 @@ class Pipeline:
 
         ## Parameters
 
-        `input: TextContent | Input`
+        `input: PipelineInput`
             The input text to be processed.
         `api_key: str, optional`
             An API key to be used in this API call. If not provided, `self.api_key` is used.
@@ -97,7 +97,8 @@ class Pipeline:
             process_single_input(
                 input,
                 self._segments,
-                api_key=api_key or self.api_key or oneai.api_key,
+                api_key or self.api_key or oneai.api_key,
+                True,
             )
         )
 
@@ -109,7 +110,7 @@ class Pipeline:
 
         ## Parameters
 
-        `input: TextContent | Input`
+        `input: PipelineInput`
             The input text (or multiple input texts) to be processed.
         `api_key: str, optional`
             An API key to be used in this API call. If not provided, `self.api_key` is used.
@@ -127,7 +128,8 @@ class Pipeline:
         return await process_single_input(
             input,
             self._segments,
-            api_key=api_key or self.api_key or oneai.api_key,
+            api_key or self.api_key or oneai.api_key,
+            False,
         )
 
     def run_batch(

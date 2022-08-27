@@ -217,12 +217,12 @@ class Input(Generic[TextContent]):
 
     @classmethod
     def wrap(cls, text: PipelineInput[TextContent], sync: bool=True) -> 'Input[TextContent]':
-        if isinstance(text, Input):
+        if isinstance(text, cls):
             return text
         elif isinstance(text, str):
-            return Input(text, type='article', content_type='text/plain')
+            return cls(text, type='article', content_type='text/plain')
         elif isinstance(text, list) and (len(text) == 0 or isinstance(text[0], Utterance)):
-            return Input(text, type='conversation', content_type='application/json')
+            return cls(text, type='conversation', content_type='application/json')
         elif isinstance(text, io.IOBase):
             name, mode = text.name, text.mode
             _, ext = os.path.splitext(name)
@@ -233,12 +233,12 @@ class Input(Generic[TextContent]):
                 )
             content_type, input_type = CONTENT_TYPES[ext]
             if 'b' not in mode:
-                return Input(text.read(), type=input_type, content_type=content_type)
+                return cls(text.read(), type=input_type, content_type=content_type)
             elif sync:
                 data = b64encode(text.read()).decode('ascii')
-                return Input(data, type=input_type, content_type=content_type, encoding='base64')
+                return cls(data, type=input_type, content_type=content_type, encoding='base64')
             else:
-                return Input(text, type=input_type, content_type=content_type)
+                return cls(text, type=input_type, content_type=content_type)
         else:
             raise ValueError(f"invalid content type {type(text)}")
 
@@ -275,7 +275,7 @@ class Conversation(Input[List[Utterance]]):
         A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
     """
     def __init__(self, utterances: List[Utterance] = []):
-        super().__init__(utterances, content_type='application/json')
+        super().__init__(utterances, type='conversation', content_type='application/json')
 
     @property
     def utterances(self):
@@ -312,7 +312,7 @@ class Conversation(Input[List[Utterance]]):
         except json.JSONDecodeError:  # if not JSON, assume it's a structured conversation
             from oneai.parsing import parse_conversation
 
-            return Input(parse_conversation(text), type='conversation', content_type='application/json')
+            return cls(parse_conversation(text))
 
     def __repr__(self) -> str:
         return f"oneai.Conversation{repr(self.utterances)}"
