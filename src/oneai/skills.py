@@ -83,7 +83,6 @@ class Proofread(Skill):
     label_type="origin",
     output_attr="summary",
     output_attr1="origins",
-    output_type=Document,
 )
 @dataclass
 class Summarize(Skill):
@@ -261,7 +260,6 @@ class Topics(Skill):
     api_name="extract-html",
     is_generator=True,
     output_attr="html_article",
-    run_custom=scraping.extract_article,
 )
 class HTMLExtractArticle(Skill):
     """
@@ -297,7 +295,6 @@ class HTMLExtractArticle(Skill):
     api_name="html-extract-text",
     is_generator=True,
     output_attr="html_text",
-    run_custom=scraping.extract_text,
 )
 class HTMLExtractText(Skill):
     """
@@ -331,7 +328,6 @@ class HTMLExtractText(Skill):
     api_name="extract-html",
     is_generator=True,
     output_attr="html_article",
-    run_custom=scraping.extract_article,
 )
 class HtmlToArticle(Skill):
     """
@@ -359,7 +355,6 @@ class HtmlToArticle(Skill):
     api_name="html-extract-text",
     is_generator=True,
     output_attr="html_text",
-    run_custom=scraping.extract_text,
 )
 class HtmlAllText(Skill):
     """

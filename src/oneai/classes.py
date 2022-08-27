@@ -68,13 +68,6 @@ class Skill:
         The attribute name of the Skill's output in the Output object.
     `output_attr1: str`
         Only for Skills with 2 outputs (text / labels)
-    `output_type: str`
-        For generator Skills, the Input type of the output text.
-        Leave as None to use the same type as the original input.
-    `run_custom: (Input, aiohttp.ClientSession) -> str | list[Label] | Output`
-        A custom function that will be called locally instead of passing the Skill to the API.
-        Can return a string with generated text (when `is_generator=True`), a list of `Label`s (when `is_generator=False`) or an `Output` object for more complex outputs.
-        Can use the `aiohttp.ClientSession` to make HTTP requests.
     """
 
     api_name: str = ""
@@ -84,10 +77,6 @@ class Skill:
     label_type: str = ""
     output_attr: str = ""
     output_attr1: str = field(default="", repr=False)
-    output_type: type = field(default=None, repr=False)
-    run_custom: Callable[
-        ["Input", aiohttp.ClientSession], Union[str, "Labels", "Output"]
-    ] = None
 
     def asdict(self) -> dict:
         return {
@@ -107,10 +96,6 @@ def skillclass(
     is_generator: bool = False,
     output_attr: str = "",
     output_attr1: str = "",
-    output_type: type = None,
-    run_custom: Callable[
-        ["Input", aiohttp.ClientSession], Union[str, "Labels", "Output"]
-    ] = None,
 ):
     """
     A decorator for defining a Language Skill class. Decorate subclasses of `Skill` with this decorator to provide default values for instance attributes.
@@ -132,8 +117,6 @@ def skillclass(
                 is_generator=is_generator,
                 output_attr=output_attr,
                 output_attr1=output_attr1,
-                output_type=output_type,
-                run_custom=run_custom,
             )
             self._skill_params = [
                 a

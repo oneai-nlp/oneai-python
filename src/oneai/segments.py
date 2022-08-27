@@ -1,63 +1,30 @@
 import asyncio
-from datetime import datetime, timedelta
-from inspect import isawaitable
 import io
-from typing import Awaitable, Callable, Iterable, List, Union
+from datetime import datetime, timedelta
+from typing import Awaitable, Callable, Iterable, List
 
 import aiohttp
-import oneai
 
+import oneai
 from oneai.api import post_pipeline
 from oneai.api.async_api import monitor_task
 from oneai.api.pipeline import post_pipeline_async_file
-from oneai.classes import Input, Labels, Output, PipelineInput, Skill
-from oneai.exceptions import OneAIError
-
-
-class Segment:
-    async def run(
-        self,
-        input: Input,
-        api_key: str,
-        session: aiohttp.ClientSession,
-        sync: bool,
-    ) -> Output:
-        """
-        Run the pipeline segment and attach the output to the input if possible.
-
-        ## Parameters
-
-        `input: Input`
-            The input to process, either the original input text or the output of the previous segment.
-            If the input is an `Output`, the segment output will be attached to the parameter.
-        `api_key: str`
-            The API key to use for API segments.
-        `session: aiohttp.ClientSession`
-            Client session to use in segments.
-        `sync: bool`
-            Whether to run via sync/async API endpoints
-
-        ## Returns
-
-        `Output`
-            The output of the segment.
-        """
-        raise NotImplementedError
+from oneai.classes import Input, Output, PipelineInput, Skill
 
 
 # open a client session and send a request
 async def process_single_input(
-    input: PipelineInput, segments: List[Segment], api_key: str, sync: bool
+    input: PipelineInput, steps: List[Skill], api_key: str, sync: bool
 ) -> Awaitable[Output]:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        return await _run_segments(session, Input.wrap(input, sync), segments, api_key, sync)
+        return await _run_internal(session, Input.wrap(input, sync), steps, api_key, sync)
 
 
 # open a client session with multiple workers and send concurrent requests
 async def process_batch(
     batch: Iterable[PipelineInput],
-    segments: List[Segment],
+    steps: List[Skill],
     on_output: Callable[[Input, Output], None],
     on_error: Callable[[Input, Exception], None],
     api_key: str,
@@ -124,7 +91,7 @@ async def process_batch(
         input = next_input()
         while input:
             try:
-                output = await _run_segments(session, input, segments, api_key, True)
+                output = await _run_internal(session, input, steps, api_key, True)
                 on_output(input, output)
                 successful += 1
             except Exception as e:  # todo: break loop for some error types
@@ -149,85 +116,20 @@ async def process_batch(
         print_progress(end=True)
 
 
-async def _run_segments(
+async def _run_internal(
     session: aiohttp.ClientSession,
     input: Input,
-    segments: List[Segment],
+    skills: List[Skill],
     api_key: str,
     sync: bool,
 ) -> Awaitable[Output]:
-    if not segments:  # no skills
+    if not skills:  # no skills
         return Output(input.text)
 
-    output_top = await segments[0].run(input, api_key, session, sync)
-    output = output_top
-    for segment in segments[1:]:
-        while isinstance(
-            output, Output
-        ):  # find the last output to serve as the next input
-            input = output
-            output = output.data[-1] if output.data else None
-        output = await segment.run(input, api_key, session, sync)
-    return output_top
+    if (not sync) and isinstance(input.text, io.IOBase):
+        task_id = (await post_pipeline_async_file(session, input.text, skills, api_key))['task_id']
+        output = await monitor_task(session, task_id, oneai.api_key)
+    else:
+        output = await post_pipeline(session, input, skills, api_key)
 
-
-class CustomSegment(Segment):
-    def __init__(self, skill: Skill):
-        self.skill = skill
-
-    async def run(
-        self,
-        input: Input,
-        api_key: str,
-        session: aiohttp.ClientSession,
-        sync: bool,
-    ) -> Output:
-        if not isinstance(input, Output):
-            input = Output(input.text)
-        try:
-            output = self.skill.run_custom(input, session)
-        except Exception as e:
-            raise OneAIError(
-                message=f"Error while running Skill {self.skill.api_name}: {e}"
-            )
-        if isawaitable(output):  # support async custom skills
-            output = await output
-        if isinstance(output, Input):
-            output = Output(output.text)
-        elif isinstance(
-            output, str
-        ):  # skill returned a string, construct an Output object for next segment
-            output = Output(output)
-        if self.skill.is_generator or not isinstance(
-            output, Output
-        ):  # either a new text or labels, set them as an attribute of the existing Output object
-            input.add(self.skill, output)
-        else:  # this is an edge case which should not happen
-            input.merge(
-                output
-            )  # new_output was produced from same text as next_input, merge them
-        return input
-
-
-class APISegment(Segment):
-    def __init__(self, skills: List[Skill]):
-        self.skills = skills
-
-    async def run(
-        self,
-        input: Input,
-        api_key: str,
-        session: aiohttp.ClientSession,
-        sync: bool,
-    ) -> Output:
-        if (not sync) and isinstance(input.text, io.IOBase):
-            task_id = (await post_pipeline_async_file(session, input.text, self.skills, api_key))['task_id']
-            output = await monitor_task(session, task_id, oneai.api_key)
-        else:
-            output = await post_pipeline(session, input, self.skills, api_key)
-
-        if isinstance(input, Output) and not oneai.DEBUG_RAW_RESPONSES:
-            input.merge(output)
-            output = input
-
-        return output
+    return output
