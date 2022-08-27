@@ -1,8 +1,8 @@
 __version__ = "0.5.2"
 __package__ = "oneai"
-__prefix__ = "\33[34m●\33[36m▲\33[35m▮\33[0m"
 
 from typing_extensions import Final
+import oneai.logger
 import oneai.skills as skills
 from oneai.classes import *
 from oneai.pipeline import Pipeline
@@ -25,7 +25,7 @@ Currently only enforced on `pipeline.run_batch`, other calls may be limited by t
 """
 PRINT_PROGRESS = True
 """
-Whether to print progress of batch processing in `Pipeline.run_batch` calls
+Does nothing. Set `logging.get('oneai').propagate = False` to disable logging
 """
 DEBUG_RAW_RESPONSES = False
 """

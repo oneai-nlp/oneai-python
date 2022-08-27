@@ -201,11 +201,6 @@ class Document(Input[str]):
 
     `text: str`
         The text of the document.
-
-    ## Methods
-
-    `parse(text) -> Document`
-        A class method. Parse a string into a `Document` instance.
     """
     def __init__(self, text: str):
         super().__init__(text, type='article', content_type='text/plain')
@@ -271,6 +266,8 @@ class Conversation(Input[List[Utterance]]):
 
 class File(Input):
     """
+    Deprecated. Pass file-like objects directly to `Pipeline.run`
+    
     Represents file inputs. Supported file extensions:
     * .txt (text files)
     * .wav, .mp3 (transcribe)
@@ -301,6 +298,11 @@ class File(Input):
         `type: str` (optional)
             The input-type hint for the API, either `Conversation` or `Document`.
         """
+        warn(
+            "File class is deprecated- pass file-like objects directly to pipelines instead",
+            DeprecationWarning,
+            stacklevel=2,
+        )
         if type is None or isinstance(type, str):
             super().__init__(type)
         elif issubclass(type, Input):

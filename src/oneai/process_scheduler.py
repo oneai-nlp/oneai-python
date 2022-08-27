@@ -1,6 +1,7 @@
 import asyncio
 import io
 from datetime import datetime, timedelta
+import logging
 from typing import Awaitable, Callable, Iterable, List
 
 import aiohttp
@@ -10,6 +11,15 @@ from oneai.api.output import build_output
 from oneai.api.pipeline import post_pipeline, post_pipeline_async_file, get_task_status
 from oneai.classes import Input, Output, PipelineInput, Skill
 from oneai.exceptions import handle_unsuccessful_response
+
+logger = logging.getLogger('oneai')
+
+def time_format(time: timedelta):
+    minutes = f"{time.seconds // 60}m " if time.seconds > 59 else ""
+    return minutes + f"{time.seconds % 60}s {time.microseconds // 1000}ms"
+
+STATUS_COMPLETED = 'COMPLETED'
+STATUS_FAILED = 'FAILED'
 
 
 # open a client session and send a request
@@ -21,26 +31,27 @@ async def process_single_input(
         return await _run_internal(session, Input.wrap(input), steps, api_key)
 
 
-STATUS_COMPLETED = 'COMPLETED'
-STATUS_FAILED = 'FAILED'
-
 async def process_file_async(
     input: PipelineInput, steps: List[Skill], api_key: str, interval: int,
 ) -> Awaitable[Output]:
     input = Input.wrap(input, False)
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
+        name = input.text.name
+        logger.debug(f"Uploading file '{name}'")
         task_id = (await post_pipeline_async_file(session, input, steps, api_key))['task_id']
+        logger.debug(f"Upload of file '{name}' complete\n")
         
         status = ''
-        # time_total = timedelta()
+        start = datetime.now()
         while status != STATUS_COMPLETED:
-            print("dwdowmd")
             if status == STATUS_FAILED:
                 await handle_unsuccessful_response(response['result'])
             response = await get_task_status(session, task_id, api_key)
             status = response['status']
+            logger.debug(f"Processing file '{name}' - status {status} - {time_format(datetime.now() - start)}")
             await asyncio.sleep(interval)
+        logger.debug(f"Processing of file '{name}' complete - {time_format(datetime.now() - start)} total\n")
         return build_output(steps, response['result'])
 
 
@@ -64,26 +75,20 @@ async def process_batch(
         except StopIteration:
             return None  # we need to break loop for each worker, so we ignore StopIteration
 
-    def print_progress(
+    def log_progress(
         time_delta=timedelta(), start=False, end=False
     ):  # todo progress bar for iterables with __len__
         nonlocal successful, failed, time_total
 
-        def time_format(time: timedelta):
-            minutes = f"{time.seconds // 60}m " if time.seconds > 59 else ""
-            return minutes + f"{time.seconds % 60}s {time.microseconds // 1000}ms"
-
         time_total += time_delta
         if start:
-            print(
-                f"{oneai.__prefix__} Starting processing batch with {oneai.MAX_CONCURRENT_REQUESTS} workers",
-                end="\r",
+            logger.debug(
+                f"Starting batch processing with {oneai.MAX_CONCURRENT_REQUESTS} workers"
             )
         elif end:
-            print(
-                "%s Processed %d inputs - %s/input - %s total - %d successful - %d failed"
+            logger.debug(
+                "Processed %d inputs - %s/input - %s total - %d successful - %d failed\n"
                 % (
-                    oneai.__prefix__,
                     successful + failed,
                     time_format(
                         time_total / successful / oneai.MAX_CONCURRENT_REQUESTS
@@ -94,17 +99,15 @@ async def process_batch(
                 )
             )
         else:
-            print(
-                "%s Input %d - %s/input - %s total - %d successful - %d failed        "
+            logger.debug(
+                "Input %d - %s/input - %s total - %d successful - %d failed"
                 % (
-                    oneai.__prefix__,
                     successful + failed,
                     time_format(time_delta),
                     time_format(time_total / oneai.MAX_CONCURRENT_REQUESTS),
                     successful,
                     failed,
-                ),
-                end="\r",
+                )
             )
 
     async def req_worker(session):  # run requests sequentially
@@ -118,13 +121,13 @@ async def process_batch(
                 on_output(input, output)
                 successful += 1
             except Exception as e:  # todo: break loop for some error types
-                print(f"\r\033[KInput {successful + failed}:", repr(e))
+                logger.error(f"Input {successful + failed}: {repr(e)}")
                 on_error(input, e)
                 failed += 1
 
             time_end = datetime.now()
             if oneai.PRINT_PROGRESS:
-                print_progress(time_end - time_start)
+                log_progress(time_end - time_start)
             time_start = time_end
             input = next_input()
 
@@ -134,9 +137,9 @@ async def process_batch(
         for _ in range(oneai.MAX_CONCURRENT_REQUESTS):
             worker = asyncio.create_task(req_worker(session))
             workers.append(worker)
-        print_progress(start=True)
+        log_progress(start=True)
         await asyncio.gather(*workers)
-        print_progress(end=True)
+        log_progress(end=True)
 
 
 async def _run_internal(
