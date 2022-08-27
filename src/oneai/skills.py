@@ -1,6 +1,5 @@
 from dataclasses import dataclass
 from warnings import warn
-from oneai import scraping
 
 from oneai.classes import Document, Labels, Skill, skillclass, Output
 

@@ -33,7 +33,7 @@ def build_output(
         return first, second
 
     def build_internal(
-        output_index: int, skills: List[Skill], input_type: type
+        output_index: int, skills: List[Skill]
     ) -> "Output":
         text = get_text(output_index)
         # temporary fix- if 1st skill is not a generator, use input_text, not output[0].text,
@@ -49,7 +49,7 @@ def build_output(
                 skills, next_skills = split_pipeline(skills, i)
                 data.append(
                     build_internal(
-                        output_index + 1, next_skills, skill.output_type or input_type
+                        output_index + 1, next_skills
                     )
                 )
                 break

@@ -58,18 +58,6 @@ class Pipeline:
         self.steps = tuple(steps)  # todo: validate (based on input_type)
         self.api_key = api_key
 
-        # split into segments of skills, by where these skills should run (custom skills count as a separate segment)
-        self._segments = []
-        start = 0
-        for i, skill in enumerate(steps):
-            if skill.run_custom is not None and not oneai.DEBUG_RAW_RESPONSES:
-                if i - start:
-                    self._segments.append(APISegment(self.steps[start:i]))
-                start = i + 1
-                self._segments.append(CustomSegment(skill))
-        if i + 1 - start:
-            self._segments.append(APISegment(self.steps[start : i + 1]))
-
     def run(
         self, input: PipelineInput[TextContent], api_key: str = None
     ) -> Output[TextContent]:
@@ -96,7 +84,7 @@ class Pipeline:
         return _async_run_nested(
             process_single_input(
                 input,
-                self._segments,
+                self.steps,
                 api_key or self.api_key or oneai.api_key,
                 True,
             )
@@ -127,7 +115,7 @@ class Pipeline:
         """
         return await process_single_input(
             input,
-            self._segments,
+            self.steps,
             api_key or self.api_key or oneai.api_key,
             False,
         )
