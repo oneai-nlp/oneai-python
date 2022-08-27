@@ -1,11 +1,11 @@
 from copy import copy
 import json
-from typing import Awaitable, List, Union
+from typing import Awaitable, List
 import aiohttp
 import urllib.parse
 import oneai, oneai.api
 
-from oneai.classes import File, Input, Label, Labels, Output, Skill
+from oneai.classes import Input, Label, Labels, Output, Skill
 from oneai.exceptions import handle_unsuccessful_response, validate_api_key
 
 endpoint_default = "api/v0/pipeline"
@@ -13,12 +13,12 @@ endpoint_async_file = "api/v0/pipeline/async/file"
 endpoint_task = "api/v0/pipeline/async/tasks"
 
 
-def build_request(input: Union[Input, str], steps: List[Skill], include_text: True):
+def build_request(input: Input, steps: List[Skill], include_text: True):
     request = {
         "steps": [skill.asdict() for skill in steps],
     }
     if include_text:
-        request["text"] = input if isinstance(input, str) else input.raw
+        request["text"] = input.raw
     if isinstance(input, Input):
         if input.type:
             request["input_type"] = input.type
@@ -26,11 +26,11 @@ def build_request(input: Union[Input, str], steps: List[Skill], include_text: Tr
             request["content_type"] = input.content_type
         if hasattr(input, "encoding") and input.encoding:
             request["encoding"] = input.encoding
-    return request
+    return json.dumps(request, default=lambda x: x.__dict__)
 
 async def post_pipeline(
     session: aiohttp.ClientSession,
-    input: Union[Input, str],
+    input: Input,
     steps: List[Skill],
     api_key: str,
 ) -> Awaitable[Output]:
@@ -44,7 +44,7 @@ async def post_pipeline(
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
     }
 
-    async with session.post(url, headers=headers, json=request) as response:
+    async with session.post(url, headers=headers, data=request) as response:
         if response.status != 200:
             await handle_unsuccessful_response(response)
         elif oneai.DEBUG_RAW_RESPONSES:
@@ -54,7 +54,7 @@ async def post_pipeline(
 
 async def post_pipeline_async_file(
     session: aiohttp.ClientSession,
-    input: Union[Input, str],
+    input: Input,
     steps: List[Skill],
     api_key: str,
 ) -> Awaitable[str]:
@@ -86,7 +86,7 @@ def build_output(
             if index >= 0
             else raw_output["input_text"]
         )
-        return input_type.parse(text) if issubclass(input_type, Input) else text
+        return input_type.parse(text)
 
     def split_pipeline(skills: List[Skill], i: int):
         # split pipeline at a generator Skill
@@ -102,7 +102,7 @@ def build_output(
     def build_internal(
         output_index: int, skills: List[Skill], input_type: type
     ) -> "Output":
-        text = get_text(output_index, input_type)
+        text = get_text(output_index, input_type).raw
         # temporary fix- if 1st skill is not a generator, use input_text, not output[0].text,
         # since output[0].text is corrupted (not parsable) for conversation inputs
         output_index = max(output_index, 0)
@@ -136,7 +136,7 @@ def build_output(
         next_input_type = skills[generator].output_type or input_type
         skills, next_skills = split_pipeline(skills, generator)
         return Output(
-            text=get_text(-1, input_type),
+            text=get_text(-1, input_type).raw,
             skills=list(skills),
             data=[Labels()] * generator + [build_internal(0, next_skills, next_input_type)],
         )

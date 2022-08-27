@@ -2,7 +2,7 @@ from dataclasses import dataclass
 from warnings import warn
 from oneai import scraping
 
-from oneai.classes import Labels, Skill, skillclass, Output
+from oneai.classes import Document, Labels, Skill, skillclass, Output
 
 
 @skillclass(
@@ -83,7 +83,7 @@ class Proofread(Skill):
     label_type="origin",
     output_attr="summary",
     output_attr1="origins",
-    output_type=str,
+    output_type=Document,
 )
 @dataclass
 class Summarize(Skill):

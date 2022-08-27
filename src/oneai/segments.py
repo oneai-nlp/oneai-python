@@ -10,14 +10,14 @@ import oneai
 from oneai.api import post_pipeline
 from oneai.api.async_api import monitor_task
 from oneai.api.pipeline import post_pipeline_async_file
-from oneai.classes import Input, Output, Skill
+from oneai.classes import Input, Output, PipelineInput, Skill
 from oneai.exceptions import OneAIError
 
 
 class Segment:
     async def run(
         self,
-        input: Union[Input, Output, str],
+        input: Input,
         api_key: str,
         session: aiohttp.ClientSession,
     ) -> Output:
@@ -44,16 +44,16 @@ class Segment:
 
 # open a client session and send a request
 async def process_single_input(
-    input: Union[Input, str], segments: List[Segment], api_key: str
+    input: PipelineInput, segments: List[Segment], api_key: str
 ) -> Awaitable[Output]:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        return await _run_segments(session, input, segments, api_key)
+        return await _run_segments(session, Input.wrap(input), segments, api_key)
 
 
 # open a client session with multiple workers and send concurrent requests
 async def process_batch(
-    batch: Iterable[Union[str, Input]],
+    batch: Iterable[PipelineInput],
     segments: List[Segment],
     on_output: Callable[[Input, Output], None],
     on_error: Callable[[Input, Exception], None],
@@ -220,9 +220,9 @@ class APISegment(Segment):
                 return await post_pipeline(session, content, self.skills, api_key)
 
         if isinstance(input, Output) and not oneai.DEBUG_RAW_RESPONSES:
-            output = await run_internal(input.text)
+            output = await run_internal(input)
             input.merge(output)
             output = input
         else:
-            output = await run_internal(input)
+            output = await run_internal(Input.wrap(input))
         return output

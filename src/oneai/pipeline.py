@@ -4,7 +4,7 @@ import os
 import oneai
 
 from typing import Awaitable, Callable, Dict, Iterable, List, Union
-from oneai.classes import Input, Output, PipelineInput, Skill
+from oneai.classes import Input, Output, PipelineInput, Skill, TextContent
 from oneai.segments import *
 
 
@@ -92,8 +92,6 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        # if not isinstance(input, Input):
-        #     input = Input.wrap(input)
         return _async_run_nested(
             process_single_input(
                 input,
@@ -125,14 +123,11 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        # if not isinstance(input, Input):
-        #     input = Input.wrap(input)
         return await process_single_input(
             input,
             self._segments,
             api_key=api_key or self.api_key or oneai.api_key,
         )
-
 
     def run_batch(
         self,
@@ -171,11 +166,11 @@ class Pipeline:
 
     async def run_batch_async(
         self,
-        batch: Iterable[Union[str, Input]],
+        batch: Iterable[PipelineInput],
         api_key: str = None,
         on_output: Callable[[Input, Output], None] = None,
         on_error: Callable[[Input, Exception], None] = None,
-    ) -> Awaitable[Dict[Union[str, Input], Output]]:
+    ) -> Awaitable[Dict[PipelineInput, Output]]:
         """
         Runs the pipeline on a batch of input texts asynchronously.
 

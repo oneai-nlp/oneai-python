@@ -28,7 +28,7 @@ class Utterance:
 
 
 TextContent = TypeVar('TextContent', bound=Union[str, List['Utterance'], TextIO, BinaryIO])
-PipelineInput = Union[TextContent, 'Input[TextContent]']
+PipelineInput = Union['Input', str, List['Utterance'], TextIO, BinaryIO]
 
 # extension -> content_type, input_type
 CONTENT_TYPES: Dict[str, Tuple[str, str]] = {
@@ -215,7 +215,7 @@ class Input(Generic[TextContent]):
         raise NotImplementedError()
 
     @classmethod
-    def wrap(cls, text: Union[TextContent, 'Input[TextContent]'], sync: bool=True) -> 'Input[TextContent]':
+    def wrap(cls, text: PipelineInput, sync: bool=True) -> Input[TextContent]:
         if isinstance(text, Input):
             return text
         elif isinstance(text, str):
@@ -252,8 +252,6 @@ class Document(Input[str]):
 
     ## Methods
 
-    `raw() -> str`
-        Property Method. Returns the text of the document.
     `parse(text) -> Document`
         A class method. Parse a string into a `Document` instance.
     """
@@ -267,13 +265,11 @@ class Conversation(Input[List[Utterance]]):
 
     ## Attributes
 
-    `utterances: List[Utterance]`
+    `text: List[Utterance]`
         A list of `Utterance` objects, each has `speaker` and `utterance` fields.
 
     ## Methods
 
-    `raw() -> str`
-        Property method. Returns the conversation as a JSON string.
     `parse(text) -> Conversation`
         A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
     """
@@ -332,7 +328,7 @@ class File(Input):
 
     ## Attributes
 
-    `data: str`
+    `text: str`
         Encoded file data.
     `type: str`
         An input-type hint for the API, either `Conversation` or `Document`.
@@ -340,11 +336,6 @@ class File(Input):
         The content type of the file.
     `encoding: str`
         The encoding of the file.
-
-    ## Methods
-
-    `raw() -> str`
-        Property method. Returns the encoded file data.
     """
 
     def __init__(self, file_path: str, type: Union[str, Type[Input]] = None):
@@ -374,7 +365,7 @@ class File(Input):
             self.content_type = "text/plain"
             self.encoding = utf8
         elif ext == ".srt":
-            self.data = Conversation.parse(open(file_path).read()).raw
+            self.text = Conversation.parse(open(file_path).read()).text
             return
         elif ext in [".jpg", ".jpeg"]:
             self.content_type = "image/jpeg"
@@ -395,40 +386,9 @@ class File(Input):
             )
 
         if self.encoding == utf8:
-            self.data = open(file_path, "r").read()
+            self.text = open(file_path, "r").read()
         else:
-            self.data = b64encode(open(file_path, "rb").read()).decode("utf-8")
-
-    @property
-    def raw(self) -> str:
-        """
-        Returns the encoded file data.
-
-        ## Returns
-
-        `str` representation of this `File` instance.
-        """
-
-        return self.data
-
-    @classmethod
-    def parse(cls, text: str) -> Input:
-        """
-        A class method. Parse a string into an `Input` instance.
-
-        ## Parameters
-
-        `text: str`
-            The text to parse.
-
-        ## Returns
-
-        The `Input` instance produced from `text`.
-        """
-        try:
-            return Conversation.parse(text)
-        except:
-            return text
+            self.text = b64encode(open(file_path, "rb").read()).decode("utf-8")
 
 
 @dataclass
