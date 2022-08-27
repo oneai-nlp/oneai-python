@@ -201,7 +201,9 @@ class Input:
 
     @classmethod
     def wrap(cls, content: TextContent, sync: bool=True):
-        if isinstance(content, str):
+        if isinstance(content, Input):
+            return content
+        elif isinstance(content, str):
             return Document(content)
         elif isinstance(content, list) and (len(content) == 0 or isinstance(content[0], Utterance)):
             return Conversation(content)
@@ -301,6 +303,7 @@ class Conversation(Input):
 
     def __init__(self, utterances: List[Utterance] = []):
         self.utterances = utterances
+        self.content_type = 'application/json'
 
     @property
     def raw(self) -> str:
@@ -311,7 +314,7 @@ class Conversation(Input):
 
         `str` representation of this `Conversation` instance.
         """
-        return json.dumps(self.utterances, default=lambda o: o.__dict__) if isinstance(self.utterances, list) else self.utterances
+        return self.utterances
 
     def __getitem__(self, index: int) -> Utterance:
         return self.utterances[index]
