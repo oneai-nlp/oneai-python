@@ -14,6 +14,7 @@ if TYPE_CHECKING:
     from oneai.skills import OutputAttrs
 
 TextContent = Union[str, List['Utterance'], TextIO, BinaryIO]
+PipelineInput = Union[TextContent, 'Input']
 
 CONVERSATION_CONTENT_TYPES = set([
     'application/json',
@@ -218,6 +219,8 @@ class Input:
                 input = (Conversation if content_type in CONVERSATION_CONTENT_TYPES else Document)(content)
                 input.content_type = content_type
                 return input
+        else:
+            raise ValueError(f"invalid content type {type(content)}")
 
 
 class Document(Input):
