@@ -1,36 +1,24 @@
 from copy import copy
+import json
 from typing import Awaitable, List, Union
 import aiohttp
+import urllib.parse
 import oneai, oneai.api
 
-from oneai.classes import Input, Label, Labels, Output, Skill
-from oneai.exceptions import APIKeyError, handle_unsuccessful_response
+from oneai.classes import File, Input, Label, Labels, Output, Skill
+from oneai.exceptions import handle_unsuccessful_response, validate_api_key
 
-ENDPOINT = "api/v0/pipeline"
+endpoint_default = "api/v0/pipeline"
+endpoint_async_file = "api/v0/pipeline/async/file"
+endpoint_task = "api/v0/pipeline/async/tasks"
 
 
-async def post_pipeline(
-    session: aiohttp.ClientSession,
-    input: Union[Input, str],
-    steps: List[Skill],
-    api_key: str,
-) -> Awaitable[Output]:
-    if api_key is None or not api_key:
-        raise APIKeyError(
-            60001,
-            "Missing API key",
-            "Please provide a valid API key, either by setting the global `oneai.api_key` or passing the `api_key` parameter",
-        )
-
-    headers = {
-        "api-key": api_key,
-        "Content-Type": "application/json",
-        "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
-    }
+def build_request(input: Union[Input, str], steps: List[Skill], include_text: True):
     request = {
-        "text": input if isinstance(input, str) else input.raw,
         "steps": [skill.asdict() for skill in steps],
     }
+    if include_text:
+        request["text"] = input if isinstance(input, str) else input.raw
     if isinstance(input, Input):
         if input.type:
             request["input_type"] = input.type
@@ -38,16 +26,53 @@ async def post_pipeline(
             request["content_type"] = input.content_type
         if hasattr(input, "encoding") and input.encoding:
             request["encoding"] = input.encoding
+    return request
 
-    async with session.post(
-        f"{oneai.URL}/{ENDPOINT}", headers=headers, json=request
-    ) as response:
+async def post_pipeline(
+    session: aiohttp.ClientSession,
+    input: Union[Input, str],
+    steps: List[Skill],
+    api_key: str,
+) -> Awaitable[Output]:
+    validate_api_key(api_key)
+
+    request = build_request(input, steps, True)
+    url = f"{oneai.URL}/{endpoint_default}"
+    headers = {
+        "api-key": api_key,
+        "Content-Type": "application/json",
+        "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
+    }
+
+    async with session.post(url, headers=headers, json=request) as response:
         if response.status != 200:
             await handle_unsuccessful_response(response)
         elif oneai.DEBUG_RAW_RESPONSES:
             return await response.json()
         else:
             return build_output(steps, await response.json(), input_type=type(input))
+
+async def post_pipeline_async_file(
+    session: aiohttp.ClientSession,
+    input: Union[Input, str],
+    steps: List[Skill],
+    api_key: str,
+) -> Awaitable[str]:
+    validate_api_key(api_key)
+
+    request = build_request(input, steps, False)
+    url = f"{oneai.URL}/{endpoint_async_file}?pipeline=" + urllib.parse.quote(json.dumps(request))
+    headers = {
+        "api-key": api_key,
+        "Content-Type": "application/json",
+        "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
+    }
+
+    async with session.post(url, headers=headers, data=input.raw) as response:
+        if response.status != 200:
+            await handle_unsuccessful_response(response)
+        else:
+            return await response.json()
 
 
 def build_output(
