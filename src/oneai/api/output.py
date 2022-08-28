@@ -1,6 +1,7 @@
 from copy import copy
 from typing import List
 
+import oneai
 from oneai.classes import Label, Labels, Output, Skill, TextContent
 from oneai.parsing import parse_conversation
 
@@ -8,6 +9,8 @@ from oneai.parsing import parse_conversation
 def build_output(
     skills: List[Skill], raw_output: dict, input_type: str,
 ) -> Output:
+    if oneai.DEBUG_RAW_RESPONSES:
+        return raw_output
     def get_text(index) -> TextContent:
         # get the input text for this Output object. use index=-1 to get the original input text
         # text can be returned as a simple str or parsed to match a given input type

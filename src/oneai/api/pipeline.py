@@ -48,8 +48,6 @@ async def post_pipeline(
     async with session.post(url, headers=headers, data=request) as response:
         if response.status != 200:
             await handle_unsuccessful_response(response)
-        elif oneai.DEBUG_RAW_RESPONSES:
-            return await response.json()
         else:
             return build_output(steps, await response.json(), input.type)
 
