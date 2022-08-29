@@ -7,6 +7,8 @@ import oneai
 from oneai.api import get_clustering, post_clustering
 from oneai.classes import Input, PipelineInput
 
+API_DATE_FORMAT = "%Y-%m-%d"
+
 
 def get_collections(
     api_key: str = None,
@@ -71,9 +73,10 @@ class Phrase:
 
     @classmethod
     def from_dict(cls, cluster: "Cluster", object: dict) -> "Phrase":
+        print(object)
         return cls(
-            id=object["phrase_id"],
-            text=object["text"],
+            id=int(object["phrase_id"]),
+            text=object.get("text", ""),
             item_count=object["items_count"],
             cluster=cluster,
             collection=cluster.collection,
@@ -87,24 +90,52 @@ class Cluster:
     phrase_count: int
     metadata: str
     collection: "Collection" = field(repr=False)
-    _phrases: List[Phrase] = field(default_factory=list, repr=False)
 
-    def get_phrases(self, item_metadata: str = None) -> List[Phrase]:
-        # refetch? cache?
-        if self._phrases:
-            return self._phrases
+    def get_phrases(
+        self,
+        *,
+        sort: Literal["ASC", "DESC"] = "ASC",
+        limit: int = None,
+        from_date: Union[datetime, str] = None,
+        to_date: Union[datetime, str] = None,
+        date_format: str = API_DATE_FORMAT,
+        item_metadata: str = None,
+    ) -> Generator[Phrase, None, None]:
+        if from_date:
+            if isinstance(from_date, str):
+                from_date = datetime.strptime(from_date, date_format)
+            from_date = from_date.strftime(API_DATE_FORMAT)
 
-        params = {
-            "item-metadata": item_metadata,
-        }
-        url = f"{self.collection.name}/clusters/{self.id}/items" + (
-            f"?{urllib.parse.urlencode(params)}" if item_metadata else ""
-        )
+        if to_date:
+            if isinstance(to_date, str):
+                to_date = datetime.strptime(to_date, date_format)
+            to_date = to_date.strftime(API_DATE_FORMAT)
 
-        return [
-            Phrase.from_dict(self, phrase)
-            for phrase in get_clustering(url, self.collection.api_key)
-        ]
+        page = 0
+        counter = 0
+        phrases = [None]
+
+        while phrases and ((not limit) or counter < limit):
+            params = {
+                "sort": sort,
+                "limit": limit,
+                "from-date": from_date,
+                "to-date": to_date,
+                "include-phrases": False,
+                "item-metadata": item_metadata,
+                "page": page,
+            }
+            url = f"{self.collection.name}/clusters/{self.id}/phrases?" + (
+                f"{urllib.parse.urlencode({k: v for k, v in params.items() if v})}"
+            )
+
+            phrases = [
+                Phrase.from_dict(self, phrase)
+                for phrase in get_clustering(url, self.collection.api_key)
+            ]
+            yield from phrases
+            counter += len(phrases)
+            page += 1
 
     def add_items(self, items: List[PipelineInput[str]]):
         url = f"{self.collection.name}/items"
@@ -120,22 +151,15 @@ class Cluster:
 
     @classmethod
     def from_dict(cls, collection: "Collection", object: dict) -> "Cluster":
-        cluster = cls(
-            id=object["cluster_id"],
+        return cls(
+            id=int(object["cluster_id"]),
             text=object["cluster_phrase"],
             phrase_count=object["phrases_count"],
             metadata=object["metadata"],
             collection=collection,
         )
-        cluster._phrases = [
-            Phrase.from_dict(cluster, phrase) for phrase in object["phrases"]
-        ]
-        return cluster
-
 
 class Collection:
-    api_date_format = "%Y-%m-%d"
-
     def __init__(self, name: str, api_key: str = None):
         self.name = name
         self.api_key = api_key or oneai.api_key
@@ -147,32 +171,30 @@ class Collection:
         limit: int = None,
         from_date: Union[datetime, str] = None,
         to_date: Union[datetime, str] = None,
-        date_format: str = api_date_format,
-        include_phrases: bool = True,
-        phrase_limit: int = None,
+        date_format: str = API_DATE_FORMAT,
         item_metadata: str = None,
     ) -> Generator[Cluster, None, None]:
         if from_date:
             if isinstance(from_date, str):
                 from_date = datetime.strptime(from_date, date_format)
-            from_date = from_date.strftime(self.api_date_format)
+            from_date = from_date.strftime(API_DATE_FORMAT)
 
         if to_date:
             if isinstance(to_date, str):
                 to_date = datetime.strptime(to_date, date_format)
-            to_date = to_date.strftime(self.api_date_format)
+            to_date = to_date.strftime(API_DATE_FORMAT)
 
         page = 0
+        counter = 0
         clusters = [None]
 
-        while clusters:
+        while clusters and ((not limit) or counter < limit):
             params = {
                 "sort": sort,
                 "limit": limit,
                 "from-date": from_date,
                 "to-date": to_date,
-                "include-phrases": include_phrases,
-                "phrases-limit": phrase_limit,
+                "include-phrases": False,
                 "item-metadata": item_metadata,
                 "page": page,
             }
@@ -183,6 +205,7 @@ class Collection:
                 for cluster in get_clustering(url, self.api_key)
             ]
             yield from clusters
+            counter += len(clusters)
             page += 1
 
     def find(self, query: str, threshold: float = 0.5) -> List[Cluster]:
