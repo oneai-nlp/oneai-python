@@ -677,6 +677,7 @@ class TranscribeAudio(Skill):
 
 
 @skillclass(api_name="transcribe", is_generator=True, output_attr="transcription")
+@dataclass
 class Transcribe(Skill):
     """
     Transcribes audio files
@@ -696,6 +697,8 @@ class Transcribe(Skill):
     oneai.Conversation([ ...
     """
 
+    speaker_detection: bool = True
+    timestamp_per_word: bool = False
 
 class OutputAttrs:
     summary: "Output[str]" = None
