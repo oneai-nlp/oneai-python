@@ -633,16 +633,14 @@ class DetectLanguage(Skill):
     >>> output.language[0]
     """
 
-@skillclass(
-    api_name="headline", label_type="headline", output_attr="headlines"
-)
+@skillclass(api_name="headline", label_type="headline")
 class Headline(Skill):
     """
     Generates a headline based on input
 
     ## Output Attributes
 
-    `healdines: list[Label]`
+    `headline: list[Label]`
         A list of `Label` objects, containing the generated headline
 
     ## Example
@@ -651,7 +649,28 @@ class Headline(Skill):
     ...     oneai.skills.Headline()
     ... ])
     >>> output = pipeline.run('...')
-    >>> output.headlines[0]
+    >>> output.headline[0]
+    """
+
+@skillclass(
+    api_name="subheading", label_type="subheading", output_attr="subheading"
+)
+class Subheading(Skill):
+    """
+    Generates a subheading based on input
+
+    ## Output Attributes
+
+    `subheading: list[Label]`
+        A list of `Label` objects, containing the generated subheading
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Subheading()
+    ... ])
+    >>> output = pipeline.run('...')
+    >>> output.subheading[0]
     """
 
 
@@ -723,4 +742,5 @@ class OutputAttrs:
     sentences: Labels = None
     anonymizations: Labels = None
     language: Labels = None
-    headlines: Labels = None
+    headline: Labels = None
+    subheading: Labels = None
