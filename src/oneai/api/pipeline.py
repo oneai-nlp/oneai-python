@@ -1,6 +1,6 @@
 import json
 import urllib.parse
-from typing_extensions import Awaitable, List
+from typing import Awaitable, List
 
 import aiohttp
 import oneai, oneai.api

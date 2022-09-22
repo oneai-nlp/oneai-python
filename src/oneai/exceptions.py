@@ -1,5 +1,5 @@
 import json
-from typing_extensions import Dict, Union
+from typing import Dict, Union
 from aiohttp import ClientResponse
 
 # todo: input type validation errors

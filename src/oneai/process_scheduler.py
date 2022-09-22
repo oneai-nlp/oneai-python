@@ -2,7 +2,7 @@ import asyncio
 import io
 from datetime import datetime, timedelta
 import logging
-from typing_extensions import Awaitable, Callable, Iterable, List
+from typing import Awaitable, Callable, Iterable, List
 
 import aiohttp
 

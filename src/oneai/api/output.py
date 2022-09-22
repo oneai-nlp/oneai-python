@@ -1,5 +1,5 @@
 from copy import copy
-from typing_extensions import List
+from typing import List
 
 import oneai
 from oneai.classes import Label, Labels, Output, Skill, Utterance, TextContent
