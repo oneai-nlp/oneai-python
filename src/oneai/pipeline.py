@@ -3,7 +3,7 @@ import concurrent.futures
 from io import IOBase
 import os
 import sys
-from typing import Awaitable, Callable, Dict, Iterable, List
+from typing_extensions import Awaitable, Callable, Dict, Iterable, List
 
 import oneai
 from oneai.classes import Output, PipelineInput, Skill, TextContent

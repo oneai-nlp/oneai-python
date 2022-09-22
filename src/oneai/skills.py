@@ -1,5 +1,5 @@
 from dataclasses import dataclass
-from typing import List
+from typing_extensions import List
 from warnings import warn
 
 from oneai.classes import Document, Labels, Skill, Utterance, skillclass, Output

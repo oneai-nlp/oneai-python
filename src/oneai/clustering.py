@@ -2,7 +2,7 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import urllib.parse
-from typing import Generator, List, Literal, Union
+from typing_extensions import Generator, List, Literal, TypedDict, Union
 import oneai
 from oneai.api import get_clustering, post_clustering
 from oneai.classes import Input, PipelineInput
@@ -68,7 +68,7 @@ class Phrase:
         )
         return [
             Item.from_dict(self, item)
-            for item in get_clustering(url, self.collection.api_key)
+            for item in get_clustering(url, self.collection.api_key)["items"]
         ]
 
     @classmethod
@@ -129,13 +129,17 @@ class Cluster:
                 f"{urllib.parse.urlencode({k: v for k, v in params.items() if v})}"
             )
 
+            response = get_clustering(url, self.collection.api_key)
             phrases = [
                 Phrase.from_dict(self, phrase)
-                for phrase in get_clustering(url, self.collection.api_key)["phrases"]
+                for phrase in response["phrases"]
             ]
             yield from phrases
             counter += len(phrases)
             page += 1
+
+            if page >= response['total_pages']:
+                break
 
     def add_items(self, items: List[PipelineInput[str]]):
         url = f"{self.collection.name}/items"
@@ -201,13 +205,16 @@ class Collection:
             }
             url = f"{self.name}/clusters?{urllib.parse.urlencode({k: v for k, v in params.items() if v})}"
 
+            response = get_clustering(url, self.api_key)
             clusters = [
                 Cluster.from_dict(self, cluster)
-                for cluster in get_clustering(url, self.api_key)["clusters"]
+                for cluster in response["clusters"]
             ]
             yield from clusters
             counter += len(clusters)
             page += 1
+            if page >= response["total_pages"]:
+                break
 
     def find(self, query: str, threshold: float = 0.5) -> List[Cluster]:
         params = {

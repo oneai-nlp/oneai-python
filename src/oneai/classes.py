@@ -5,7 +5,7 @@ import os
 from base64 import b64encode
 import validators
 from dataclasses import dataclass, field
-from typing import (
+from typing_extensions import (
     TYPE_CHECKING,
     Any,
     BinaryIO,
