@@ -170,22 +170,13 @@ class Input(Generic[TextContent]):
         type: str,
         content_type: str = None,
         encoding: str = None,
+        metadata: Dict[str, any] = None,
     ):
         self.text: TextContent = text
         self.type = type
         self.content_type = content_type
         self.encoding = encoding
-
-    @property
-    def metadata(self) -> Dict[str, Any]:
-        """
-        Returns the metadata of the input. Not implemented by default.
-
-        ## Returns
-
-        A `str`-key dict of input-associated metadata.
-        """
-        raise NotImplementedError()
+        self.metadata = metadata
 
     @classmethod
     def wrap(
