@@ -21,7 +21,7 @@ def parse_conversation(text: str, strict=False) -> List[Utterance]:
 
     `ValueError` if `text` is not in a valid conversation format.
     """
-    
+
     srt_regex = re.compile(
         r"\d+\n\d{1,2}:\d{2}:\d{2}[,.]\d{1,3} --> \d{1,2}:\d{2}:\d{2}[,.]\d{1,3}"
     )

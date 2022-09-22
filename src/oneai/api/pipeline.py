@@ -16,6 +16,7 @@ endpoint_async_tasks = "api/v0/pipeline/async/tasks"
 def build_request(input: Input, steps: List[Skill], include_text: True):
     request = {
         "steps": [skill.asdict() for skill in steps],
+        "output_type": "json",
     }
     if include_text:
         request["text"] = input.text
@@ -49,7 +50,7 @@ async def post_pipeline(
         if response.status != 200:
             await handle_unsuccessful_response(response)
         else:
-            return build_output(steps, await response.json(), input.type)
+            return build_output(steps, await response.json())
 
 
 async def post_pipeline_async_file(

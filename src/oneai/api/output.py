@@ -2,29 +2,30 @@ from copy import copy
 from typing import List
 
 import oneai
-from oneai.classes import Label, Labels, Output, Skill, TextContent
-from oneai.parsing import parse_conversation
+from oneai.classes import Label, Labels, Output, Skill, Utterance, TextContent
 
 
 def build_output(
-    skills: List[Skill], raw_output: dict, input_type: str,
+    skills: List[Skill],
+    raw_output: dict,
 ) -> Output:
     if oneai.DEBUG_RAW_RESPONSES:
         return raw_output
+
     def get_text(index) -> TextContent:
         # get the input text for this Output object. use index=-1 to get the original input text
         # text can be returned as a simple str or parsed to match a given input type
         text = (
-            raw_output["output"][index]["text"]
+            raw_output["output"][index]["contents"]
             if index >= 0
-            else raw_output["input_text"]
+            else raw_output["input"]
         )
-        if input_type == 'conversation':
-            try:
-                return parse_conversation(text)
-            except:
-                pass
-        return text
+
+        if not text:
+            return ""
+        if len(text) > 1 or (text and "speaker" in text[0]):
+            return [Utterance(u["speaker"], u["utterance"]) for u in text]
+        return text[0]["utterance"]
 
     def split_pipeline(skills: List[Skill], i: int):
         # split pipeline at a generator Skill
@@ -37,9 +38,7 @@ def build_output(
             second = (clone, *second)
         return first, second
 
-    def build_internal(
-        output_index: int, skills: List[Skill]
-    ) -> "Output":
+    def build_internal(output_index: int, skills: List[Skill]) -> "Output":
         text = get_text(output_index)
         # temporary fix- if 1st skill is not a generator, use input_text, not output[0].text,
         # since output[0].text is corrupted (not parsable) for conversation inputs
@@ -52,11 +51,7 @@ def build_output(
         for i, skill in enumerate(skills):
             if skill.is_generator:
                 skills, next_skills = split_pipeline(skills, i)
-                data.append(
-                    build_internal(
-                        output_index + 1, next_skills
-                    )
-                )
+                data.append(build_internal(output_index + 1, next_skills))
                 break
             else:
                 data.append(

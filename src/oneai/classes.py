@@ -5,8 +5,20 @@ import os
 from base64 import b64encode
 import validators
 from dataclasses import dataclass, field
-from typing import (TYPE_CHECKING, Any, BinaryIO, Dict, Generic,
-                    Iterable, List, TextIO, Tuple, Type, TypeVar, Union)
+from typing import (
+    TYPE_CHECKING,
+    Any,
+    BinaryIO,
+    Dict,
+    Generic,
+    Iterable,
+    List,
+    TextIO,
+    Tuple,
+    Type,
+    TypeVar,
+    Union,
+)
 from warnings import warn
 
 
@@ -21,26 +33,27 @@ class Utterance:
     speaker: str
     utterance: str
 
-    # temporary fix, for outputs to be supported by parser
-    def __post_init__(self):
-        self.speaker = self.speaker.upper()
+    @classmethod
+    def from_dict(cls, u: Dict[str, str]) -> "Utterance":
+        return cls(u["speaker"], u["utterance"])
 
     def __repr__(self) -> str:
         return f"\n\t{self.speaker}: {self.utterance}"
 
 
-TextContent = TypeVar('TextContent', bound=Union[str, List['Utterance']])
-PipelineInput = Union['Input[TextContent]', TextContent, TextIO, BinaryIO]
+TextContent = TypeVar("TextContent", bound=Union[str, List["Utterance"]])
+PipelineInput = Union["Input[TextContent]", TextContent, TextIO, BinaryIO]
 
 # extension -> content_type, input_type
 CONTENT_TYPES: Dict[str, Tuple[str, str]] = {
-    '.json': ('application/json', 'conversation'),
-    '.txt': ('text/plain', 'article'),
-    '.srt': ('text/plain', 'conversation'),
-    '.wav': ('audio/wav', 'conversation'),
-    '.mp3': ('audio/mpeg', 'conversation'),
-    '.html': ('text/plain', 'article'),
+    ".json": ("application/json", "conversation"),
+    ".txt": ("text/plain", "article"),
+    ".srt": ("text/plain", "conversation"),
+    ".wav": ("audio/wav", "conversation"),
+    ".mp3": ("audio/mpeg", "conversation"),
+    ".html": ("text/plain", "article"),
 }
+
 
 @dataclass
 class Skill:
@@ -150,7 +163,14 @@ class Input(Generic[TextContent]):
         Optional metadata to be associated with the input in clustering collections. Not implemented by default.
     """
 
-    def __init__(self, text: TextContent, *, type: str, content_type: str = None, encoding: str = None):
+    def __init__(
+        self,
+        text: TextContent,
+        *,
+        type: str,
+        content_type: str = None,
+        encoding: str = None,
+    ):
         self.text: TextContent = text
         self.type = type
         self.content_type = content_type
@@ -168,16 +188,20 @@ class Input(Generic[TextContent]):
         raise NotImplementedError()
 
     @classmethod
-    def wrap(cls, text: PipelineInput[TextContent], sync: bool=True) -> 'Input[TextContent]':
+    def wrap(
+        cls, text: PipelineInput[TextContent], sync: bool = True
+    ) -> "Input[TextContent]":
         if isinstance(text, cls):
             return text
         elif isinstance(text, str):
             if validators.url(text):
-                return cls(text, type='article', content_type='text/uri-list')
+                return cls(text, type="article", content_type="text/uri-list")
             else:
-                return cls(text, type='article', content_type='text/plain')
-        elif isinstance(text, list) and (len(text) == 0 or isinstance(text[0], Utterance)):
-            return cls(text, type='conversation', content_type='application/json')
+                return cls(text, type="article", content_type="text/plain")
+        elif isinstance(text, list) and (
+            len(text) == 0 or isinstance(text[0], Utterance)
+        ):
+            return cls(text, type="conversation", content_type="application/json")
         elif isinstance(text, io.IOBase):
             name, mode = text.name, text.mode
             _, ext = os.path.splitext(name)
@@ -187,15 +211,18 @@ class Input(Generic[TextContent]):
                     details="see supported files in docs",
                 )
             content_type, input_type = CONTENT_TYPES[ext]
-            if 'b' not in mode:
+            if "b" not in mode:
                 return cls(text.read(), type=input_type, content_type=content_type)
             elif sync:
-                data = b64encode(text.read()).decode('ascii')
-                return cls(data, type=input_type, content_type=content_type, encoding='base64')
+                data = b64encode(text.read()).decode("ascii")
+                return cls(
+                    data, type=input_type, content_type=content_type, encoding="base64"
+                )
             else:
                 return cls(text, type=input_type, content_type=content_type)
         else:
             raise ValueError(f"invalid content type {type(text)}")
+
 
 class Document(Input[str]):
     """
@@ -206,8 +233,9 @@ class Document(Input[str]):
     `text: str`
         The text of the document.
     """
+
     def __init__(self, text: str):
-        super().__init__(text, type='article', content_type='text/plain')
+        super().__init__(text, type="article", content_type="text/plain")
 
 
 class Conversation(Input[List[Utterance]]):
@@ -224,8 +252,11 @@ class Conversation(Input[List[Utterance]]):
     `parse(text) -> Conversation`
         A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
     """
+
     def __init__(self, utterances: List[Utterance] = []):
-        super().__init__(utterances, type='conversation', content_type='application/json')
+        super().__init__(
+            utterances, type="conversation", content_type="application/json"
+        )
 
     @property
     def utterances(self):
@@ -271,7 +302,7 @@ class Conversation(Input[List[Utterance]]):
 class File(Input):
     """
     Deprecated. Pass file-like objects directly to `Pipeline.run`
-    
+
     Represents file inputs. Supported file extensions:
     * .txt (text files)
     * .wav, .mp3 (transcribe)
@@ -354,11 +385,9 @@ def timestamp_to_timedelta(timestamp: str) -> timedelta:
         return None
     dt = datetime.strptime(timestamp, "%H:%M:%S.%f")
     return timedelta(
-        hours=dt.hour,
-        minutes=dt.minute,
-        seconds=dt.second,
-        microseconds=dt.microsecond
+        hours=dt.hour, minutes=dt.minute, seconds=dt.second, microseconds=dt.microsecond
     )
+
 
 @dataclass
 class Span:
@@ -448,8 +477,8 @@ class Label:
             span_text=object.pop("span_text", ""),
             value=object.pop("value", ""),
             data=object.pop("data", {}),
-            timestamp=timestamp_to_timedelta(object.pop('timestamp', '')),
-            timestamp_end=timestamp_to_timedelta(object.pop('timestamp_end', ''))
+            timestamp=timestamp_to_timedelta(object.pop("timestamp", "")),
+            timestamp_end=timestamp_to_timedelta(object.pop("timestamp_end", "")),
         )
 
     def __repr__(self) -> str:
@@ -520,14 +549,21 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
         * A nested `Output` instance, with a new `text`, e.g summary.
     """
 
-    def __init__(self, text: TextContent, skills: List[Skill]=[], data: List[Union[Labels, "Output"]] = []):
+    def __init__(
+        self,
+        text: TextContent,
+        skills: List[Skill] = [],
+        data: List[Union[Labels, "Output"]] = [],
+    ):
         super().__init__(
             text,
-            type='article' if isinstance(text, str) else 'conversation',
-            content_type='text/plain' if isinstance(text, str) else 'application/json',
+            type="article" if isinstance(text, str) else "conversation",
+            content_type="text/plain" if isinstance(text, str) else "application/json",
         )
 
-        self.skills = skills  # not a dict since Skills are currently mutable & thus unhashable
+        self.skills = (
+            skills  # not a dict since Skills are currently mutable & thus unhashable
+        )
         self.data = data
 
     def __getitem__(self, name: str) -> Union[Labels, "Output"]:

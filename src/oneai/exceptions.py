@@ -81,6 +81,7 @@ async def handle_unsuccessful_response(response: Union[ClientResponse, Dict]):
         response.get("request_id", ""),
     )
 
+
 def validate_api_key(api_key: str):
     if api_key is None or not api_key:
         raise APIKeyError(

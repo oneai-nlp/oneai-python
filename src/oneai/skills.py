@@ -633,6 +633,7 @@ class DetectLanguage(Skill):
     >>> output.language[0]
     """
 
+
 @skillclass(api_name="headline", label_type="headline")
 class Headline(Skill):
     """
@@ -652,9 +653,8 @@ class Headline(Skill):
     >>> output.headline[0]
     """
 
-@skillclass(
-    api_name="subheading", label_type="subheading", output_attr="subheading"
-)
+
+@skillclass(api_name="subheading", label_type="subheading", output_attr="subheading")
 class Subheading(Skill):
     """
     Generates a subheading based on input
@@ -718,6 +718,7 @@ class Transcribe(Skill):
 
     speaker_detection: bool = True
     timestamp_per_word: bool = False
+
 
 class OutputAttrs:
     summary: "Output[str]" = None

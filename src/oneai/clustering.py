@@ -131,7 +131,7 @@ class Cluster:
 
             phrases = [
                 Phrase.from_dict(self, phrase)
-                for phrase in get_clustering(url, self.collection.api_key)
+                for phrase in get_clustering(url, self.collection.api_key)["phrases"]
             ]
             yield from phrases
             counter += len(phrases)
@@ -158,6 +158,7 @@ class Cluster:
             metadata=object["metadata"],
             collection=collection,
         )
+
 
 class Collection:
     def __init__(self, name: str, api_key: str = None):
@@ -202,7 +203,7 @@ class Collection:
 
             clusters = [
                 Cluster.from_dict(self, cluster)
-                for cluster in get_clustering(url, self.api_key)
+                for cluster in get_clustering(url, self.api_key)["clusters"]
             ]
             yield from clusters
             counter += len(clusters)

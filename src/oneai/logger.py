@@ -2,6 +2,7 @@ import logging
 
 PREFIX = "\33[34m●\33[36m▲\33[35m▮\33[0m"
 
+
 class Formatter(logging.Formatter):
     def format(self, record):
         if record.levelno == logging.DEBUG:
@@ -14,10 +15,11 @@ class Formatter(logging.Formatter):
             self._style._fmt = "\33[91m%(message)s\33[0m"
         return super().format(record)
 
+
 formatter = Formatter()
 handler = logging.StreamHandler()
 handler.setFormatter(formatter)
 
-logger = logging.getLogger('oneai')
+logger = logging.getLogger("oneai")
 logger.addHandler(handler)
 logger.setLevel(logging.DEBUG)

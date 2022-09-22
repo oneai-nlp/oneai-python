@@ -12,14 +12,16 @@ from oneai.api.pipeline import post_pipeline, post_pipeline_async_file, get_task
 from oneai.classes import Input, Output, PipelineInput, Skill
 from oneai.exceptions import ServerError, handle_unsuccessful_response
 
-logger = logging.getLogger('oneai')
+logger = logging.getLogger("oneai")
+
 
 def time_format(time: timedelta):
     minutes = f"{time.seconds // 60}m " if time.seconds > 59 else ""
     return minutes + f"{time.seconds % 60}s {time.microseconds // 1000}ms"
 
-STATUS_COMPLETED = 'COMPLETED'
-STATUS_FAILED = 'FAILED'
+
+STATUS_COMPLETED = "COMPLETED"
+STATUS_FAILED = "FAILED"
 
 
 # open a client session and send a request
@@ -32,27 +34,36 @@ async def process_single_input(
 
 
 async def process_file_async(
-    input: PipelineInput, steps: List[Skill], api_key: str, interval: int,
+    input: PipelineInput,
+    steps: List[Skill],
+    api_key: str,
+    interval: int,
 ) -> Awaitable[Output]:
     input = Input.wrap(input, False)
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         name = input.text.name
         logger.debug(f"Uploading file '{name}'")
-        task_id = (await post_pipeline_async_file(session, input, steps, api_key))['task_id']
+        task_id = (await post_pipeline_async_file(session, input, steps, api_key))[
+            "task_id"
+        ]
         logger.debug(f"Upload of file '{name}' complete\n")
-        
-        status = ''
+
+        status = ""
         start = datetime.now()
         while status != STATUS_COMPLETED:
             if status == STATUS_FAILED:
-                await handle_unsuccessful_response(response['result'])
+                await handle_unsuccessful_response(response["result"])
             response = await get_task_status(session, task_id, api_key)
-            status = response['status']
-            logger.debug(f"Processing file '{name}' - status {status} - {time_format(datetime.now() - start)}")
+            status = response["status"]
+            logger.debug(
+                f"Processing file '{name}' - status {status} - {time_format(datetime.now() - start)}"
+            )
             await asyncio.sleep(interval)
-        logger.debug(f"Processing of file '{name}' complete - {time_format(datetime.now() - start)} total\n")
-        return build_output(steps, response['result'], input.type)
+        logger.debug(
+            f"Processing of file '{name}' complete - {time_format(datetime.now() - start)} total\n"
+        )
+        return build_output(steps, response["result"], input.type)
 
 
 # open a client session with multiple workers and send concurrent requests
@@ -142,12 +153,15 @@ async def process_batch(
         log_progress(end=True)
 
 
-
 async def fetch_url(session: aiohttp.ClientSession, url: str):
     async with session.get(url) as response:
         if response.status != 200:
-            raise ServerError(50001, "Retrieve URL failed", f"Failed to retrieve the input from url '{url}'.")
-        return Input(await response.text(), type='article', content_type='text/plain')
+            raise ServerError(
+                50001,
+                "Retrieve URL failed",
+                f"Failed to retrieve the input from url '{url}'.",
+            )
+        return Input(await response.text(), type="article", content_type="text/plain")
 
 
 async def _run_internal(
@@ -159,7 +173,7 @@ async def _run_internal(
     if not skills:  # no skills
         return Output(input.text)
 
-    if input.content_type == 'text/uri-list':
+    if input.content_type == "text/uri-list":
         input = await fetch_url(session, input.text)
 
     return await post_pipeline(session, input, skills, api_key)
