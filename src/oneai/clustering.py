@@ -64,7 +64,7 @@ class Phrase:
         item_metadata: str = None,
     ) -> List[Item]:
         yield from get_clustering_paginated(
-            f"{self.collection.name}/phrases/{self.id}/items",
+            f"{self.collection.id}/phrases/{self.id}/items",
             self.collection.api_key,
             'items',
             self,
@@ -104,7 +104,7 @@ class Cluster:
         item_metadata: str = None,
     ) -> Generator[Phrase, None, None]:
         yield from get_clustering_paginated(
-            f"{self.collection.name}/clusters/{self.id}/phrases",
+            f"{self.collection.id}/clusters/{self.id}/phrases",
             self.collection.api_key,
             'phrases',
             self,
@@ -118,7 +118,7 @@ class Cluster:
         )
 
     def add_items(self, items: List[PipelineInput[str]]):
-        url = f"{self.collection.name}/items"
+        url = f"{self.collection.id}/items"
         data = [
             {
                 "text": item.text if isinstance(item, Input) else item,
@@ -141,8 +141,8 @@ class Cluster:
 
 
 class Collection:
-    def __init__(self, name: str, api_key: str = None):
-        self.name = name
+    def __init__(self, id: str, api_key: str = None):
+        self.id = id
         self.api_key = api_key or oneai.api_key
 
     def get_clusters(
@@ -156,7 +156,7 @@ class Collection:
         item_metadata: str = None,
     ) -> Generator[Cluster, None, None]:
         yield from get_clustering_paginated(
-            f"{self.name}/clusters",
+            f"{self.id}/clusters",
             self.api_key,
             'clusters',
             self,
@@ -175,7 +175,7 @@ class Collection:
             "similarity-threshold": threshold,
         }
 
-        url = f"{self.name}/clusters/find?{urllib.parse.urlencode(params)}"
+        url = f"{self.id}/clusters/find?{urllib.parse.urlencode(params)}"
         return [
             Cluster.from_dict(self, cluster)
             for cluster in get_clustering(url, self.api_key)
@@ -184,7 +184,7 @@ class Collection:
     def add_items(
         self, items: List[PipelineInput[str]], force_new_clusters: bool = False
     ):
-        url = f"{self.name}/items"
+        url = f"{self.id}/items"
         data = [
             {
                 "text": item.text if isinstance(item, Input) else item,
@@ -198,4 +198,4 @@ class Collection:
         print(post_clustering(url, data, self.api_key))
 
     def __repr__(self) -> str:
-        return f"oneai.Collection({self.name})"
+        return f"oneai.Collection({self.id})"
