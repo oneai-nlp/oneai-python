@@ -60,14 +60,14 @@ def get_clustering_paginated(
     while results and ((not limit) or counter < limit):
         response = get_clustering(f"{path_query}&page={page}", api_key)
         results = [
-            from_dict(parent, result)
+            (from_dict(parent, result) if parent else from_dict(result))
             for result in response[result_key]
         ]
         yield from results
         counter += len(results)
         page += 1
 
-        if page >= response['total_pages']:
+        if page >= response.get('total_pages', 0):
             break
 
 

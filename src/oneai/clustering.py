@@ -20,6 +20,7 @@ def get_collections(
         "",
         api_key,
         'collections',
+        None,
         from_dict=Collection,
         limit=limit,
     )
