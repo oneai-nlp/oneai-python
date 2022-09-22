@@ -2,9 +2,10 @@ from dataclasses import dataclass, field
 from datetime import datetime
 import json
 import urllib.parse
-from typing_extensions import Generator, List, Literal, TypedDict, Union
+from typing import Generator, List, Union
+from typing_extensions import Literal
 import oneai
-from oneai.api import get_clustering, post_clustering
+from oneai.api import get_clustering, get_clustering_paginated, post_clustering
 from oneai.classes import Input, PipelineInput
 
 API_DATE_FORMAT = "%Y-%m-%d"
@@ -12,20 +13,16 @@ API_DATE_FORMAT = "%Y-%m-%d"
 
 def get_collections(
     api_key: str = None,
+    *,
     limit: int = None,
 ) -> Generator["Collection", None, None]:
-    page = 0
-    collections = [None]
-    while collections:
-        params = {"page": page}
-        if limit:
-            params["limit"] = limit
-        collections = [
-            Collection(name)
-            for name in get_clustering(f"?{urllib.parse.urlencode(params)}", api_key)
-        ]
-        yield from collections
-        page += 1
+    yield from get_clustering_paginated(
+        "",
+        api_key,
+        'collections',
+        from_dict=Collection,
+        limit=limit,
+    )
 
 
 @dataclass
@@ -59,17 +56,21 @@ class Phrase:
     cluster: "Cluster" = field(repr=False)
     collection: "Collection" = field(repr=False)
 
-    def get_items(self, item_metadata: str = None) -> List[Item]:
-        params = {
-            "item-metadata": item_metadata,
-        }
-        url = f"{self.collection.name}/phrases/{self.id}/items" + (
-            f"?{urllib.parse.urlencode(params)}" if item_metadata else ""
+    def get_items(
+        self,
+        *,
+        limit: int = None,
+        item_metadata: str = None,
+    ) -> List[Item]:
+        yield from get_clustering_paginated(
+            f"{self.collection.name}/phrases/{self.id}/items",
+            self.collection.api_key,
+            'items',
+            self,
+            Item.from_dict,
+            limit=limit,
+            item_metadata=item_metadata,
         )
-        return [
-            Item.from_dict(self, item)
-            for item in get_clustering(url, self.collection.api_key)["items"]
-        ]
 
     @classmethod
     def from_dict(cls, cluster: "Cluster", object: dict) -> "Phrase":
@@ -101,45 +102,19 @@ class Cluster:
         date_format: str = API_DATE_FORMAT,
         item_metadata: str = None,
     ) -> Generator[Phrase, None, None]:
-        if from_date:
-            if isinstance(from_date, str):
-                from_date = datetime.strptime(from_date, date_format)
-            from_date = from_date.strftime(API_DATE_FORMAT)
-
-        if to_date:
-            if isinstance(to_date, str):
-                to_date = datetime.strptime(to_date, date_format)
-            to_date = to_date.strftime(API_DATE_FORMAT)
-
-        page = 0
-        counter = 0
-        phrases = [None]
-
-        while phrases and ((not limit) or counter < limit):
-            params = {
-                "sort": sort,
-                "limit": limit,
-                "from-date": from_date,
-                "to-date": to_date,
-                "include-phrases": False,
-                "item-metadata": item_metadata,
-                "page": page,
-            }
-            url = f"{self.collection.name}/clusters/{self.id}/phrases?" + (
-                f"{urllib.parse.urlencode({k: v for k, v in params.items() if v})}"
-            )
-
-            response = get_clustering(url, self.collection.api_key)
-            phrases = [
-                Phrase.from_dict(self, phrase)
-                for phrase in response["phrases"]
-            ]
-            yield from phrases
-            counter += len(phrases)
-            page += 1
-
-            if page >= response['total_pages']:
-                break
+        yield from get_clustering_paginated(
+            f"{self.collection.name}/clusters/{self.id}/phrases",
+            self.collection.api_key,
+            'phrases',
+            self,
+            Phrase.from_dict,
+            sort,
+            limit,
+            from_date,
+            to_date,
+            date_format,
+            item_metadata,
+        )
 
     def add_items(self, items: List[PipelineInput[str]]):
         url = f"{self.collection.name}/items"
@@ -179,42 +154,19 @@ class Collection:
         date_format: str = API_DATE_FORMAT,
         item_metadata: str = None,
     ) -> Generator[Cluster, None, None]:
-        if from_date:
-            if isinstance(from_date, str):
-                from_date = datetime.strptime(from_date, date_format)
-            from_date = from_date.strftime(API_DATE_FORMAT)
-
-        if to_date:
-            if isinstance(to_date, str):
-                to_date = datetime.strptime(to_date, date_format)
-            to_date = to_date.strftime(API_DATE_FORMAT)
-
-        page = 0
-        counter = 0
-        clusters = [None]
-
-        while clusters and ((not limit) or counter < limit):
-            params = {
-                "sort": sort,
-                "limit": limit,
-                "from-date": from_date,
-                "to-date": to_date,
-                "include-phrases": False,
-                "item-metadata": item_metadata,
-                "page": page,
-            }
-            url = f"{self.name}/clusters?{urllib.parse.urlencode({k: v for k, v in params.items() if v})}"
-
-            response = get_clustering(url, self.api_key)
-            clusters = [
-                Cluster.from_dict(self, cluster)
-                for cluster in response["clusters"]
-            ]
-            yield from clusters
-            counter += len(clusters)
-            page += 1
-            if page >= response["total_pages"]:
-                break
+        yield from get_clustering_paginated(
+            f"{self.name}/clusters",
+            self.api_key,
+            'clusters',
+            self,
+            Cluster.from_dict,
+            sort,
+            limit,
+            from_date,
+            to_date,
+            date_format,
+            item_metadata,
+        )
 
     def find(self, query: str, threshold: float = 0.5) -> List[Cluster]:
         params = {
