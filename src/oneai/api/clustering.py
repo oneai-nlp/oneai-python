@@ -31,7 +31,7 @@ def build_query_params(
 
     params = {
         "sort": sort,
-        "limit": limit,
+        "limit": limit if limit else 20,
         "from-date": from_date,
         "to-date": to_date,
         "include-phrases": False,

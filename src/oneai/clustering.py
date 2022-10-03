@@ -90,6 +90,7 @@ class Cluster:
     id: int
     text: str
     phrase_count: int
+    item_count: int
     metadata: str
     collection: "Collection" = field(repr=False)
 
@@ -135,6 +136,7 @@ class Cluster:
             id=int(object["cluster_id"]),
             text=object["cluster_phrase"],
             phrase_count=object["phrases_count"],
+            item_count=object["items_count"],
             metadata=object["metadata"],
             collection=collection,
         )
