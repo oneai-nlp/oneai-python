@@ -674,28 +674,7 @@ class Subheading(Skill):
     """
 
 
-@skillclass(api_name="transcribe", is_generator=True, output_attr="transcription")
-class TranscribeAudio(Skill):
-    """
-    Transcribes audio files
-
-    ## Output
-
-    Speech-to-text transcription of the audio data
-
-    ## Example
-
-    >>> input = oneai.File('./my_audio_file.wav')
-    >>> pipeline = oneai.Pipeline(steps=[
-    ...     oneai.skills.TranscribeAudio()
-    ... ])
-    >>> output = pipeline.run(input)
-    >>> str(output.transcription.text)[:20] + ' ...'
-    oneai.Conversation([ ...
-    """
-
-
-@skillclass(api_name="transcribe", is_generator=True, output_attr="transcription")
+@skillclass(api_name="transcribe", is_generator=True, output_attr="transcription", output_attr1="words")
 @dataclass
 class Transcribe(Skill):
     """
@@ -727,6 +706,7 @@ class OutputAttrs:
     html_text: "Output[str]" = None
     transcription: "Output[List[Utterance]]" = None
     anonymized: "Output" = None
+    words: Labels = None
     emotions: Labels = None
     names: Labels = None
     numbers: Labels = None
