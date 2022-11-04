@@ -218,7 +218,7 @@ class Collection:
         data = [
             {
                 "text": item.text if isinstance(item, Input) else item,
-                "item_metadata": json.dumps(item.metadata)
+                "item_metadata": item.metadata
                 if isinstance(item, Input) and item.metadata
                 else {},
                 "force-new-cluster": force_new_clusters,
