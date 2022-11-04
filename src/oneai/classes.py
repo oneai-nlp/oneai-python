@@ -167,7 +167,7 @@ class Input(Generic[TextContent]):
         self,
         text: TextContent,
         *,
-        type: str,
+        type: str = None,
         content_type: str = None,
         encoding: str = None,
         metadata: Dict[str, any] = None,
