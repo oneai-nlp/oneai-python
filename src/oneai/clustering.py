@@ -19,7 +19,7 @@ def get_collections(
     yield from get_clustering_paginated(
         "",
         api_key,
-        'collections',
+        "collections",
         None,
         from_dict=Collection,
         limit=limit,
@@ -34,6 +34,7 @@ class Item:
     distance: float
     phrase: "Phrase" = field(repr=False)
     cluster: "Cluster" = field(repr=False)
+    metadata: dict = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, phrase: "Phrase", object: dict) -> "Item":
@@ -46,6 +47,7 @@ class Item:
             distance=object["distance_to_phrase"],
             phrase=phrase,
             cluster=phrase.cluster,
+            metadata=object["metadata"],
         )
 
 
@@ -56,6 +58,7 @@ class Phrase:
     item_count: int
     cluster: "Cluster" = field(repr=False)
     collection: "Collection" = field(repr=False)
+    metadata: dict = field(default_factory=dict)
 
     def get_items(
         self,
@@ -66,7 +69,7 @@ class Phrase:
         yield from get_clustering_paginated(
             f"{self.collection.id}/phrases/{self.id}/items",
             self.collection.api_key,
-            'items',
+            "items",
             self,
             Item.from_dict,
             limit=limit,
@@ -82,6 +85,7 @@ class Phrase:
             item_count=object["items_count"],
             cluster=cluster,
             collection=cluster.collection,
+            metadata=object["metadata"],
         )
 
 
@@ -91,8 +95,8 @@ class Cluster:
     text: str
     phrase_count: int
     item_count: int
-    metadata: str
     collection: "Collection" = field(repr=False)
+    metadata: dict = field(default_factory=dict)
 
     def get_phrases(
         self,
@@ -107,9 +111,33 @@ class Cluster:
         yield from get_clustering_paginated(
             f"{self.collection.id}/clusters/{self.id}/phrases",
             self.collection.api_key,
-            'phrases',
+            "phrases",
             self,
             Phrase.from_dict,
+            sort,
+            limit,
+            from_date,
+            to_date,
+            date_format,
+            item_metadata,
+        )
+
+    def get_items(
+        self,
+        *,
+        sort: Literal["ASC", "DESC"] = "ASC",
+        limit: int = None,
+        from_date: Union[datetime, str] = None,
+        to_date: Union[datetime, str] = None,
+        date_format: str = API_DATE_FORMAT,
+        item_metadata: str = None,
+    ) -> Generator[Phrase, None, None]:
+        yield from get_clustering_paginated(
+            f"{self.collection.id}/clusters/{self.id}/items",
+            self.collection.api_key,
+            "items",
+            self,
+            Item.from_dict,
             sort,
             limit,
             from_date,
@@ -123,7 +151,7 @@ class Cluster:
         data = [
             {
                 "text": item.text if isinstance(item, Input) else item,
-                "metadata": item.metadata if isinstance(item, Input) else None,
+                "item_metadata": item.metadata if isinstance(item, Input) else None,
                 "force-cluster-id": self.id,
             }
             for item in items
@@ -137,8 +165,8 @@ class Cluster:
             text=object["cluster_phrase"],
             phrase_count=object["phrases_count"],
             item_count=object["items_count"],
-            metadata=object["metadata"],
             collection=collection,
+            metadata=object["metadata"],
         )
 
 
@@ -160,7 +188,7 @@ class Collection:
         yield from get_clustering_paginated(
             f"{self.id}/clusters",
             self.api_key,
-            'clusters',
+            "clusters",
             self,
             Cluster.from_dict,
             sort,
@@ -190,9 +218,9 @@ class Collection:
         data = [
             {
                 "text": item.text if isinstance(item, Input) else item,
-                "metadata": json.dumps(item.metadata)
-                if isinstance(item, Input)
-                else None,
+                "item_metadata": json.dumps(item.metadata)
+                if isinstance(item, Input) and item.metadata
+                else {},
                 "force-new-cluster": force_new_clusters,
             }
             for item in items
