@@ -377,44 +377,6 @@ class HtmlAllText(Skill):
 
 
 @skillclass(
-    api_name="business-entities",
-    is_generator=True,
-    label_type="business-entity",
-    output_attr="labs",
-    output_attr1="business_entities",
-)
-class BusinessEntities(Skill):
-    """
-    ### 'Labs' Skill- this Skill is still in beta and is may produce incorrect results in some cases
-
-    deprecated- use `Pricing` instead.
-    Detects business entities (quantities, pricings) in the input
-
-    ## Output Attributes
-
-    `business_entities: list[Label]`
-        A list of `Label` objects, with detected business entities and their data
-
-    ## Example
-
-    >>> pipeline = oneai.Pipeline(steps=[
-    ...     oneai.skills.BusinessEntities()
-    ... ])
-    >>> output = pipeline.run('it costs 10 USD per barrel')
-    >>> output.business_entities
-    [oneai.Label(type=business-entity, name=pricing, data={'amount': 10.0, 'currency': 'USD', 'unit': 'barrel'}, span=[9, 26], value=10 USD per barrel)]
-    """
-
-    def __new__(cls, *args, **kwargs):
-        warn(
-            "BusinessEntities Skill is deprecated- use `Pricing` instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return super().__new__(cls, *args, **kwargs)
-
-
-@skillclass(
     api_name="action-items", label_type="action-item", output_attr="action_items"
 )
 class ActionItems(Skill):
@@ -496,7 +458,7 @@ class Pricing(Skill):
     ...     oneai.skills.Pricing()
     ... ])
     >>> output = pipeline.run('it costs 10 USD per barrel')
-    >>> output.pricing
+    >>> output.labs.pricing
     [oneai.Label(name=pricing, data={'amount': 10.0, 'currency': 'USD', 'unit': 'barrel'}, span=[9, 26], value=10 USD per barrel)]
     """
 
