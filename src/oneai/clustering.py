@@ -214,17 +214,19 @@ class Collection:
     def add_items(
         self, items: List[PipelineInput[str]], force_new_clusters: bool = False
     ):
-        url = f"{self.id}/items"
-        data = [
-            {
-                "text": item.text if isinstance(item, Input) else item,
-                "item_metadata": item.metadata
-                if isinstance(item, Input) and item.metadata
-                else {},
+        def build_item(input: PipelineInput[str]):
+            result = {
+                "text": input.text if isinstance(input, Input) else str(input),
                 "force-new-cluster": force_new_clusters,
             }
-            for item in items
-        ]
+            if hasattr(input, "metadata") and input.metadata:
+                result["item_metadata"] = input.metadata
+            if hasattr(input, "timestamp") and input.timestamp:
+                result["item_metadata"] = input.timestamp
+            return result
+        
+        url = f"{self.id}/items"
+        data = [build_item(item) for item in items]
         print(post_clustering(url, data, self.api_key))
 
     def __repr__(self) -> str:

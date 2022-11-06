@@ -160,7 +160,9 @@ class Input(Generic[TextContent]):
     `encoding: str`
         The encoding of the input.
     `metadata: dict`
-        Optional metadata to be associated with the input in clustering collections. Not implemented by default.
+        Optional metadata to be associated with the input in clustering collections.
+    `timestamp: int`
+        Optional timestamp (unix time) to be associated with the input in clustering collections.
     """
 
     def __init__(
@@ -171,12 +173,14 @@ class Input(Generic[TextContent]):
         content_type: str = None,
         encoding: str = None,
         metadata: Dict[str, any] = None,
+        timestamp: int = None,
     ):
         self.text: TextContent = text
         self.type = type
         self.content_type = content_type
         self.encoding = encoding
         self.metadata = metadata
+        self.timestamp = timestamp
 
     @classmethod
     def wrap(
