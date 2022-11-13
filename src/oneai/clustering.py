@@ -222,7 +222,7 @@ class Collection:
             if hasattr(input, "metadata") and input.metadata:
                 result["item_metadata"] = input.metadata
             if hasattr(input, "timestamp") and input.timestamp:
-                result["item_metadata"] = input.timestamp
+                result["timestamp"] = input.timestamp
             return result
         
         url = f"{self.id}/items"
