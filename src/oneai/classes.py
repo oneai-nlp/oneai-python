@@ -13,6 +13,7 @@ from typing import (
     Generic,
     Iterable,
     List,
+    Optional,
     TextIO,
     Tuple,
     Type,
@@ -32,13 +33,19 @@ if TYPE_CHECKING:
 class Utterance:
     speaker: str
     utterance: str
+    timestamp: Optional[timedelta] = None
 
     @classmethod
     def from_dict(cls, u: Dict[str, str]) -> "Utterance":
-        return cls(u["speaker"], u["utterance"])
+        return cls(
+            u["speaker"],
+            u["utterance"],
+            timestamp_to_timedelta(u["timestamp"]),
+        )
 
     def __repr__(self) -> str:
-        return f"\n\t{self.speaker}: {self.utterance}"
+        return f"\n\t{self.timestamp} {self.speaker}: {self.utterance}" if self.timestamp else \
+            f"\n\t{self.speaker}: {self.utterance}"
 
 
 TextContent = TypeVar("TextContent", bound=Union[str, List["Utterance"]])

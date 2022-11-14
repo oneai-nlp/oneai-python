@@ -24,7 +24,7 @@ def build_output(
         if not text:
             return ""
         if len(text) > 1 or (text and "speaker" in text[0]):
-            return [Utterance(u["speaker"], u["utterance"]) for u in text]
+            return [Utterance.from_dict(u) for u in text]
         return text[0]["utterance"]
 
     def split_pipeline(skills: List[Skill], i: int):
