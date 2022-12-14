@@ -27,7 +27,7 @@ def build_request(input: Input, steps: List[Skill], include_text: True):
             request["content_type"] = input.content_type
         if hasattr(input, "encoding") and input.encoding:
             request["encoding"] = input.encoding
-    return json.dumps(request, default=lambda x: x.__dict__)
+    return json.dumps(request, default=lambda x: {k:v for k, v in x.__dict__.items() if v is not None})
 
 
 async def post_pipeline(

@@ -40,7 +40,7 @@ class Utterance:
         return cls(
             u["speaker"],
             u["utterance"],
-            timestamp_to_timedelta(u["timestamp"]),
+            timestamp_to_timedelta(u.get("timestamp", None)),
         )
 
     def __repr__(self) -> str:
