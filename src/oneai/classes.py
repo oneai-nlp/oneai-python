@@ -1,4 +1,5 @@
-from datetime import datetime, timedelta
+from datetime import timedelta
+from dateutil import parser as dateutil
 import io
 import json
 import os
@@ -388,7 +389,7 @@ class File(Input):
 def timestamp_to_timedelta(timestamp: str) -> timedelta:
     if not timestamp:
         return None
-    dt = datetime.strptime(timestamp, "%H:%M:%S.%f")
+    dt = dateutil.parse(timestamp)
     return timedelta(
         hours=dt.hour, minutes=dt.minute, seconds=dt.second, microseconds=dt.microsecond
     )
