@@ -82,20 +82,19 @@ def parse_conversation(text: str, strict=False) -> List[Utterance]:
         if currentLineInfo["timestamp"]:
             previousObject["timestamp"] = currentLineInfo["timestamp"]
 
-        result.append(
-            Utterance(
-                speaker=previousObject["speaker"],
-                utterance=previousObject["text"],
-                timestamp=previousObject.get("timestamp", None),
-            )
-        )
+        result.append(previousObject)
         waitForTextLine = not currentLineInfo["hasText"]
-
-        waitForTextLine = not bool(currentLineInfo["text"])
     if previousObject and _isEmptyOrWhitespace(previousObject["text"]):
         result.pop()
 
-    return result
+    return [
+        Utterance(
+            speaker=u["speaker"],
+            utterance=u["text"],
+            timestamp=u.get("timestamp", None),
+        )
+        for u in result
+    ]
 
 
 def _isEmptyOrWhitespace(text):
@@ -136,9 +135,9 @@ def _parseSpeakerLine(text: str):
     ################################################
     # check if speaker only, in all caps - WEAK PATTERN
     match = (
-        re.match(r"^[ A-Za-z_-]{3,20}$", text)
+        re.search(r"^[ A-Za-z_-]{3,20}$", text)
         if timestampFound
-        else re.match(r"^[ A-Z_-]{3,20}$", text)
+        else re.search(r"^[ A-Z_-]{3,20}$", text)
     )
     if match is not None:
         value["weak"] = not timestampFound
@@ -153,7 +152,7 @@ def _parseSpeakerLine(text: str):
     if timestampFound:
         colonPos = matchArea.find(":")
 
-    if colonPos != -1 and not timestampFound:
+    if colonPos == -1 and not timestampFound:
         return None  # failed to find signature
 
     if colonPos == -1:  # only timestamp
@@ -190,7 +189,7 @@ def _comp(a, b):
 
 def get_timestamp(text, value):
     # match preceding timestamp "[3:07 PM, 3/15/2022] Adam Hanft: Helps"
-    match = re.match(r"(^\s*\[?\s*)([0-9:,\sPAM/]{4,23})(\]?)\s*", text)
+    match = re.search(r"(^\s*\[?\s*)([0-9:,\sPAM/]{4,23})(\]?)\s*", text)
     if match is not None and (match[3] or match[0].find("/") != -1):
         value["preTime"] = True
         value["weak"] = False
@@ -201,7 +200,7 @@ def get_timestamp(text, value):
         return True
 
     #                  optinal      [        timestamp                 ]  \s*
-    match = re.match(r"(^\s*)?(\[?)(\d{1,2}:\d{1,2})(:\d{1,2})?(\.\d*)?(\]?\s*)", text)
+    match = re.search(r"(^\s*)?(\[?)(\d{1,2}:\d{1,2})(:\d{1,2})?(\.\d*)?(\]?\s*)", text)
     if match is not None:
         value["weak"] = False
         value["time"] = True
