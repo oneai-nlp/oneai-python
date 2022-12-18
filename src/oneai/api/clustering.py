@@ -11,6 +11,7 @@ API_DATE_FORMAT = "%Y-%m-%d"
 
 ENDPOINT = "clustering/v1/collections"
 
+
 def build_query_params(
     sort: Literal["ASC", "DESC"] = None,
     limit: int = None,
@@ -39,6 +40,7 @@ def build_query_params(
     }
     return urllib.parse.urlencode({k: v for k, v in params.items() if v})
 
+
 def get_clustering_paginated(
     path: str,
     api_key: str,
@@ -51,7 +53,7 @@ def get_clustering_paginated(
     to_date: Union[datetime, str] = None,
     date_format: str = API_DATE_FORMAT,
     item_metadata: str = None,
-): 
+):
     path_query = f"{path}?{build_query_params(sort, limit, from_date, to_date, date_format, item_metadata)}"
     page = 0
     counter = 0
@@ -67,7 +69,7 @@ def get_clustering_paginated(
         counter += len(results)
         page += 1
 
-        if page >= response.get('total_pages', 0):
+        if page >= response.get("total_pages", 0):
             break
 
 

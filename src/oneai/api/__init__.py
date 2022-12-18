@@ -1,5 +1,9 @@
 from oneai.api.pipeline import post_pipeline
-from oneai.api.clustering import post_clustering, get_clustering, get_clustering_paginated
+from oneai.api.clustering import (
+    post_clustering,
+    get_clustering,
+    get_clustering_paginated,
+)
 
 
 def get_or_create_uuid() -> str:

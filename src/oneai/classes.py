@@ -44,8 +44,11 @@ class Utterance:
         )
 
     def __repr__(self) -> str:
-        return f"\n\t{self.timestamp} {self.speaker}: {self.utterance}" if self.timestamp else \
-            f"\n\t{self.speaker}: {self.utterance}"
+        return (
+            f"\n\t{self.timestamp} {self.speaker}: {self.utterance}"
+            if self.timestamp
+            else f"\n\t{self.speaker}: {self.utterance}"
+        )
 
 
 TextContent = TypeVar("TextContent", bound=Union[str, List["Utterance"]])

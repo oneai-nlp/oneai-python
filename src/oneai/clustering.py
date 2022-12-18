@@ -224,7 +224,7 @@ class Collection:
             if hasattr(input, "timestamp") and input.timestamp:
                 result["timestamp"] = input.timestamp
             return result
-        
+
         url = f"{self.id}/items"
         data = [build_item(item) for item in items]
         print(post_clustering(url, data, self.api_key))

@@ -636,7 +636,12 @@ class Subheading(Skill):
     """
 
 
-@skillclass(api_name="transcribe", is_generator=True, output_attr="transcription", output_attr1="words")
+@skillclass(
+    api_name="transcribe",
+    is_generator=True,
+    output_attr="transcription",
+    output_attr1="words",
+)
 @dataclass
 class Transcribe(Skill):
     """

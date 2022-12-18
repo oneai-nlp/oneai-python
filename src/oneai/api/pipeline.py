@@ -1,3 +1,4 @@
+from datetime import timedelta
 import json
 import urllib.parse
 from typing import Awaitable, List
@@ -14,6 +15,11 @@ endpoint_async_tasks = "api/v0/pipeline/async/tasks"
 
 
 def build_request(input: Input, steps: List[Skill], include_text: True):
+    def json_default(obj):
+        if isinstance(obj, timedelta):
+            return str(obj)
+        return {k: v for k, v in obj.__dict__.items() if v is not None}
+
     request = {
         "steps": [skill.asdict() for skill in steps],
         "output_type": "json",
@@ -27,7 +33,7 @@ def build_request(input: Input, steps: List[Skill], include_text: True):
             request["content_type"] = input.content_type
         if hasattr(input, "encoding") and input.encoding:
             request["encoding"] = input.encoding
-    return json.dumps(request, default=lambda x: {k:v for k, v in x.__dict__.items() if v is not None})
+    return json.dumps(request, default=json_default)
 
 
 async def post_pipeline(
