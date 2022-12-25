@@ -26,11 +26,13 @@ STATUS_FAILED = "FAILED"
 
 # open a client session and send a request
 async def process_single_input(
-    input: PipelineInput, steps: List[Skill], api_key: str
+    input: PipelineInput, steps: List[Skill], api_key: str, multilingual: bool = False
 ) -> Awaitable[Output]:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        return await _run_internal(session, Input.wrap(input), steps, api_key)
+        return await _run_internal(
+            session, Input.wrap(input), steps, api_key, multilingual
+        )
 
 
 async def process_file_async(
@@ -38,15 +40,16 @@ async def process_file_async(
     steps: List[Skill],
     api_key: str,
     interval: int,
+    multilingual: bool = False,
 ) -> Awaitable[Output]:
     input = Input.wrap(input, False)
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         name = input.text.name
         logger.debug(f"Uploading file '{name}'")
-        task_id = (await post_pipeline_async_file(session, input, steps, api_key))[
-            "task_id"
-        ]
+        task_id = (
+            await post_pipeline_async_file(session, input, steps, api_key, multilingual)
+        )["task_id"]
         logger.debug(f"Upload of file '{name}' complete\n")
 
         status = ""
@@ -73,6 +76,7 @@ async def process_batch(
     on_output: Callable[[Input, Output], None],
     on_error: Callable[[Input, Exception], None],
     api_key: str,
+    multilingual: bool = False,
 ):
     iterator = iter(batch)
     successful = 0  # total successful responses
@@ -128,7 +132,9 @@ async def process_batch(
         input = next_input()
         while input:
             try:
-                output = await _run_internal(session, input, steps, api_key)
+                output = await _run_internal(
+                    session, input, steps, api_key, multilingual
+                )
                 on_output(input, output)
                 successful += 1
             except Exception as e:  # todo: break loop for some error types
@@ -169,6 +175,7 @@ async def _run_internal(
     input: Input,
     skills: List[Skill],
     api_key: str,
+    multilingual: bool,
 ) -> Awaitable[Output]:
     if not skills:  # no skills
         return Output(input.text)
@@ -176,4 +183,4 @@ async def _run_internal(
     if input.content_type == "text/uri-list":
         input = await fetch_url(session, input.text)
 
-    return await post_pipeline(session, input, skills, api_key)
+    return await post_pipeline(session, input, skills, api_key, multilingual)

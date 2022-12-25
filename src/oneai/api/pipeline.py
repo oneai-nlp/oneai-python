@@ -14,7 +14,9 @@ endpoint_async_file = "api/v0/pipeline/async/file"
 endpoint_async_tasks = "api/v0/pipeline/async/tasks"
 
 
-def build_request(input: Input, steps: List[Skill], include_text: True):
+def build_request(
+    input: Input, steps: List[Skill], multilingual: bool, include_text: True
+):
     def json_default(obj):
         if isinstance(obj, timedelta):
             return str(obj)
@@ -23,6 +25,7 @@ def build_request(input: Input, steps: List[Skill], include_text: True):
     request = {
         "steps": [skill.asdict() for skill in steps],
         "output_type": "json",
+        "multilingual": multilingual,
     }
     if include_text:
         request["text"] = input.text
@@ -41,10 +44,11 @@ async def post_pipeline(
     input: Input,
     steps: List[Skill],
     api_key: str,
+    multilingual: bool,
 ) -> Awaitable[Output]:
     validate_api_key(api_key)
 
-    request = build_request(input, steps, True)
+    request = build_request(input, steps, multilingual, True)
     url = f"{oneai.URL}/{endpoint_default}"
     headers = {
         "api-key": api_key,
@@ -64,10 +68,11 @@ async def post_pipeline_async_file(
     input: Input,
     steps: List[Skill],
     api_key: str,
+    multilingual: bool,
 ) -> Awaitable[str]:
     validate_api_key(api_key)
 
-    request = build_request(input, steps, False)
+    request = build_request(input, steps, multilingual, False)
     url = f"{oneai.URL}/{endpoint_async_file}?pipeline=" + urllib.parse.quote(request)
     headers = {
         "api-key": api_key,

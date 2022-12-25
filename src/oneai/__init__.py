@@ -1,4 +1,4 @@
-__version__ = "0.7.3"
+__version__ = "0.8.0"
 __package__ = "oneai"
 
 from typing_extensions import Final
@@ -16,6 +16,11 @@ Base URL for the pipeline API. Only change if you know what you're doing.
 api_key = None
 """
 Default api key to use. You can use different keys for different pipelines by setting the `Pipeline.api_key` attribute or passing an `api_key` parameter to `Pipeline.run` calls.
+"""
+
+multilingual = False
+"""
+Whether to allow multilingual inputs by default. You can use different values for different pipelines by setting the `Pipeline.multilingual` attribute or passing a `multilingual` parameter to `Pipeline.run` calls.
 """
 
 MAX_CONCURRENT_REQUESTS: Final[int] = 2

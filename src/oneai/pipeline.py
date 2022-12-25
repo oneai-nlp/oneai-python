@@ -20,6 +20,8 @@ class Pipeline:
         A list of Language Skills to process the input text. The order of the skills in the list determines their input.
     `api_key: str, optional`
         An API key to be used in this pipelines `run` calls. If not provided, the global `oneai.api_key` is used.
+    `multilingual: bool, optional`
+        Whether the pipeline should be allowed to process multilingual input.
 
     ## Methods
 
@@ -55,12 +57,18 @@ class Pipeline:
     [oneai.Label(type=entity, span=[0, 10], name=entity1), ...] # entities from the summary
     """
 
-    def __init__(self, steps: List[Skill], api_key: str = None) -> None:
+    def __init__(
+        self, steps: List[Skill], api_key: str = None, multilingual: bool = False
+    ) -> None:
         self.steps = tuple(steps)  # todo: validate (based on input_type)
         self.api_key = api_key
+        self.multilingual = multilingual
 
     def run(
-        self, input: PipelineInput[TextContent], api_key: str = None
+        self,
+        input: PipelineInput[TextContent],
+        api_key: str = None,
+        multilingual: bool = False,
     ) -> Output[TextContent]:
         """
         Runs the pipeline on the input text.
@@ -87,11 +95,16 @@ class Pipeline:
                 input,
                 self.steps,
                 api_key or self.api_key or oneai.api_key,
+                multilingual or self.multilingual or oneai.multilingual,
             )
         )
 
     async def run_async(
-        self, input: PipelineInput[TextContent], api_key: str = None, interval: int = 1
+        self,
+        input: PipelineInput[TextContent],
+        api_key: str = None,
+        interval: int = 1,
+        multilingual: bool = False,
     ) -> Awaitable[Output[TextContent]]:
         """
         Runs the pipeline on the input text asynchronously.
@@ -119,6 +132,7 @@ class Pipeline:
                 self.steps,
                 api_key or self.api_key or oneai.api_key,
                 interval,
+                multilingual or self.multilingual or oneai.multilingual,
             )
             if isinstance(input, io.IOBase)
             or (isinstance(input, Input) and isinstance(input.text, io.IOBase))
@@ -126,6 +140,7 @@ class Pipeline:
                 input,
                 self.steps,
                 api_key or self.api_key or oneai.api_key,
+                multilingual or self.multilingual or oneai.multilingual,
             )
         )
 
@@ -137,6 +152,7 @@ class Pipeline:
             [PipelineInput[TextContent], Output[TextContent]], None
         ] = None,
         on_error: Callable[[PipelineInput[TextContent], Exception], None] = None,
+        multilingual: bool = False,
     ) -> Dict[PipelineInput[TextContent], Output[TextContent]]:
         """
         Runs the pipeline on a batch of input texts.
@@ -163,7 +179,7 @@ class Pipeline:
         `ServerError` if an internal server error occured.
         """
         return _async_run_nested(
-            self.run_batch_async(batch, api_key, on_output, on_error)
+            self.run_batch_async(batch, api_key, on_output, on_error, multilingual)
         )
 
     async def run_batch_async(
@@ -174,6 +190,7 @@ class Pipeline:
             [PipelineInput[TextContent], Output[TextContent]], None
         ] = None,
         on_error: Callable[[PipelineInput[TextContent], Exception], None] = None,
+        multilingual: bool = False,
     ) -> Awaitable[Dict[PipelineInput, Output]]:
         """
         Runs the pipeline on a batch of input texts asynchronously.
@@ -206,6 +223,7 @@ class Pipeline:
             on_output if on_output else outputs.__setitem__,
             on_error if on_error else outputs.__setitem__,
             api_key=api_key or self.api_key or oneai.api_key,
+            multilingual=multilingual or self.multilingual or oneai.multilingual,
         )
         return outputs
 
