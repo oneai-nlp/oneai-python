@@ -575,6 +575,30 @@ class SalesInsights(Skill):
 
 
 @skillclass(
+    api_name="service-email-insights",
+    label_type="service-insights",
+    output_attr="service_insights",
+)
+class ServiceInsights(Skill):
+    """
+    Finds spans in the text with Service Insights.
+
+    ## Output Attributes
+
+    `service_insights: list[Label]`
+        A list of `Label` objects, with detected service insights
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.ServiceInsights()
+    ... ])
+    >>> output = pipeline.run('...')
+    >>> output.service_insights
+    """
+
+
+@skillclass(
     api_name="detect-language", label_type="detect-language", output_attr="language"
 )
 class DetectLanguage(Skill):
@@ -666,6 +690,26 @@ class Transcribe(Skill):
     timestamp_per_word: bool = False
 
 
+@skillclass(api_name="clustering")
+@dataclass
+class Clustering(Skill):
+    """
+    Automatically organizes various skill labels in clusters for later analytics
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Sentiments(),
+    ...     oneai.skills.Clustering(),
+    ... ])
+    >>> pipeline.run(input)
+    """
+
+    collection: str = ""
+    input_skill: str = ""
+    item_metadata: dict = ""
+
+
 class OutputAttrs:
     summary: "Output[str]" = None
     proofread: "Output[List[Utterance]]" = None
@@ -682,6 +726,7 @@ class OutputAttrs:
     sentiments: Labels = None
     topics: Labels = None
     sales_insights: Labels = None
+    service_insights: Labels = None
     action_items: Labels = None
     pricing: Labels = None
     replacements: Labels = None
