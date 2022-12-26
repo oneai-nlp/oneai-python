@@ -49,7 +49,6 @@ async def post_pipeline(
     validate_api_key(api_key)
 
     request = build_request(input, steps, multilingual, True)
-    print(request)
     url = f"{oneai.URL}/{endpoint_default}"
     headers = {
         "api-key": api_key,
