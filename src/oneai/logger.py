@@ -7,8 +7,8 @@ class Formatter(logging.Formatter):
     def format(self, record):
         if record.levelno == logging.DEBUG:
             # if inside a jupyter notebook, use the jupyter magic to clear the line
-            if "IPython" in str(record.__dict__.get("exc_info")):
-                self._style._fmt = f"%{PREFIX} %(message)s"
+            if get_ipython().__class__.__name__ == "ZMQInteractiveShell":
+                self._style._fmt = f"{PREFIX} %(message)s\r"
             else:
                 self._style._fmt = f"\033[K{PREFIX} %(message)s\033[F"
         if record.levelno == logging.DEBUG + 1:
