@@ -1,8 +1,9 @@
 from dataclasses import dataclass
 from typing import List
+from typing_extensions import Literal
 from warnings import warn
 
-from oneai.classes import Document, Labels, Skill, Utterance, skillclass, Output
+from oneai.classes import Labels, Skill, Utterance, skillclass, Output
 
 
 @skillclass(
@@ -688,6 +689,7 @@ class Transcribe(Skill):
 
     speaker_detection: bool = True
     timestamp_per_word: bool = False
+    engine: Literal["default", "whisper"] = "default"
 
 
 @skillclass(api_name="clustering")
