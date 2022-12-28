@@ -6,7 +6,11 @@ PREFIX = "\33[34m●\33[36m▲\33[35m▮\33[0m"
 class Formatter(logging.Formatter):
     def format(self, record):
         if record.levelno == logging.DEBUG:
-            self._style._fmt = f"\033[K{PREFIX} %(message)s\033[F"
+            # if inside a jupyter notebook, use the jupyter magic to clear the line
+            if "IPython" in str(record.__dict__.get("exc_info")):
+                self._style._fmt = f"%{PREFIX} %(message)s"
+            else:
+                self._style._fmt = f"\033[K{PREFIX} %(message)s\033[F"
         if record.levelno == logging.DEBUG + 1:
             self._style._fmt = ""
         elif record.levelno == logging.WARNING:
