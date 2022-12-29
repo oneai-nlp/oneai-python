@@ -2,12 +2,18 @@ import logging
 
 PREFIX = "\33[34m●\33[36m▲\33[35m▮\33[0m"
 
+notebook = False
+try:
+    if get_ipython().__class__.__name__ == "ZMQInteractiveShell":
+        notebook = True
+except NameError:
+    pass
+
 
 class Formatter(logging.Formatter):
     def format(self, record):
         if record.levelno == logging.DEBUG:
-            # if inside a jupyter notebook, use the jupyter magic to clear the line
-            if get_ipython().__class__.__name__ == "ZMQInteractiveShell":
+            if notebook:
                 self._style._fmt = f"{PREFIX} %(message)s\r"
             else:
                 self._style._fmt = f"\033[K{PREFIX} %(message)s\033[F"
