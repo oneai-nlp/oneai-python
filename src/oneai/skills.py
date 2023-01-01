@@ -709,7 +709,6 @@ class Clustering(Skill):
 
     collection: str = ""
     input_skill: str = ""
-    item_metadata: dict = ""
 
 
 class OutputAttrs:

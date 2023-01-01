@@ -22,6 +22,14 @@ def build_request(
             return str(obj)
         return {k: v for k, v in obj.__dict__.items() if v is not None}
 
+    # use input metadata for clustering
+    if hasattr(input, "metadata"):
+        for skill in steps:
+            if skill.api_name == "clustering":
+                skill._skill_params.append("user_metadata")
+                skill.user_metadata = input.metadata
+                break
+
     request = {
         "steps": [skill.asdict() for skill in steps],
         "output_type": "json",
