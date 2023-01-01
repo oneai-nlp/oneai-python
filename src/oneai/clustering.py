@@ -26,7 +26,7 @@ def get_collections(
 
 
 @dataclass
-class Item(Input[str]):  # should extend oneai.Input
+class Item(Input[str]):
     id: int
     created_at: datetime
     distance: float
