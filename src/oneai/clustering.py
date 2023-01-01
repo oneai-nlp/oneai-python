@@ -1,6 +1,5 @@
 from dataclasses import dataclass, field
 from datetime import datetime
-import json
 import urllib.parse
 from typing import Generator, List, Union
 from typing_extensions import Literal
@@ -27,14 +26,12 @@ def get_collections(
 
 
 @dataclass
-class Item:
+class Item(Input[str]):  # should extend oneai.Input
     id: int
-    text: str
     created_at: datetime
     distance: float
     phrase: "Phrase" = field(repr=False)
     cluster: "Cluster" = field(repr=False)
-    metadata: dict = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, phrase: "Phrase", object: dict) -> "Item":
@@ -48,6 +45,8 @@ class Item:
             phrase=phrase,
             cluster=phrase.cluster,
             metadata=object["metadata"],
+            type="article",
+            content_type="text/plain",
         )
 
 
