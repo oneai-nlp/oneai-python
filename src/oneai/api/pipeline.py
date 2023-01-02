@@ -20,6 +20,8 @@ def build_request(
     def json_default(obj):
         if isinstance(obj, timedelta):
             return str(obj)
+        if isinstance(obj, Skill):
+            return obj.api_name
         return {k: v for k, v in obj.__dict__.items() if v is not None}
 
     # use input metadata for clustering
