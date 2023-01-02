@@ -577,7 +577,7 @@ class SalesInsights(Skill):
 
 @skillclass(
     api_name="service-email-insights",
-    label_type="service-insights",
+    label_type="service-email-insights",
     output_attr="service_insights",
 )
 class ServiceInsights(Skill):
@@ -596,6 +596,30 @@ class ServiceInsights(Skill):
     ... ])
     >>> output = pipeline.run('...')
     >>> output.service_insights
+    """
+
+
+@skillclass(
+    api_name="service-email-insights",
+    label_type="service-email-insights",
+    output_attr="email_insights",
+)
+class EmailInsights(Skill):
+    """
+    Finds spans in the text with Email Insights.
+
+    ## Output Attributes
+
+    `email_insights: list[Label]`
+        A list of `Label` objects, with detected email insights
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.EmailInsights()
+    ... ])
+    >>> output = pipeline.run('...')
+    >>> output.email_insights
     """
 
 
