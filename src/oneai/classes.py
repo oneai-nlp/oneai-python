@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import datetime, timedelta
 from dateutil import parser as dateutil
 import io
 import json
@@ -172,8 +172,8 @@ class Input(Generic[TextContent]):
         The encoding of the input.
     `metadata: dict`
         Optional metadata to be associated with the input in clustering collections.
-    `timestamp: int`
-        Optional timestamp (unix time) to be associated with the input in clustering collections.
+    `datetime: datetime`
+        Optional datetime to be associated with the input in clustering collections.
     """
 
     def __init__(
@@ -184,14 +184,14 @@ class Input(Generic[TextContent]):
         content_type: str = None,
         encoding: str = None,
         metadata: Dict[str, any] = None,
-        timestamp: int = None,
+        datetime: datetime = None,
     ):
         self.text: TextContent = text
         self.type = type
         self.content_type = content_type
         self.encoding = encoding
         self.metadata = metadata
-        self.timestamp = timestamp
+        self.datetime = datetime
 
     @classmethod
     def wrap(

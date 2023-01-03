@@ -28,24 +28,24 @@ def get_collections(
 @dataclass
 class Item(Input[str]):
     id: int
-    created_at: datetime
+    text: str
+    datetime: datetime
     distance: float
     phrase: "Phrase" = field(repr=False)
     cluster: "Cluster" = field(repr=False)
+    metadata: dict = field(default_factory=dict)
 
     @classmethod
     def from_dict(cls, phrase: "Phrase", object: dict) -> "Item":
         item = cls(
             id=object["id"],
-            created_at=datetime.strptime(
-                object["create_date"], f"%Y-%m-%d %H:%M:%S.%f"
-            ),
+            text=object["original_text"],
+            datetime=datetime.strptime(object["create_date"], f"%Y-%m-%d %H:%M:%S.%f"),
             distance=object["distance_to_phrase"],
             phrase=phrase,
             cluster=phrase.cluster,
+            metadata={k: v[0]["value"] for k, v in object["metadata"].items()},
         )
-        item.text = object["original_text"]
-        item.metadata = object["metadata"]
         item.type = "article"
         item.content_type = "text/plain"
         return item
@@ -220,8 +220,8 @@ class Collection:
             }
             if hasattr(input, "metadata") and input.metadata:
                 result["item_metadata"] = input.metadata
-            if hasattr(input, "timestamp") and input.timestamp:
-                result["timestamp"] = input.timestamp
+            if hasattr(input, "datetime") and input.datetime:
+                result["timestamp"] = int(input.datetime.timestamp())
             return result
 
         url = f"{self.id}/items"
