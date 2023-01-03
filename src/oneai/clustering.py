@@ -35,19 +35,20 @@ class Item(Input[str]):
 
     @classmethod
     def from_dict(cls, phrase: "Phrase", object: dict) -> "Item":
-        return cls(
+        item = cls(
             id=object["id"],
-            text=object["original_text"],
             created_at=datetime.strptime(
                 object["create_date"], f"%Y-%m-%d %H:%M:%S.%f"
             ),
             distance=object["distance_to_phrase"],
             phrase=phrase,
             cluster=phrase.cluster,
-            metadata=object["metadata"],
-            type="article",
-            content_type="text/plain",
         )
+        item.text = object["original_text"]
+        item.metadata = object["metadata"]
+        item.type = "article"
+        item.content_type = "text/plain"
+        return item
 
 
 @dataclass
@@ -77,7 +78,6 @@ class Phrase:
 
     @classmethod
     def from_dict(cls, cluster: "Cluster", object: dict) -> "Phrase":
-        print(object)
         return cls(
             id=int(object["phrase_id"]),
             text=object.get("text", ""),
