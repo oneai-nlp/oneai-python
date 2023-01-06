@@ -465,6 +465,7 @@ class Pricing(Skill):
 
 
 @skillclass(api_name="names", label_type="name")
+@dataclass
 class Names(Skill):
     """
     Detects and classifies names in the input
@@ -483,6 +484,9 @@ class Names(Skill):
     >>> output.names
     [oneai.Label(type=entity, name=PERSON, span=[0, 3], value=Jim), oneai.Label(type=entity, name=ORG, span=[21, 31], value=Acme Corp.)]
     """
+
+    enrichment: bool = False
+    amount: Literal["more", "less", "normal"] = None
 
 
 @skillclass(api_name="numbers", label_type="number")
