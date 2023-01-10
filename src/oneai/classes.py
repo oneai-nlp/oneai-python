@@ -135,7 +135,7 @@ def skillclass(
             )
 
         def __init__(self, *args, **kwargs):
-            cls_init(self, *args, **kwargs)
+            cls_init(self, *args)
             Skill.__init__(
                 self,
                 api_name=api_name,
@@ -146,9 +146,12 @@ def skillclass(
             )
             self._skill_params = [
                 a
-                for a in self.__dict__
-                if not (a in Skill.__dict__ or a == "_skill_params")
+                for a in {**self.__dict__, **kwargs}
+                if a not in Skill.__dataclass_fields__
             ]
+            for param in self._skill_params:
+                if param in kwargs:
+                    self.__setattr__(param, kwargs[param])
 
         cls_init = cls.__init__
         cls.__init__ = __init__

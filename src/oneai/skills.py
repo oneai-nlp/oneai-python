@@ -554,6 +554,7 @@ class SplitByTopic(Skill):
     """
 
     std_ratio: float = 0
+    amount: Literal["more", "less", "normal"] = None
     use_discourse_parser: bool = False
 
 
