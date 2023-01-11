@@ -28,7 +28,7 @@ class TranscriptionEnhancer(Skill):
 
     ## Example
 
-    >>> conversation = oneai.Conversation([...])
+    >>> conversation = [oneai.Utterance(...), ...]
     >>> pipeline = oneai.Pipeline(steps=[
     ...     oneai.skills.TranscriptionEnhancer()
     ... ])
@@ -68,7 +68,7 @@ class Proofread(Skill):
 
     ## Example
 
-    >>> conversation = oneai.Conversation([...])
+    >>> conversation = [oneai.Utterance(...), ...]
     >>> pipeline = oneai.Pipeline(steps=[
     ...     oneai.skills.Proofread()
     ... ])

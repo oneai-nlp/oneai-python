@@ -20,8 +20,7 @@ pipeline = oneai.Pipeline(
 )
 
 # custom input class to hold csv row data
-class RowInput(oneai.Document):
-    # override oneai.Document for a simple str input
+class RowInput(oneai.Input):
     def __init__(self, row_data: str):
         # set the first column as input
         super().__init__(row_data[0])

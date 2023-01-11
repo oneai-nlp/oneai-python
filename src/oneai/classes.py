@@ -1,7 +1,6 @@
 from datetime import datetime, timedelta
 from dateutil import parser as dateutil
 import io
-import json
 import os
 from base64 import b64encode
 import validators
@@ -62,6 +61,7 @@ CONTENT_TYPES: Dict[str, Tuple[str, str]] = {
     ".srt": ("text/plain", "conversation"),
     ".wav": ("audio/wav", "conversation"),
     ".mp3": ("audio/mpeg", "conversation"),
+    ".mp4": ("audio/mpeg", "conversation"),
     ".html": ("text/plain", "article"),
     ".pdf": ("text/pdf", "article"),
 }
@@ -232,162 +232,6 @@ class Input(Generic[TextContent]):
                 return cls(text, type=input_type, content_type=content_type)
         else:
             raise ValueError(f"invalid content type {type(text)}")
-
-
-class Document(Input[str]):
-    """
-    Represents any text that doesn't have a structured format
-
-    ## Attributes
-
-    `text: str`
-        The text of the document.
-    """
-
-    def __init__(self, text: str):
-        super().__init__(text, type="article", content_type="text/plain")
-
-
-class Conversation(Input[List[Utterance]]):
-    """
-    Represents conversations.
-
-    ## Attributes
-
-    `text: List[Utterance]`
-        A list of `Utterance` objects, each has `speaker` and `utterance` fields.
-
-    ## Methods
-
-    `parse(text) -> Conversation`
-        A class method. Parse a string with a structued conversation format or a conversation JSON string into a `Conversation` instance.
-    """
-
-    def __init__(self, utterances: List[Utterance] = []):
-        super().__init__(
-            utterances, type="conversation", content_type="application/json"
-        )
-
-    @property
-    def utterances(self):
-        return self.text
-
-    @utterances.setter
-    def utterances(self, value: List[Utterance]):
-        self.text = value
-
-    def __getitem__(self, index: int) -> Utterance:
-        return self.utterances[index]
-
-    @classmethod
-    def parse(cls, text: str) -> "Conversation":
-        """
-        A class method. Parse a string with a structured conversation format or a conversation JSON string into a `Conversation` instance.
-
-        ## Parameters
-
-        `text: str`
-            The text to parse.
-
-        ## Returns
-
-        The `Conversation` instance produced from `text`.
-
-        ## Raises
-
-        `ValueError` if `text` is not in a valid conversation format.
-        """
-        try:  # try to parse as JSON
-            js = json.loads(text)
-            return cls([Utterance(**utterance) for utterance in js])
-        except json.JSONDecodeError:  # if not JSON, assume it's a structured conversation
-            from oneai.parsing import parse_conversation
-
-            return cls(parse_conversation(text))
-
-    def __repr__(self) -> str:
-        return f"oneai.Conversation{repr(self.utterances)}"
-
-
-class File(Input):
-    """
-    Deprecated. Pass file-like objects directly to `Pipeline.run`
-
-    Represents file inputs. Supported file extensions:
-    * .txt (text files)
-    * .wav, .mp3 (transcribe)
-    * .srt (captions)
-    * .jpg (OCR)
-    * .json (One AI conversation JSON format)
-
-    ## Attributes
-
-    `text: str`
-        Encoded file data.
-    `type: str`
-        An input-type hint for the API, either `Conversation` or `Document`.
-    `content_type: str`
-        The content type of the file.
-    `encoding: str`
-        The encoding of the file.
-    """
-
-    def __init__(self, file_path: str, type: Union[str, Type[Input]] = None):
-        """
-        Creates a new `File` input instance
-
-        ## Parameters
-
-        `file_path: str`
-            The path of the file to encode. Supported file extensions: [.txt, .wav, .mp3, .srt, .jpg/.jpeg, .json]
-        `type: str` (optional)
-            The input-type hint for the API, either `Conversation` or `Document`.
-        """
-        warn(
-            "File class is deprecated- pass file-like objects directly to pipelines instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        if type is None or isinstance(type, str):
-            super().__init__(type)
-        elif issubclass(type, Input):
-            super().__init__(type.type)
-        else:
-            raise ValueError(f"Invalid input type {type}")
-
-        utf8, b64 = "utf8", "base64"
-        _, ext = os.path.splitext(file_path)
-        if ext == ".json":
-            self.content_type = "application/json"
-            self.encoding = utf8
-        elif ext == ".txt":
-            self.content_type = "text/plain"
-            self.encoding = utf8
-        elif ext == ".srt":
-            self.text = Conversation.parse(open(file_path).read()).text
-            return
-        elif ext in [".jpg", ".jpeg"]:
-            self.content_type = "image/jpeg"
-            self.encoding = b64
-        elif ext == ".wav":
-            self.content_type = "audio/wav"
-            self.encoding = b64
-        elif ext == ".mp3":
-            self.content_type = "audio/mp3"
-            self.encoding = b64
-        elif ext == ".html":
-            self.content_type = "text/html"
-            self.encoding = utf8
-        else:
-            raise InputError(
-                message=f"unsupported file extension {ext}",
-                details="see supported files in docs",
-            )
-
-        if self.encoding == utf8:
-            self.text = open(file_path, "r").read()
-        else:
-            self.text = b64encode(open(file_path, "rb").read()).decode("utf-8")
 
 
 def timestamp_to_timedelta(timestamp: str) -> timedelta:

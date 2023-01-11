@@ -1,4 +1,4 @@
-__version__ = "0.9.5"
+__version__ = "0.9.6"
 __package__ = "oneai"
 
 from typing_extensions import Final
