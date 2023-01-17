@@ -7,6 +7,7 @@ import oneai.skills as skills
 from oneai.classes import *
 from oneai.pipeline import Pipeline
 import oneai.clustering as clustering
+import oneai.parsing as parsing
 
 URL: Final[str] = "https://api.oneai.com"
 """
