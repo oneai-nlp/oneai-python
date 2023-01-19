@@ -293,6 +293,21 @@ class HTMLExtractArticle(Skill):
 
 
 @skillclass(
+    api_name="pdf-extract-text",
+    is_generator=True,
+    output_attr="pdf_text",
+)
+class PDFExtractText(Skill):
+    """
+    Extracts the text from PDF files.
+
+    ## Output
+
+    Main text content from the PDF file
+    """
+
+
+@skillclass(
     api_name="html-extract-text",
     is_generator=True,
     output_attr="html_text",
@@ -745,6 +760,7 @@ class OutputAttrs:
     proofread: "Output[List[Utterance]]" = None
     html_article: "Output[str]" = None
     html_text: "Output[str]" = None
+    pdf_text: "Output[str]" = None
     transcription: "Output[List[Utterance]]" = None
     anonymized: "Output" = None
     words: Labels = None
