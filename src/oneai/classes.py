@@ -19,6 +19,7 @@ from typing import (
     Type,
     TypeVar,
     Union,
+    Hashable,
 )
 from warnings import warn
 
@@ -298,8 +299,8 @@ class Label:
     skill: str = ""
     name: str = ""
     _span: List[int] = field(default_factory=lambda: [0, 0], repr=False)
-    output_spans: List[int] = field(default_factory=list)
-    input_spans: List[int] = field(default_factory=list)
+    output_spans: List[Span] = field(default_factory=list)
+    input_spans: List[Span] = field(default_factory=list)
     span_text: str = ""
     timestamp: timedelta = None
     timestamp_end: timedelta = None
@@ -427,3 +428,18 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
             attr = skill.output_attr or skill.api_name
             result += f", {attr}={repr(getattr(self, attr))}"
         return result + ")"
+
+
+class BatchResponse:
+    def __init__(self):
+        self._data: Dict[Input, Output] = {}
+
+    def __setitem__(self, key: Input, value: Output):
+        self._data[key] = value
+
+    def __getitem__(self, key: Input) -> Output:
+        return (
+            self._data[key]
+            if isinstance(key, Hashable) and key in self._data
+            else next(v for k, v in self._data.items() if k.text == key)
+        )

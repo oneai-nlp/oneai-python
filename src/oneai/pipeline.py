@@ -6,7 +6,7 @@ import sys
 from typing import Awaitable, Callable, Dict, Iterable, List
 
 import oneai
-from oneai.classes import Output, PipelineInput, Skill, TextContent
+from oneai.classes import BatchResponse, Output, PipelineInput, Skill, TextContent
 from oneai.process_scheduler import *
 
 
@@ -153,7 +153,7 @@ class Pipeline:
         ] = None,
         on_error: Callable[[PipelineInput[TextContent], Exception], None] = None,
         multilingual: bool = False,
-    ) -> Dict[PipelineInput[TextContent], Output[TextContent]]:
+    ) -> BatchResponse:
         """
         Runs the pipeline on a batch of input texts.
 
@@ -191,7 +191,7 @@ class Pipeline:
         ] = None,
         on_error: Callable[[PipelineInput[TextContent], Exception], None] = None,
         multilingual: bool = False,
-    ) -> Awaitable[Dict[PipelineInput, Output]]:
+    ) -> Awaitable[BatchResponse]:
         """
         Runs the pipeline on a batch of input texts asynchronously.
 
@@ -216,7 +216,7 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        outputs = dict()
+        outputs = BatchResponse()
         await process_batch(
             batch,
             self.steps,

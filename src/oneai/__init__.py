@@ -1,4 +1,4 @@
-__version__ = "0.9.8"
+__version__ = "0.9.9"
 __package__ = "oneai"
 
 from typing_extensions import Final
@@ -8,6 +8,7 @@ from oneai.classes import *
 from oneai.pipeline import Pipeline
 import oneai.clustering as clustering
 import oneai.parsing as parsing
+import oneai.util as util
 
 URL: Final[str] = "https://api.oneai.com"
 """
