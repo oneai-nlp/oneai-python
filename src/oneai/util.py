@@ -1,3 +1,4 @@
+import asyncio
 import oneai
 from typing import List, Optional, Union
 from typing_extensions import Literal
@@ -31,13 +32,15 @@ def generate_chapters(
     amount: Literal["more", "less", "normal"] = None,
     preprocessing: Optional[oneai.Skill] = None,
 ) -> List[Chapter]:
-    output = (
-        oneai.Pipeline([oneai.skills.SplitByTopic(amount=amount)]).run(input)
+    output = asyncio.run(
+        oneai.Pipeline([oneai.skills.SplitByTopic(amount=amount)]).run_async(input)
         if not preprocessing
-        else oneai.Pipeline([preprocessing, oneai.skills.SplitByTopic(amount=amount)])
-        .run(input)
-        .__getattribute__(preprocessing.output_attr)
+        else oneai.Pipeline(
+            [preprocessing, oneai.skills.SplitByTopic(amount=amount)]
+        ).run_async(input)
     )
+    if preprocessing:
+        output = output.__getattribute__(preprocessing.output_attr)
     spans = [span_text(output.text, seg) for seg in output.segments]
     summaries = oneai.Pipeline([oneai.skills.Summarize()]).run_batch(spans)
     return [
