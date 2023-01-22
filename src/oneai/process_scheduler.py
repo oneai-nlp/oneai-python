@@ -73,8 +73,8 @@ async def process_file_async(
 async def process_batch(
     batch: Iterable[PipelineInput],
     steps: List[Skill],
-    on_output: Callable[[Input, Output], None],
-    on_error: Callable[[Input, Exception], None],
+    on_output: Callable[[PipelineInput, Output], None],
+    on_error: Callable[[PipelineInput, Exception], None],
     api_key: str,
     multilingual: bool = False,
 ):
@@ -86,7 +86,7 @@ async def process_batch(
 
     def next_input():  # distribute batch to workers
         try:
-            return Input.wrap(next(iterator))
+            return next(iterator)
         except StopIteration:
             return None  # we need to break loop for each worker, so we ignore StopIteration
 
@@ -133,7 +133,7 @@ async def process_batch(
         while input:
             try:
                 output = await _run_internal(
-                    session, input, steps, api_key, multilingual
+                    session, Input.wrap(input), steps, api_key, multilingual
                 )
                 on_output(input, output)
                 successful += 1
