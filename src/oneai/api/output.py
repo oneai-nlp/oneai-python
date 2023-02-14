@@ -55,7 +55,7 @@ def build_output(
                 break
             else:
                 data.append(
-                    Labels(filter(lambda label: label.type == skill.label_type, labels))
+                    Labels(filter(lambda label: label.skill == skill.api_name, labels))
                 )
         return Output(text=text, skills=list(skills), data=data)
 

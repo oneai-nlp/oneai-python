@@ -89,8 +89,6 @@ class Skill:
         Whether the Skill is a generator Skill.
     `skill_params: List[str]`
         Names of the fields of the Skill object that should be passed as parameters to the API.
-    `label_type: str`
-        If the Skill generates labels, the type name of the label.
     `output_attr: str`
         The attribute name of the Skill's output in the Output object.
     `output_attr1: str`
@@ -100,8 +98,7 @@ class Skill:
     api_name: str = ""
     is_generator: bool = False
     _skill_params: List[str] = field(default_factory=list, repr=False, init=False)
-    # todo: replace all these w/ an output type object + parse conversations from t. enhancer etc.
-    label_type: str = ""
+    label_type: str = ""  # redundant, do not set, for backwards compatibility only
     output_attr: str = ""
     output_attr1: str = field(default="", repr=False)
 
@@ -119,7 +116,7 @@ class Skill:
 def skillclass(
     cls: Type = None,
     api_name: str = "",
-    label_type: str = "",
+    label_type: str = "",  # redundant, do not set, for backwards compatibility only
     is_generator: bool = False,
     output_attr: str = "",
     output_attr1: str = "",
@@ -140,7 +137,6 @@ def skillclass(
             Skill.__init__(
                 self,
                 api_name=api_name,
-                label_type=label_type,
                 is_generator=is_generator,
                 output_attr=output_attr,
                 output_attr1=output_attr1,
@@ -277,6 +273,8 @@ class Label:
 
     `type: str`
         Label type, e.g. 'entity', 'topic', 'emotion'.
+    `skill: str`
+        The name of the Skill that produced the label.
     `name: str`
         Label class name, e.g. 'PERSON', 'happiness', 'POS'.
     `output_spans: list[Span]`

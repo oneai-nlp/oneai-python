@@ -9,47 +9,6 @@ from oneai.classes import Labels, Skill, Utterance, skillclass, Output
 @skillclass(
     api_name="enhance",
     is_generator=True,
-    label_type="replacement",
-    output_attr="enhanced",
-    output_attr1="replacements",
-)
-class TranscriptionEnhancer(Skill):
-    """
-    Deprecated- use `Proofread` instead
-
-    ## Output Attributes
-
-    `enhanced: Output`
-        An `Output` object containing the enhanced conversation, and output of the following `Skill`s
-    `enhanced.text: str`
-        The enhanced conversation
-    `enhanced.replacements: list[Label]`
-        A list of `Label` objects, representing changes made to the text
-
-    ## Example
-
-    >>> conversation = [oneai.Utterance(...), ...]
-    >>> pipeline = oneai.Pipeline(steps=[
-    ...     oneai.skills.TranscriptionEnhancer()
-    ... ])
-    >>> output = pipeline.run(conversation)
-    >>> output.enhanced
-    oneai.Output(text='ENHANCED TRANSCRIPTION', replacements=[...])
-    """
-
-    def __new__(cls, *args, **kwargs):
-        warn(
-            "TranscriptionEnhancer Skill is deprecated- use `Proofread` instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return super().__new__(cls, *args, **kwargs)
-
-
-@skillclass(
-    api_name="enhance",
-    is_generator=True,
-    label_type="replacement",
     output_attr="proofread",
     output_attr1="replacements",
 )
@@ -81,7 +40,6 @@ class Proofread(Skill):
 @skillclass(
     api_name="summarize",
     is_generator=True,
-    label_type="origin",
     output_attr="summary",
     output_attr1="origins",
 )
@@ -123,7 +81,7 @@ class Summarize(Skill):
     find_origins: bool = False
 
 
-@skillclass(api_name="emotions", label_type="emotion")
+@skillclass(api_name="emotions")
 class Emotions(Skill):
     """
     Detects emotions in the input. Supported emotions: [`happiness`, `sadness`, `fear`, `surprise`, `anger`]
@@ -144,36 +102,7 @@ class Emotions(Skill):
     """
 
 
-@skillclass(api_name="entities", label_type="entity")
-class Entities(Skill):
-    """
-    Deprecated- use either `Names` or `Numbers` instead
-
-    ## Output Attributes
-
-    `entities: list[Label]`
-        A list of `Label` objects, with detected entities and their type
-
-    ## Example
-
-    >>> pipeline = oneai.Pipeline(steps=[
-    ...     oneai.skills.Entities()
-    ... ])
-    >>> output = pipeline.run('Jim bought shares of Acme Corp.')
-    >>> output.entities
-    [oneai.Label(type=entity, name=PERSON, span=[0, 3], value=Jim), oneai.Label(type=entity, name=ORG, span=[21, 31], value=Acme Corp.)]
-    """
-
-    def __new__(cls, *args, **kwargs):
-        warn(
-            "Entities Skill is deprecated- use either `Names` or `Numbers` instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return super().__new__(cls, *args, **kwargs)
-
-
-@skillclass(api_name="keywords", label_type="keyword")
+@skillclass(api_name="keywords")
 class Keywords(Skill):
     """
     Detects keywords in the input
@@ -194,7 +123,7 @@ class Keywords(Skill):
     """
 
 
-@skillclass(api_name="highlights", label_type="highlight")
+@skillclass(api_name="highlights")
 class Highlights(Skill):
     """
     Detects highlights of the input
@@ -215,7 +144,7 @@ class Highlights(Skill):
     """
 
 
-@skillclass(api_name="sentiments", label_type="sentiment")
+@skillclass(api_name="sentiments")
 class Sentiments(Skill):
     """
     Detects sentiments in the input
@@ -236,7 +165,7 @@ class Sentiments(Skill):
     """
 
 
-@skillclass(api_name="article-topics", label_type="topic", output_attr="topics")
+@skillclass(api_name="article-topics", output_attr="topics")
 class Topics(Skill):
     """
     Detects topics of the input
@@ -392,9 +321,7 @@ class HtmlAllText(Skill):
     """
 
 
-@skillclass(
-    api_name="action-items", label_type="action-item", output_attr="action_items"
-)
+@skillclass(api_name="action-items", output_attr="action_items")
 class ActionItems(Skill):
     """
     ### 'Labs' Skill- this Skill is still in beta and is may produce incorrect results in some cases
@@ -420,7 +347,6 @@ class ActionItems(Skill):
 @skillclass(
     api_name="anonymize",
     is_generator=True,
-    label_type="anonymized",
     output_attr="anonymized",
     output_attr1="anonymizations",
 )
@@ -453,7 +379,6 @@ class Anonymize(Skill):
 @skillclass(
     api_name="business-entities",
     is_generator=True,
-    label_type="business-entity",
     output_attr="labs",
     output_attr1="pricing",
 )
@@ -479,7 +404,7 @@ class Pricing(Skill):
     """
 
 
-@skillclass(api_name="names", label_type="name")
+@skillclass(api_name="names")
 @dataclass
 class Names(Skill):
     """
@@ -504,7 +429,7 @@ class Names(Skill):
     amount: Literal["more", "less", "normal"] = None
 
 
-@skillclass(api_name="numbers", label_type="number")
+@skillclass(api_name="numbers")
 class Numbers(Skill):
     """
     Detects and classifies numbers and dates in the input
@@ -524,7 +449,7 @@ class Numbers(Skill):
     """
 
 
-@skillclass(api_name="sentences", label_type="sentence")
+@skillclass(api_name="sentences")
 class SplitBySentence(Skill):
     """
     Splits input by sentence
@@ -546,7 +471,6 @@ class SplitBySentence(Skill):
 
 @skillclass(
     api_name="dialogue-segmentation",
-    label_type="dialogue-segment",
     output_attr="segments",
 )
 @dataclass
@@ -573,9 +497,7 @@ class SplitByTopic(Skill):
     use_discourse_parser: bool = False
 
 
-@skillclass(
-    api_name="sales-insights", label_type="sales-insights", output_attr="sales_insights"
-)
+@skillclass(api_name="sales-insights", output_attr="sales_insights")
 class SalesInsights(Skill):
     """
     Splits input by discussed topics
@@ -597,7 +519,6 @@ class SalesInsights(Skill):
 
 @skillclass(
     api_name="service-email-insights",
-    label_type="service-email-insights",
     output_attr="service_insights",
 )
 class ServiceInsights(Skill):
@@ -621,7 +542,6 @@ class ServiceInsights(Skill):
 
 @skillclass(
     api_name="service-email-insights",
-    label_type="service-email-insights",
     output_attr="email_insights",
 )
 class EmailInsights(Skill):
@@ -643,9 +563,7 @@ class EmailInsights(Skill):
     """
 
 
-@skillclass(
-    api_name="detect-language", label_type="detect-language", output_attr="language"
-)
+@skillclass(api_name="detect-language", output_attr="language")
 class DetectLanguage(Skill):
     """
     Detects language of input
@@ -665,7 +583,7 @@ class DetectLanguage(Skill):
     """
 
 
-@skillclass(api_name="headline", label_type="headline")
+@skillclass(api_name="headline")
 class Headline(Skill):
     """
     Generates a headline based on input
@@ -685,7 +603,7 @@ class Headline(Skill):
     """
 
 
-@skillclass(api_name="subheading", label_type="subheading", output_attr="subheading")
+@skillclass(api_name="subheading")
 class Subheading(Skill):
     """
     Generates a subheading based on input
