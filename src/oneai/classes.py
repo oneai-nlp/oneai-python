@@ -99,9 +99,9 @@ class Skill:
     labels_attr: str = ""
 
     ### redundant, do not set, for backwards compatibility only ###
-    is_generator: bool = False
-    label_type: str = ""
-    output_attr: str = ""
+    is_generator: bool = field(default=False, repr=False)
+    label_type: str = field(default="", repr=False)
+    output_attr: str = field(default="", repr=False)
     output_attr1: str = field(default="", repr=False)
     ###############################################################
 
@@ -141,7 +141,7 @@ def skillclass(
     ###############################################################
 ):
     """
-    A decorator for defining a Language Skill class. Decorate subclasses of `Skill` with this decorator to provide default values for instance attributes.
+    A decorator for defining a Language Skill class. Decorate subclasses of `Skill` with this to provide default values for instance attributes.
     """
 
     def wrap(cls) -> cls:

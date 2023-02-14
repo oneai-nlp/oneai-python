@@ -66,6 +66,11 @@ async def post_pipeline(
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
     }
 
+    if oneai.DEBUG_LOG_REQUESTS:
+        oneai.logger.debug(f"POST {url}\n")
+        oneai.logger.debug(f"headers={json.dumps(headers, indent=4)}\n")
+        oneai.logger.debug(f"data={json.dumps(request, indent=4)}\n")
+
     async with session.post(url, headers=headers, data=request) as response:
         if response.status != 200:
             await handle_unsuccessful_response(response)
@@ -90,6 +95,11 @@ async def post_pipeline_async_file(
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
     }
 
+    if oneai.DEBUG_LOG_REQUESTS:
+        oneai.logger.debug(f"POST {url}\n")
+        oneai.logger.debug(f"headers={json.dumps(headers, indent=4)}\n")
+        oneai.logger.debug(f"data={json.dumps(request, indent=4)}\n")
+
     async with session.post(url, headers=headers, data=input.text) as response:
         if response.status != 200:
             await handle_unsuccessful_response(response)
@@ -109,6 +119,10 @@ async def get_task_status(
         "api-key": api_key,
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
     }
+
+    if oneai.DEBUG_LOG_REQUESTS:
+        oneai.logger.debug(f"GET {url}\n")
+        oneai.logger.debug(f"headers={json.dumps(headers, indent=4)}\n")
 
     async with session.get(url, headers=headers) as response:
         if response.status != 200:
