@@ -123,7 +123,7 @@ class Skill:
             "params": {
                 p: self.__getattribute__(p)
                 for p in self._skill_params
-                if self.__getattribute__(p)
+                if self.__getattribute__(p) is not None
             },
         }
 
