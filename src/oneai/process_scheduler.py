@@ -106,7 +106,9 @@ async def process_batch(
                 % (
                     successful + failed,
                     time_format(
-                        time_total / successful / oneai.MAX_CONCURRENT_REQUESTS
+                        time_total
+                        / (successful + failed)
+                        / oneai.MAX_CONCURRENT_REQUESTS
                     ),
                     time_format(time_total / oneai.MAX_CONCURRENT_REQUESTS),
                     successful,
@@ -143,8 +145,7 @@ async def process_batch(
                 failed += 1
 
             time_end = datetime.now()
-            if oneai.PRINT_PROGRESS:
-                log_progress(time_end - time_start)
+            log_progress(time_end - time_start)
             time_start = time_end
             input = next_input()
 

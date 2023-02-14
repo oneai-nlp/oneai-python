@@ -2,6 +2,7 @@ __version__ = "0.9.9"
 __package__ = "oneai"
 
 import logging
+import oneai.logger
 from typing_extensions import Final
 import oneai.skills as skills
 from oneai.classes import *
