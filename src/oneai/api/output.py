@@ -30,11 +30,11 @@ def build_output(
     def split_pipeline(skills: List[Skill], i: int):
         # split pipeline at a generator Skill
         first, second = skills[: i + 1], skills[i + 1 :]
-        if hasattr(skills[i], "output_attr1") and skills[i].output_attr1:
+        if skills[i].labels_attr:
             # handle skills that create both text and labels
             clone = copy(skills[i])
             clone.is_generator = False
-            clone.output_attr = skills[i].output_attr1
+            clone.text_attr = None
             second = (clone, *second)
         return first, second
 
@@ -49,7 +49,7 @@ def build_output(
         ]
         data = []
         for i, skill in enumerate(skills):
-            if skill.is_generator:
+            if skill.text_attr:
                 skills, next_skills = split_pipeline(skills, i)
                 data.append(build_internal(output_index + 1, next_skills))
                 break

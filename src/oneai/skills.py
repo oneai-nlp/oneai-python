@@ -8,9 +8,8 @@ from oneai.classes import Labels, Skill, Utterance, skillclass, Output
 
 @skillclass(
     api_name="enhance",
-    is_generator=True,
-    output_attr="proofread",
-    output_attr1="replacements",
+    text_attr="proofread",
+    labels_attr="replacements",
 )
 class Proofread(Skill):
     """
@@ -39,9 +38,8 @@ class Proofread(Skill):
 
 @skillclass(
     api_name="summarize",
-    is_generator=True,
-    output_attr="summary",
-    output_attr1="origins",
+    text_attr="summary",
+    labels_attr="origins",
 )
 @dataclass
 class Summarize(Skill):
@@ -165,7 +163,7 @@ class Sentiments(Skill):
     """
 
 
-@skillclass(api_name="article-topics", output_attr="topics")
+@skillclass(api_name="article-topics", labels_attr="topics")
 class Topics(Skill):
     """
     Detects topics of the input
@@ -187,44 +185,8 @@ class Topics(Skill):
 
 
 @skillclass(
-    api_name="extract-html",
-    is_generator=True,
-    output_attr="html_article",
-)
-class HTMLExtractArticle(Skill):
-    """
-    Extracts the main text content of an HTML page. Accepts URLs or HTML strings
-
-    ## Output
-
-    Main text content from the HTML page
-
-    ## Example
-
-    >>> resp = requests.get('https://oneai.com/about-us/')
-    >>> pipeline = oneai.Pipeline(steps=[
-    ...     oneai.skills.HTMLExtractArticle()
-    ... ])
-    >>> output = pipeline.run(resp.text)
-    >>> output.html_article.text[:100] + '...'
-    One AI - About us
-    ABOUT ONE AI
-    // Bringing human-level language AI to everyday life, one developer a...
-    """
-
-    def __new__(cls, *args, **kwargs):
-        warn(
-            "HTMLExtractArticle Skill is deprecated- use `HtmlToArticle` instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return super().__new__(cls, *args, **kwargs)
-
-
-@skillclass(
     api_name="pdf-extract-text",
-    is_generator=True,
-    output_attr="pdf_text",
+    text_attr="pdf_text",
 )
 class PDFExtractText(Skill):
     """
@@ -237,42 +199,8 @@ class PDFExtractText(Skill):
 
 
 @skillclass(
-    api_name="html-extract-text",
-    is_generator=True,
-    output_attr="html_text",
-)
-class HTMLExtractText(Skill):
-    """
-    Extracts all text content of an HTML page (including text from control elements). Accepts URLs or HTML strings. Use HTMLExtractArticle to extract the main content only
-
-    ## Output
-
-    Text content from the HTML page
-
-    ## Example
-
-    >>> resp = requests.get('https://oneai.com/about-us/')
-    >>> pipeline = oneai.Pipeline(steps=[
-    ...     oneai.skills.HTMLExtractText()
-    ... ])
-    >>> output = pipeline.run(resp.text)
-    >>> output.html_text.text[:100] + '...'
-    One AI - About usSkip to main contentAPIStudioSkillsIndustriesPricingResearchAboutAbout UsLeadership...
-    """
-
-    def __new__(cls, *args, **kwargs):
-        warn(
-            "HTMLExtractText Skill is deprecated- use `HtmlAllText` instead",
-            DeprecationWarning,
-            stacklevel=2,
-        )
-        return super().__new__(cls, *args, **kwargs)
-
-
-@skillclass(
     api_name="extract-html",
-    is_generator=True,
-    output_attr="html_article",
+    text_attr="html_article",
 )
 class HtmlToArticle(Skill):
     """
@@ -298,8 +226,7 @@ class HtmlToArticle(Skill):
 
 @skillclass(
     api_name="html-extract-text",
-    is_generator=True,
-    output_attr="html_text",
+    text_attr="html_text",
 )
 class HtmlAllText(Skill):
     """
@@ -321,7 +248,7 @@ class HtmlAllText(Skill):
     """
 
 
-@skillclass(api_name="action-items", output_attr="action_items")
+@skillclass(api_name="action-items", labels_attr="action_items")
 class ActionItems(Skill):
     """
     ### 'Labs' Skill- this Skill is still in beta and is may produce incorrect results in some cases
@@ -346,9 +273,8 @@ class ActionItems(Skill):
 
 @skillclass(
     api_name="anonymize",
-    is_generator=True,
-    output_attr="anonymized",
-    output_attr1="anonymizations",
+    text_attr="anonymized",
+    labels_attr="anonymizations",
 )
 class Anonymize(Skill):
     """
@@ -378,9 +304,8 @@ class Anonymize(Skill):
 
 @skillclass(
     api_name="business-entities",
-    is_generator=True,
-    output_attr="labs",
-    output_attr1="pricing",
+    text_attr="labs",
+    labels_attr="pricing",
 )
 class Pricing(Skill):
     """
@@ -471,7 +396,7 @@ class SplitBySentence(Skill):
 
 @skillclass(
     api_name="dialogue-segmentation",
-    output_attr="segments",
+    labels_attr="segments",
 )
 @dataclass
 class SplitByTopic(Skill):
@@ -497,7 +422,7 @@ class SplitByTopic(Skill):
     use_discourse_parser: bool = False
 
 
-@skillclass(api_name="sales-insights", output_attr="sales_insights")
+@skillclass(api_name="sales-insights", labels_attr="sales_insights")
 class SalesInsights(Skill):
     """
     Splits input by discussed topics
@@ -519,7 +444,7 @@ class SalesInsights(Skill):
 
 @skillclass(
     api_name="service-email-insights",
-    output_attr="service_insights",
+    labels_attr="service_insights",
 )
 class ServiceInsights(Skill):
     """
@@ -542,7 +467,7 @@ class ServiceInsights(Skill):
 
 @skillclass(
     api_name="service-email-insights",
-    output_attr="email_insights",
+    labels_attr="email_insights",
 )
 class EmailInsights(Skill):
     """
@@ -563,7 +488,7 @@ class EmailInsights(Skill):
     """
 
 
-@skillclass(api_name="detect-language", output_attr="language")
+@skillclass(api_name="detect-language", labels_attr="language")
 class DetectLanguage(Skill):
     """
     Detects language of input
@@ -625,9 +550,8 @@ class Subheading(Skill):
 
 @skillclass(
     api_name="transcribe",
-    is_generator=True,
-    output_attr="transcription",
-    output_attr1="words",
+    text_attr="transcription",
+    labels_attr="words",
 )
 @dataclass
 class Transcribe(Skill):

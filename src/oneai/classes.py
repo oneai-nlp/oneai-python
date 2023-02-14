@@ -78,29 +78,44 @@ class Skill:
     Process texts with Skills using `Pipeline`s
 
     ### Skill types
-    * Generator Skills (`is_generator=True`) process the input and produce a new text based on it. Examples include `Summarize`, `TranscriptionEnhancer`.
-    * Analyzer Skills (`is_generator=False`) scan the input and extract structured data. Examples include `Emotions`, `Topics`.
+    * Generator Skills (`text_attr is not None`) process the input and produce a new text based on it. Examples include `Summarize`, `Proofread`.
+    * Analyzer Skills (`text_attr is None`) scan the input and extract structured data. Examples include `Emotions`, `Topics`.
 
     ## Attributes
 
     `api_name: str`
         The name of the Skill in the pipeline API.
-    `is_generator: bool`
-        Whether the Skill is a generator Skill.
     `skill_params: List[str]`
         Names of the fields of the Skill object that should be passed as parameters to the API.
-    `output_attr: str`
-        The attribute name of the Skill's output in the Output object.
-    `output_attr1: str`
-        Only for Skills with 2 outputs (text / labels)
+    `text_attr: str`
+        The attribute name of the Skill's output text in the Output object (Generator Skills only).
+    `labels_attr: str`
+        The attribute name of the Skill's output labels in the Output object.
     """
 
     api_name: str = ""
-    is_generator: bool = False
     _skill_params: List[str] = field(default_factory=list, repr=False, init=False)
-    label_type: str = ""  # redundant, do not set, for backwards compatibility only
+    text_attr: str = ""
+    labels_attr: str = ""
+
+    ### redundant, do not set, for backwards compatibility only ###
+    is_generator: bool = False
+    label_type: str = ""
     output_attr: str = ""
     output_attr1: str = field(default="", repr=False)
+    ###############################################################
+
+    def __post_init__(self):
+        # backwards compatibility
+        if self.labels_attr is None and self.text_attr is None:
+            if self.output_attr1:
+                self.text_attr = self.output_attr
+                self.labels_attr = self.output_attr1
+            elif self.is_generator:
+                self.text_attr = self.output_attr or self.api_name
+            else:
+                # only this case is needed when backwards compatibility is removed
+                self.labels_attr = self.output_attr or self.api_name
 
     def asdict(self) -> dict:
         return {
@@ -116,10 +131,14 @@ class Skill:
 def skillclass(
     cls: Type = None,
     api_name: str = "",
-    label_type: str = "",  # redundant, do not set, for backwards compatibility only
+    text_attr: str = "",
+    labels_attr: str = "",
+    ### redundant, do not set, for backwards compatibility only ###
+    label_type: str = "",
     is_generator: bool = False,
     output_attr: str = "",
     output_attr1: str = "",
+    ###############################################################
 ):
     """
     A decorator for defining a Language Skill class. Decorate subclasses of `Skill` with this decorator to provide default values for instance attributes.
@@ -137,9 +156,8 @@ def skillclass(
             Skill.__init__(
                 self,
                 api_name=api_name,
-                is_generator=is_generator,
-                output_attr=output_attr,
-                output_attr1=output_attr1,
+                text_attr=text_attr,
+                labels_attr=labels_attr,
             )
             self._skill_params = [
                 a
@@ -413,17 +431,18 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
 
         self.skills = skills
         for skill, value in zip(skills, data):
-            setattr(self, skill.output_attr or skill.api_name, value)
+            setattr(self, skill.text_attr or skill.labels_attr or skill.api_name, value)
 
     def __dir__(self) -> Iterable[str]:
         return super().__dir__() + [
-            skill.output_attr or skill.api_name for skill in self.skills
+            skill.text_attr or skill.labels_attr or skill.api_name
+            for skill in self.skills
         ]
 
     def __repr__(self) -> str:
         result = f"oneai.Output(text={repr(self.text)}"
         for skill in self.skills:
-            attr = skill.output_attr or skill.api_name
+            attr = skill.text_attr or skill.labels_attr or skill.api_name
             result += f", {attr}={repr(getattr(self, attr))}"
         return result + ")"
 
