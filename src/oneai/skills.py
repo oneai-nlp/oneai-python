@@ -1,7 +1,8 @@
 from typing import List
 from typing_extensions import Literal
 
-from oneai.classes import Labels, Skill, Utterance, skillclass, Output
+from oneai.classes import Labels, Skill, Utterance, Output
+from oneai.util import skillclass
 
 
 @skillclass(
