@@ -1,7 +1,5 @@
-from dataclasses import dataclass
 from typing import List
 from typing_extensions import Literal
-from warnings import warn
 
 from oneai.classes import Labels, Skill, Utterance, skillclass, Output
 
@@ -41,7 +39,6 @@ class Proofread(Skill):
     text_attr="summary",
     labels_attr="origins",
 )
-@dataclass
 class Summarize(Skill):
     """
     Provides a summary of the input
@@ -330,7 +327,6 @@ class Pricing(Skill):
 
 
 @skillclass(api_name="names")
-@dataclass
 class Names(Skill):
     """
     Detects and classifies names in the input
@@ -398,7 +394,6 @@ class SplitBySentence(Skill):
     api_name="dialogue-segmentation",
     labels_attr="segments",
 )
-@dataclass
 class SplitByTopic(Skill):
     """
     Splits input by discussed topics
@@ -553,7 +548,6 @@ class Subheading(Skill):
     text_attr="transcription",
     labels_attr="words",
 )
-@dataclass
 class Transcribe(Skill):
     """
     Transcribes audio files
@@ -579,7 +573,6 @@ class Transcribe(Skill):
 
 
 @skillclass(api_name="clustering")
-@dataclass
 class Clustering(Skill):
     """
     Automatically organizes various skill labels in clusters for later analytics

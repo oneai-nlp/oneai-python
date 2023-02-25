@@ -1,4 +1,4 @@
-from copy import copy
+from dataclasses import replace
 from typing import List
 
 import oneai
@@ -32,9 +32,7 @@ def build_output(
         first, second = skills[: i + 1], skills[i + 1 :]
         if skills[i].labels_attr:
             # handle skills that create both text and labels
-            clone = copy(skills[i])
-            clone.is_generator = False
-            clone.text_attr = None
+            clone = replace(skills[i], text_attr=None)
             second = (clone, *second)
         return first, second
 

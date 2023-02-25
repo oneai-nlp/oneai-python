@@ -16,11 +16,11 @@ from typing import (
     Optional,
     TextIO,
     Tuple,
-    Type,
     TypeVar,
     Union,
     Hashable,
 )
+from typing_extensions import dataclass_transform
 from warnings import warn
 
 
@@ -68,7 +68,7 @@ CONTENT_TYPES: Dict[str, Tuple[str, str]] = {
 }
 
 
-@dataclass
+@dataclass(frozen=True)
 class Skill:
     """
     A base class for all Language Skills. Use predefined subclasses of this class, or use this class to define your own Skills.
@@ -85,94 +85,98 @@ class Skill:
 
     `api_name: str`
         The name of the Skill in the pipeline API.
-    `skill_params: List[str]`
-        Names of the fields of the Skill object that should be passed as parameters to the API.
     `text_attr: str`
         The attribute name of the Skill's output text in the Output object (Generator Skills only).
     `labels_attr: str`
         The attribute name of the Skill's output labels in the Output object.
+    `params: dict[str, Any]`
+        The parameters of the Skill. See the documentation for each Skill for a list of available parameters.
     """
 
     api_name: str = ""
-    _skill_params: List[str] = field(default_factory=list, repr=False, init=False)
-    text_attr: str = ""
-    labels_attr: str = ""
-
-    ### redundant, do not set, for backwards compatibility only ###
-    is_generator: bool = field(default=False, repr=False)
-    label_type: str = field(default="", repr=False)
-    output_attr: str = field(default="", repr=False)
-    output_attr1: str = field(default="", repr=False)
-    ###############################################################
+    text_attr: Optional[str] = None
+    labels_attr: Optional[str] = None
+    params: dict[str, Any] = field(default_factory=dict)
 
     def __post_init__(self):
         # backwards compatibility
         if self.labels_attr is None and self.text_attr is None:
-            if self.output_attr1:
-                self.text_attr = self.output_attr
-                self.labels_attr = self.output_attr1
-            elif self.is_generator:
-                self.text_attr = self.output_attr or self.api_name
-            else:
-                # only this case is needed when backwards compatibility is removed
-                self.labels_attr = self.output_attr or self.api_name
+            self.labels_attr = self.api_name
 
     def asdict(self) -> dict:
         return {
             "skill": self.api_name,
-            "params": {
-                p: self.__getattribute__(p)
-                for p in self._skill_params
-                if self.__getattribute__(p) is not None
-            },
+            "params": self.params,
         }
 
 
+@dataclass_transform()
 def skillclass(
-    cls: Type = None,
     api_name: str = "",
-    text_attr: str = "",
-    labels_attr: str = "",
-    ### redundant, do not set, for backwards compatibility only ###
-    label_type: str = "",
-    is_generator: bool = False,
-    output_attr: str = "",
-    output_attr1: str = "",
-    ###############################################################
+    text_attr: Optional[str] = None,
+    labels_attr: Optional[str] = None,
 ):
     """
     A decorator for defining a Language Skill class. Decorate subclasses of `Skill` with this to provide default values for instance attributes.
+
+    ## Example
+
+    >>> @skillclass(api_name="my-skill", text_attr="my_result")
+    ... class MySkill(Skill):
+    ...     ratio: float = 0.2
+    >>> s = Summarize(ratio=0.5)
+    >>> s.ratio
+    0.5
+    >>> pipeline = Pipeline([s])
+    >>> output = pipeline.run("Text to be processed with MySkill")
+    >>> output.my_result
+    "Result text, processed with MySkill"
     """
 
-    def wrap(cls) -> cls:
+    def wrap(cls):
         if not issubclass(cls, Skill):
             warn(
                 f"warning: class {cls.__name__} decorated with @skillclass does not inherit Skill",
                 stacklevel=2,
             )
 
-        def __init__(self, *args, **kwargs):
-            cls_init(self, *args)
+        # remove class variables
+        classVars = {
+            k: getattr(cls, k, None)
+            for k in cls.__annotations__
+            if k not in Skill.__annotations__
+        }
+        for k in classVars:
+            if hasattr(cls, k):
+                delattr(cls, k)
+
+        def __init__(self, **params):
             Skill.__init__(
                 self,
                 api_name=api_name,
                 text_attr=text_attr,
                 labels_attr=labels_attr,
+                params=params,
             )
-            self._skill_params = [
-                a
-                for a in {**self.__dict__, **kwargs}
-                if a not in Skill.__dataclass_fields__
-            ]
-            for param in self._skill_params:
-                if param in kwargs:
-                    self.__setattr__(param, kwargs[param])
 
-        cls_init = cls.__init__
+            for k, v in classVars.items():
+                if k not in params:
+                    setattr(self, k, v)
+
+        def __getattr__(self, name):
+            return self.params[name]
+
+        def __setattr__(self, name, value):
+            if "params" not in self.__dict__:
+                return object.__setattr__(self, name, value)
+            self.params[name] = value
+
         cls.__init__ = __init__
+        cls.__getattr__ = __getattr__
+        cls.__setattr__ = __setattr__
         return cls
 
-    return wrap if cls is None else wrap(cls)
+    return wrap
 
 
 class Input(Generic[TextContent]):

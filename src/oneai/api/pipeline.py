@@ -28,8 +28,7 @@ def build_request(
     if hasattr(input, "metadata"):
         for skill in steps:
             if skill.api_name == "clustering":
-                skill._skill_params.append("user_metadata")
-                skill.user_metadata = input.metadata
+                skill.params["user_metadata"] = input.metadata
                 break
 
     request = {
