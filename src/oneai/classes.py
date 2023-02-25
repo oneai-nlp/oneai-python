@@ -20,7 +20,6 @@ from typing import (
     Union,
     Hashable,
 )
-from typing_extensions import dataclass_transform
 from warnings import warn
 
 
