@@ -15,7 +15,7 @@ endpoint_async_tasks = "api/v0/pipeline/async/tasks"
 
 
 def build_request(
-    input: Input, steps: List[Skill], multilingual: bool, include_text: True
+    input: Input, steps: List[Skill], multilingual: bool, include_text: bool
 ):
     def json_default(obj):
         if isinstance(obj, timedelta):

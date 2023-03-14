@@ -1,5 +1,4 @@
 import asyncio
-import io
 from datetime import datetime, timedelta
 import logging
 from typing import Awaitable, Callable, Iterable, List

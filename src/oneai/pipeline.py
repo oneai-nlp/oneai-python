@@ -1,6 +1,6 @@
 import asyncio
 import concurrent.futures
-from io import IOBase
+import io
 import os
 import sys
 from typing import Awaitable, Callable, Dict, Iterable, List
