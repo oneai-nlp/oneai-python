@@ -101,7 +101,7 @@ class Skill:
     def __post_init__(self):
         # backwards compatibility
         if self.labels_attr is None and self.text_attr is None:
-            self.labels_attr = self.api_name
+            object.__setattr__(self, "labels_attr", self.api_name)
 
     def asdict(self) -> dict:
         return {
