@@ -71,8 +71,8 @@ class Summarize(Skill):
     oneai.Output(text='SUMMARY', origins=[...])
     """
 
-    min_length: int = 0
-    max_length: int = 0
+    min_length: int = None
+    max_length: int = None
     find_origins: bool = False
 
 
@@ -412,7 +412,7 @@ class SplitByTopic(Skill):
     >>> output.segments
     """
 
-    std_ratio: float = 0
+    std_ratio: float = None
     amount: Literal["more", "less", "normal"] = None
     use_discourse_parser: bool = False
 
@@ -587,7 +587,36 @@ class Clustering(Skill):
     """
 
     collection: str = ""
+    """The name of the collection to insert the input into"""
     input_skill: str = ""
+    """Use the output of a Skill as input for clustering, omit to use the input directly"""
+
+
+@skillclass(api_name="classify", labels_attr="classification")
+class Classify(Skill):
+    """
+    Classifies input based on an analytics collection
+
+    ## Output Attributes
+
+    `classification: list[Label]`
+        A list of `Label` objects, containing the classification
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Classify(collection='my_collection')
+    ... ])
+    >>> output = pipeline.run('...')
+    >>> output.classification[0]
+    """
+
+    collection: str = ""
+    """The name of the collection to use for classification"""
+    key: str = ""
+    """The key to use for classification"""
+    input_skill: str = ""
+    """Use the output of a Skill as input for classification, omit to use the input directly"""
 
 
 class OutputAttrs:
@@ -618,3 +647,4 @@ class OutputAttrs:
     language: Labels = None
     headline: Labels = None
     subheading: Labels = None
+    classification: Labels = None

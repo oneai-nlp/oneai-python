@@ -106,7 +106,7 @@ class Skill:
     def asdict(self) -> dict:
         return {
             "skill": self.api_name,
-            "params": self.params,
+            "params": {k: v for k, v in self.params.items() if v is not None},
         }
 
 
