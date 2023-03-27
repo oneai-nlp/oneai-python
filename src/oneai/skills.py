@@ -592,6 +592,35 @@ class Clustering(Skill):
     """Use the output of a Skill as input for clustering, omit to use the input directly"""
 
 
+@skillclass(api_name="gpt", text_attr="comletion")
+class GPT(Skill):
+    """
+    Generate text using GPT-3
+
+    ## Output Attributes
+
+    `completion: str`
+        The generated text
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.GPT()
+    ... ])
+    >>> output = pipeline.run('...')
+    >>> output.completion
+    """
+
+    model: Literal[
+        "text-davinci-003", "text-curie-001", "text-babbage-001", "text-ada-001"
+    ] = "text-davinci-003"
+    input_skill: str = ""
+    prompt: str = ""
+    prompt_position: Literal["start", "end"] = "start"
+    temperature: float = None
+    get_api_key: str = None
+
+
 @skillclass(api_name="classify", labels_attr="classification")
 class Classify(Skill):
     """
