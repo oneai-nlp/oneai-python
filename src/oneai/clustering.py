@@ -205,10 +205,11 @@ class Collection:
         }
 
         url = f"{self.id}/clusters/find?{urllib.parse.urlencode(params)}"
-        return [
-            Cluster.from_dict(self, cluster)
-            for cluster in get_clustering(url, self.api_key)
-        ]
+        # return [
+        #     Cluster.from_dict(self, cluster)
+        #     for cluster in get_clustering(url, self.api_key)
+        # ]
+        return get_clustering(url, self.api_key)
 
     def add_items(
         self, items: List[PipelineInput[str]], force_new_clusters: bool = False
