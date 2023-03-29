@@ -32,7 +32,8 @@ def build_output(
         first, second = skills[: i + 1], skills[i + 1 :]
         if skills[i].labels_attr:
             # handle skills that create both text and labels
-            clone = replace(skills[i], text_attr=None)
+            clone = replace(skills[i])
+            object.__setattr__(clone, "text_attr", None)
             second = (clone, *second)
         return first, second
 
