@@ -614,11 +614,12 @@ class GPT(Skill):
     model: Literal[
         "text-davinci-003", "text-curie-001", "text-babbage-001", "text-ada-001"
     ] = "text-davinci-003"
-    input_skill: str = ""
-    prompt: str = ""
+    input_skill: str = None
+    prompt: str = None
     prompt_position: Literal["start", "end"] = "start"
     temperature: float = None
     get_api_key: str = None
+    prompt_fields: List[str] = None
 
 
 @skillclass(api_name="classify", labels_attr="classification")
