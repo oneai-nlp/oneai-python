@@ -7,11 +7,9 @@
 # Natural Language Processing API
 [![API Key](https://img.shields.io/badge/%20-Get%20Your%20API%20Key%20for%20Free-%231d1c29?logo=data:image/svg%2bxml;base64,PHN2ZyB3aWR0aD0iMTEyIiBoZWlnaHQ9Ijg4IiB2aWV3Qm94PSIwIDAgMTEyIDg4IiBmaWxsPSJub25lIiB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciPgo8cGF0aCBmaWxsLXJ1bGU9ImV2ZW5vZGQiIGNsaXAtcnVsZT0iZXZlbm9kZCIgZD0iTTY5LjI5MTMgMzcuNTU4NkwzNi4xMTQzIDg3Ljc1MTZIMTAyLjQ2OEw2OS4yOTEzIDM3LjU1ODZaIiBmaWxsPSIjMDBGRkZGIi8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNODkuMzAwOCA1MC4yOTIxSDExMS4xNjRWMEg4OS4zMDA4VjUwLjI5MjFaIiBmaWxsPSIjRjIzREU5Ii8+CjxwYXRoIGZpbGwtcnVsZT0iZXZlbm9kZCIgY2xpcC1ydWxlPSJldmVub2RkIiBkPSJNMjUuOTEwOCAxMS42NDc5QzExLjYwMDcgMTEuNjQ3OSAwIDIzLjI0ODYgMCAzNy41NTg3QzAgNTEuODY4OCAxMS42MDA3IDYzLjQ3MDEgMjUuOTEwOCA2My40NzAxQzQwLjIyMDkgNjMuNDcwMSA1MS44MjE2IDUxLjg2ODggNTEuODIxNiAzNy41NTg3QzUxLjgyMTYgMjMuMjQ4NiA0MC4yMjA5IDExLjY0NzkgMjUuOTEwOCAxMS42NDc5IiBmaWxsPSIjNEQ0REZGIi8+Cjwvc3ZnPgo=)](https://studio.oneai.com/settings/api-keys)
 ![Build](https://github.com/oneai-nlp/oneai-python/actions/workflows/main.yml/badge.svg)
-[![Coverage Status](https://coveralls.io/repos/github/oneai-nlp/oneai-node/badge.svg?branch=main)](https://coveralls.io/github/oneai-nlp/oneai-node?branch=main)
-[![Version](https://img.shields.io/npm/v/oneai.svg)](https://www.npmjs.org/package/oneai)
-[![Downloads](https://img.shields.io/npm/dm/oneai.svg)](https://www.npmjs.com/package/oneai)
-[![License](https://img.shields.io/npm/l/oneai.svg)](https://www.npmjs.com/package/oneai)
-[![Try on RunKit](https://badge.runkitcdn.com/oneai.svg)](https://runkit.com/npm/oneai)
+[![Coverage Status](https://coveralls.io/repos/github/oneai-nlp/oneai-python/badge.svg?branch=main)](https://coveralls.io/github/oneai-nlp/oneai-python?branch=main)
+[![Version](https://img.shields.io/pypi/v/oneai)](https://pypi.org/project/oneai/)
+[![Downloads](https://img.shields.io/pypi/dm/oneai)](https://pypistats.org/packages/oneai)
 [![Discord](https://img.shields.io/discord/941458663493746698?logo=Discord)](https://discord.gg/ArpMha9n8H)
 
 One AI is a NLP as a service platform. Our API enables language comprehension in context, transforming texts from any source into structured data to use in code.
