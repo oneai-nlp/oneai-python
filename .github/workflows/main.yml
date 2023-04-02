@@ -30,8 +30,9 @@ jobs:
         python -m pip install pytest
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
         if [ -f requirements_dev.txt ]; then pip install -r requirements_dev.txt; fi
-    - name: Test with pytest
+    - name: Test with pytest and coveralls
       run: |
-        pytest
+        pytest --cov=src
+        coveralls
       env:
         API_KEY: ${{ secrets.API_KEY }}
