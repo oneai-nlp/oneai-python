@@ -36,3 +36,4 @@ jobs:
         coveralls
       env:
         API_KEY: ${{ secrets.API_KEY }}
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
