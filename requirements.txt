@@ -1,7 +1,6 @@
 aiohttp==3.8.3
 validators==0.20.0
-typing_extensions==4.3.0; python_version >= "3.7"
-typing-extensions==4.1.0; python_version < "3.7"
+typing_extensions==4.3.0
 dataclasses==0.8; python_version < "3.7"
 requests==2.27.1
 python-dateutil==2.8.2
