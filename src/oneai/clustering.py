@@ -223,6 +223,8 @@ class Collection:
                 result["item_metadata"] = input.metadata
             if hasattr(input, "datetime") and input.datetime:
                 result["timestamp"] = int(input.datetime.timestamp())
+            if hasattr(input, "text_index") and input.text_index:
+                result["text_index"] = input.text_index
             return result
 
         url = f"{self.id}/items"

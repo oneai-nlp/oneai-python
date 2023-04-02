@@ -197,6 +197,8 @@ class Input(Generic[TextContent]):
         Optional metadata to be associated with the input in clustering collections.
     `datetime: datetime`
         Optional datetime to be associated with the input in clustering collections.
+    `text_index: str`
+        Optional text index to be associated with the input in clustering collections.
     """
 
     def __init__(
@@ -208,6 +210,7 @@ class Input(Generic[TextContent]):
         encoding: str = None,
         metadata: Dict[str, any] = None,
         datetime: datetime = None,
+        text_index: str = None,
     ):
         self.text: TextContent = text
         self.type = type
@@ -215,6 +218,7 @@ class Input(Generic[TextContent]):
         self.encoding = encoding
         self.metadata = metadata
         self.datetime = datetime
+        self.text_index = text_index
 
     @classmethod
     def wrap(
