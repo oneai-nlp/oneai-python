@@ -1,7 +1,7 @@
 from dataclasses import dataclass, field
 from datetime import datetime
 import urllib.parse
-from typing import Generator, List, Union
+from typing import Generator, List, Optional, Union
 from typing_extensions import Literal
 import oneai
 from oneai.api import get_clustering, get_clustering_paginated, post_clustering
@@ -34,6 +34,7 @@ class Item(Input[str]):
     phrase: "Phrase" = field(repr=False)
     cluster: "Cluster" = field(repr=False)
     metadata: dict = field(default_factory=dict)
+    text_index: Optional[str] = None
 
     @classmethod
     def from_dict(cls, phrase: "Phrase", object: dict) -> "Item":
@@ -45,6 +46,7 @@ class Item(Input[str]):
             phrase=phrase,
             cluster=phrase.cluster,
             metadata={k: v[0]["value"] for k, v in object["metadata"].items()},
+            text_index=object.get("translated_text", None),
         )
         item.type = "article"
         item.content_type = "text/plain"
@@ -59,6 +61,7 @@ class Phrase:
     cluster: "Cluster" = field(repr=False)
     collection: "Collection" = field(repr=False)
     metadata: dict = field(default_factory=dict)
+    text_index: Optional[str] = None
 
     def get_items(
         self,
@@ -85,6 +88,7 @@ class Phrase:
             cluster=cluster,
             collection=cluster.collection,
             metadata=object["metadata"],
+            text_index=object.get("item_translated_text", None),
         )
 
 
@@ -96,6 +100,7 @@ class Cluster:
     item_count: int
     collection: "Collection" = field(repr=False)
     metadata: dict = field(default_factory=dict)
+    text_index: Optional[str] = None
 
     def get_phrases(
         self,
@@ -166,6 +171,7 @@ class Cluster:
             item_count=object["items_count"],
             collection=collection,
             metadata=object["metadata"],
+            text_index=object.get("item_translated_text", None),
         )
 
 
