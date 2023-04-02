@@ -464,3 +464,10 @@ class BatchResponse:
             if isinstance(key, Hashable) and key in self._data
             else next(v for k, v in self._data.items() if k.text == key)
         )
+
+    def __contains__(self, key: Input) -> bool:
+        return (
+            isinstance(key, Hashable)
+            and key in self._data
+            or any(k.text == key for k in self._data)
+        )

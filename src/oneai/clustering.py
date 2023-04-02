@@ -227,7 +227,7 @@ class Collection:
 
         url = f"{self.id}/items"
         data = [build_item(item) for item in items]
-        print(post_clustering(url, data, self.api_key))
+        return post_clustering(url, data, self.api_key)
 
     def __repr__(self) -> str:
         return f"oneai.Collection({self.id})"

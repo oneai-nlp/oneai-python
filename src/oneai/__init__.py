@@ -1,4 +1,4 @@
-__version__ = "0.9.30"
+__version__ = "0.9.31"
 __package__ = "oneai"
 
 import logging
@@ -10,6 +10,7 @@ from oneai.pipeline import Pipeline
 import oneai.clustering as clustering
 import oneai.parsing as parsing
 import oneai.util as util
+import oneai.exceptions as exceptions
 
 URL: Final[str] = "https://api.oneai.com"
 """
