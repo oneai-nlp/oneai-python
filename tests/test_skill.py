@@ -60,3 +60,9 @@ def test_custom_within_pipeline():
     assert hasattr(output.summary.custom_text, "custom_labels")
     assert hasattr(output.summary.custom_text, "proofread")
     assert hasattr(output.summary.custom_text.proofread, "replacements")
+
+
+def test_modify_predefined_skill():
+    pipeline = oneai.Pipeline([oneai.skills.Keywords(labels_attr="magic_labels")])
+    output = pipeline.run(DOCUMENT)
+    assert hasattr(output, "magic_labels") and output.magic_labels is not None
