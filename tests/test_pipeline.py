@@ -1,25 +1,30 @@
+from typing import List
 import oneai
 import pytest
 
 from tests.constants import DOCUMENT, CONVERSATION, URL_INPUT
+from tests.util import hasattrnested
 
 
 @pytest.mark.parametrize(
-    "pipeline, input, notes",
+    "pipeline, input, attrs, notes",
     [
         (
             oneai.Pipeline([oneai.skills.Keywords()]),
             DOCUMENT,
+            ["keywords"],
             "simple document",
         ),
         (
             oneai.Pipeline([oneai.skills.Keywords()]),
             CONVERSATION,
+            ["keywords"],
             "simple conversation",
         ),
         (
             oneai.Pipeline([oneai.skills.Summarize(), oneai.skills.Keywords()]),
             DOCUMENT,
+            ["summary", "summary.keywords"],
             "first Skill generator",
         ),
         (
@@ -31,6 +36,7 @@ from tests.constants import DOCUMENT, CONVERSATION, URL_INPUT
                 ]
             ),
             DOCUMENT,
+            ["emotions", "summary", "summary.keywords"],
             "empty labels, then generator",
         ),
         (
@@ -42,6 +48,7 @@ from tests.constants import DOCUMENT, CONVERSATION, URL_INPUT
                 ]
             ),
             DOCUMENT,
+            ["summary", "summary.proofread", "summary.proofread.anonymized"],
             "multiple generators",
         ),
         (
@@ -51,6 +58,7 @@ from tests.constants import DOCUMENT, CONVERSATION, URL_INPUT
                 ]
             ),
             DOCUMENT,
+            ["custom_summary"],
             "custom Skill only",
         ),
         (
@@ -64,6 +72,13 @@ from tests.constants import DOCUMENT, CONVERSATION, URL_INPUT
                 ]
             ),
             DOCUMENT,
+            [
+                "summary",
+                "summary.names",
+                "summary.custom_keywords",
+                "summary.keywords",
+                "summary.summary",
+            ],
             "custom Skill, surrounded by core Skills",
         ),
         (
@@ -74,13 +89,18 @@ from tests.constants import DOCUMENT, CONVERSATION, URL_INPUT
                 ]
             ),
             URL_INPUT,
+            ["html_article", "html_article.html_labels", "html_article.emotions"],
             "URL input",
         ),
     ],
 )
-def test_pipeline(pipeline: oneai.Pipeline, input: oneai.TextContent, notes: str):
+def test_pipeline(
+    pipeline: oneai.Pipeline, input: oneai.TextContent, attrs: List[str], notes: str
+):
     try:
-        pipeline.run(input)
+        output = pipeline.run(input)
+        for attr in attrs:
+            assert hasattrnested(output, attr)
     except Exception as e:
         pytest.fail(f"Pipeline failed on {notes}: {e}")
 
