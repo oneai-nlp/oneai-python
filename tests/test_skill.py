@@ -67,5 +67,5 @@ def test_modify_predefined_skill():
     output = pipeline.run(URL_INPUT)
     assert (
         hasattr(output.html_article, "magic_labels")
-        and output.html_article.magic_labels is not None
+        and output.html_article.magic_labels
     )

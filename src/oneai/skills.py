@@ -196,7 +196,7 @@ class PDFExtractText(Skill):
 
 
 @skillclass(
-    api_name="extract-html",
+    api_name="html-extract-article",
     text_attr="html_article",
     labels_attr="html_labels",
 )
