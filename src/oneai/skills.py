@@ -198,6 +198,7 @@ class PDFExtractText(Skill):
 @skillclass(
     api_name="extract-html",
     text_attr="html_article",
+    labels_attr="html_labels",
 )
 class HtmlToArticle(Skill):
     """
@@ -664,6 +665,7 @@ class OutputAttrs:
     proofread: "Output[List[Utterance]]" = None
     html_article: "Output[str]" = None
     html_text: "Output[str]" = None
+    html_labels: Labels = None
     pdf_text: "Output[str]" = None
     transcription: "Output[List[Utterance]]" = None
     anonymized: "Output" = None

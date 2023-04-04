@@ -1,5 +1,5 @@
 import oneai
-from tests.constants import DOCUMENT
+from tests.constants import DOCUMENT, URL_INPUT
 
 
 def test_custom_text():
@@ -63,6 +63,9 @@ def test_custom_within_pipeline():
 
 
 def test_modify_predefined_skill():
-    pipeline = oneai.Pipeline([oneai.skills.Keywords(labels_attr="magic_labels")])
-    output = pipeline.run(DOCUMENT)
-    assert hasattr(output, "magic_labels") and output.magic_labels is not None
+    pipeline = oneai.Pipeline([oneai.skills.HtmlToArticle(labels_attr="magic_labels")])
+    output = pipeline.run(URL_INPUT)
+    assert (
+        hasattr(output.html_article, "magic_labels")
+        and output.html_article.magic_labels is not None
+    )
