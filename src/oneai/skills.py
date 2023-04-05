@@ -189,9 +189,10 @@ class PDFExtractText(Skill):
     """
     Extracts the text from PDF files.
 
-    ## Output
+    ## Output Attributes
 
-    Main text content from the PDF file
+    `pdf_text: Output`
+        An `Output` object containing the extracted text, and output of the following `Skill`s
     """
 
 

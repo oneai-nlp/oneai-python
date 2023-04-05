@@ -12,6 +12,7 @@ CONVERSATION = [
 URL_INPUT = "https://techcrunch.com/2022/05/30/one-ai-raises-8m-to-curate-business-specific-nlp-models/"
 WAV_PATH = "./tests/testAudio.wav"
 MP3_PATH = "./tests/testAudio.mp3"
+PDF_PATH = "./tests/testPDF.pdf"
 CONVERSATION_PARSING_TESTS = [
     {
         "desc": "consistent 'SPEAKER  0:00' format",
