@@ -57,3 +57,13 @@ def test_empty_collection():
         )
         == None
     )
+
+
+def test_find_clusters():
+    matches = [cluster.text for cluster in collection.find_clusters("access account")]
+    assert "Can not access account" in matches
+
+
+def test_find_phrases():
+    matches = [phrase.text for phrase in collection.find_phrases("cancel order")]
+    assert "Cancel order" in matches

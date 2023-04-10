@@ -80,14 +80,16 @@ class Phrase:
         )
 
     @classmethod
-    def from_dict(cls, cluster: "Cluster", object: dict) -> "Phrase":
+    def from_dict(
+        cls, cluster: "Cluster", object: dict, collection: "Collection" = None
+    ) -> "Phrase":
         return cls(
             id=int(object["phrase_id"]),
-            text=object.get("text", ""),
+            text=object.get("text", object.get("phrase_text", "")),
             item_count=object["items_count"],
             cluster=cluster,
-            collection=cluster.collection,
-            metadata=object["metadata"],
+            collection=cluster.collection if cluster else collection,
+            metadata=object.get("metadata", None),
             text_index=object.get("item_translated_text", None),
         )
 
@@ -166,11 +168,11 @@ class Cluster:
     def from_dict(cls, collection: "Collection", object: dict) -> "Cluster":
         return cls(
             id=int(object["cluster_id"]),
-            text=object["cluster_phrase"],
-            phrase_count=object["phrases_count"],
-            item_count=object["items_count"],
+            text=object.get("cluster_phrase", object["cluster_text"]),
+            phrase_count=object.get("phrases_count", -1),
+            item_count=object.get("items_count", -1),
             collection=collection,
-            metadata=object["metadata"],
+            metadata=object.get("metadata", None),
             text_index=object.get("item_translated_text", None),
         )
 
@@ -204,18 +206,30 @@ class Collection:
             item_metadata,
         )
 
-    def find(self, query: str, threshold: float = 0.5) -> List[Cluster]:
+    def find_phrases(self, query: str, *, threshold: float = 0.5, limit: int = 100):
+        params = {
+            "text": query,
+            "similarity-threshold": threshold,
+            "max_phrases": limit,
+        }
+
+        url = f"{self.id}/phrases/find?{urllib.parse.urlencode(params)}"
+        return [
+            Phrase.from_dict(None, phrase, self)
+            for phrase in get_clustering(url, self.api_key)
+        ]
+
+    def find_clusters(self, query: str, threshold: float = 0.5) -> List[Cluster]:
         params = {
             "text": query,
             "similarity-threshold": threshold,
         }
 
         url = f"{self.id}/clusters/find?{urllib.parse.urlencode(params)}"
-        # return [
-        #     Cluster.from_dict(self, cluster)
-        #     for cluster in get_clustering(url, self.api_key)
-        # ]
-        return get_clustering(url, self.api_key)
+        return [
+            Cluster.from_dict(self, cluster)
+            for cluster in get_clustering(url, self.api_key)
+        ]
 
     def add_items(
         self, items: List[PipelineInput[str]], force_new_clusters: bool = False
