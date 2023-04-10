@@ -168,7 +168,9 @@ class Cluster:
     def from_dict(cls, collection: "Collection", object: dict) -> "Cluster":
         return cls(
             id=int(object["cluster_id"]),
-            text=object.get("cluster_phrase", object["cluster_text"]),
+            text=object["cluster_phrase"]
+            if "cluster_phrase" in object
+            else object["cluster_text"],
             phrase_count=object.get("phrases_count", -1),
             item_count=object.get("items_count", -1),
             collection=collection,
