@@ -1,6 +1,6 @@
 import asyncio
 import oneai
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 from typing_extensions import Literal
 from dataclasses import dataclass
 
@@ -31,13 +31,14 @@ def generate_chapters(
     input: oneai.PipelineInput,
     amount: Literal["more", "less", "normal"] = None,
     preprocessing: Optional[oneai.Skill] = None,
+    *,
+    params: Dict[str, Any] = None,
 ) -> List[Chapter]:
+    split_by_topic = oneai.skills.SplitByTopic(amount=amount, params=params)
     output = asyncio.run(
-        oneai.Pipeline([oneai.skills.SplitByTopic(amount=amount)]).run_async(input)
+        oneai.Pipeline([split_by_topic]).run_async(input)
         if not preprocessing
-        else oneai.Pipeline(
-            [preprocessing, oneai.skills.SplitByTopic(amount=amount)]
-        ).run_async(input)
+        else oneai.Pipeline([preprocessing, split_by_topic]).run_async(input)
     )
     if preprocessing:
         output = output.__getattribute__(preprocessing.output_attr)
