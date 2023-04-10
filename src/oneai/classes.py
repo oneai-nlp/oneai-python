@@ -153,10 +153,10 @@ def skillclass(
         def __init__(self, **params):
             Skill.__init__(
                 self,
-                api_name=params.get("api_name", api_name),
-                text_attr=params.get("text_attr", text_attr),
-                labels_attr=params.get("labels_attr", labels_attr),
-                params=params.get("params", params),
+                api_name=params.pop("api_name", api_name),
+                text_attr=params.pop("text_attr", text_attr),
+                labels_attr=params.pop("labels_attr", labels_attr),
+                params=params.pop("params", params),
             )
 
             for k, v in classVars.items():
