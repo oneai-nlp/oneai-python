@@ -151,16 +151,20 @@ def skillclass(
                 delattr(cls, k)
 
         def __init__(self, **params):
+            if "params" in params:
+                params = {**params, **params["params"]}
+                del params["params"]
+
             Skill.__init__(
                 self,
                 api_name=params.pop("api_name", api_name),
                 text_attr=params.pop("text_attr", text_attr),
                 labels_attr=params.pop("labels_attr", labels_attr),
-                params=params.pop("params", params),
+                params=params,
             )
 
             for k, v in classVars.items():
-                if k not in self.params:
+                if k not in params:
                     setattr(self, k, v)
 
         def __getattr__(self, name):
