@@ -151,7 +151,7 @@ def skillclass(
                 delattr(cls, k)
 
         def __init__(self, **params):
-            if "params" in params:
+            if "params" in params and isinstance(params["params"], dict):
                 params = {**params, **params["params"]}
                 del params["params"]
 
