@@ -160,7 +160,7 @@ def skillclass(
             )
 
             for k, v in classVars.items():
-                if k not in params:
+                if k not in self.params:
                     setattr(self, k, v)
 
         def __getattr__(self, name):
