@@ -39,8 +39,8 @@ class Item(Input[str]):
     @classmethod
     def from_dict(cls, phrase: "Phrase", object: dict) -> "Item":
         item = cls(
-            id=object.get("id", object["item_id"]),
-            text=object.get("original_text", object["item_original_text"]),
+            id=object.get("id", object.get("item_id", None)),
+            text=object.get("original_text", object.get("item_original_text")),
             datetime=datetime.strptime(object["create_date"], f"%Y-%m-%d %H:%M:%S.%f")
             if isinstance(object["create_date"], str)
             else datetime.fromtimestamp(object["create_date"] / 1000),
