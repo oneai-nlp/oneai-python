@@ -39,13 +39,15 @@ class Item(Input[str]):
     @classmethod
     def from_dict(cls, phrase: "Phrase", object: dict) -> "Item":
         item = cls(
-            id=object["id"],
-            text=object["original_text"],
-            datetime=datetime.strptime(object["create_date"], f"%Y-%m-%d %H:%M:%S.%f"),
+            id=object.get("id", object["item_id"]),
+            text=object.get("original_text", object["item_original_text"]),
+            datetime=datetime.strptime(object["create_date"], f"%Y-%m-%d %H:%M:%S.%f")
+            if isinstance(object["create_date"], str)
+            else datetime.fromtimestamp(object["create_date"] / 1000),
             distance=object["distance_to_phrase"],
             phrase=phrase,
             cluster=phrase.cluster,
-            metadata={k: v[0]["value"] for k, v in object["metadata"].items()},
+            metadata=object.get("metadata", {}),
             text_index=object.get("translated_text", None),
         )
         item.type = "article"
@@ -62,6 +64,7 @@ class Phrase:
     collection: "Collection" = field(repr=False)
     metadata: dict = field(default_factory=dict)
     text_index: Optional[str] = None
+    _items: Optional[List[Item]] = None
 
     def get_items(
         self,
@@ -83,7 +86,7 @@ class Phrase:
     def from_dict(
         cls, cluster: "Cluster", object: dict, collection: "Collection" = None
     ) -> "Phrase":
-        return cls(
+        phrase = cls(
             id=int(object["phrase_id"]),
             text=object.get("text", object.get("phrase_text", "")),
             item_count=object["items_count"],
@@ -92,6 +95,10 @@ class Phrase:
             metadata=object.get("metadata", None),
             text_index=object.get("item_translated_text", None),
         )
+        phrase._items = [
+            Item.from_dict(phrase, item) for item in object.get("items", [])
+        ]
+        return phrase
 
 
 @dataclass
@@ -208,11 +215,21 @@ class Collection:
             item_metadata,
         )
 
-    def find_phrases(self, query: str, *, threshold: float = 0.5, limit: int = 100):
+    def find_phrases(
+        self,
+        query: str,
+        *,
+        threshold: float = 0.5,
+        limit: int = 100,
+        include_items: bool = False,
+        items_limit: int = 10,
+    ) -> List[Phrase]:
         params = {
             "text": query,
             "similarity-threshold": threshold,
-            "max_phrases": limit,
+            "max-phrases": limit,
+            "include-items": include_items,
+            "max-items": items_limit,
         }
 
         url = f"{self.id}/phrases/find?{urllib.parse.urlencode(params)}"

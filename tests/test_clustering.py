@@ -65,5 +65,8 @@ def test_find_clusters():
 
 
 def test_find_phrases():
-    matches = [phrase.text for phrase in collection.find_phrases("cancel order")]
+    matches = [
+        phrase.text
+        for phrase in collection.find_phrases("cancel order", include_items=True)
+    ]
     assert "Cancel order" in matches
