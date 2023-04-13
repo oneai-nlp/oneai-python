@@ -122,3 +122,7 @@ def test_batch():
         assert isinstance(
             outputs[input], Exception if input == URL_INPUT else oneai.Output
         )
+
+
+def test_generate_chapters():
+    assert oneai.util.generate_chapters(DOCUMENT, amount="more")
