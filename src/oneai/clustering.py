@@ -48,7 +48,9 @@ class Item(Input[str]):
             phrase=phrase,
             cluster=phrase.cluster,
             metadata=object.get("metadata", {}),
-            text_index=object.get("translated_text", None),
+            text_index=object.get(
+                "translated_text", object.get("item_translated_text", None)
+            ),
         )
         item.type = "article"
         item.content_type = "text/plain"
