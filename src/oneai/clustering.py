@@ -227,7 +227,7 @@ class Collection:
         items_limit: int = 10,
     ) -> List[Phrase]:
         params = {
-            "text": query,
+            "text": query.replace("\n", "\\n"),
             "similarity-threshold": threshold,
             "max-phrases": limit,
             "include-items": include_items,
@@ -242,7 +242,7 @@ class Collection:
 
     def find_clusters(self, query: str, threshold: float = 0.5) -> List[Cluster]:
         params = {
-            "text": query,
+            "text": query.replace("\n", "\\n"),
             "similarity-threshold": threshold,
         }
 
