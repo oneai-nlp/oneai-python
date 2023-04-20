@@ -253,13 +253,20 @@ class Collection:
         ]
 
     def add_items(
-        self, items: List[PipelineInput[str]], force_new_clusters: bool = False
+        self,
+        items: List[PipelineInput[str]],
+        *,
+        cluster_distance_threshold: float = None,
+        phrase_distance_threshold: float = None,
     ):
         def build_item(input: PipelineInput[str]):
             result = {
                 "text": input.text if isinstance(input, Input) else str(input),
-                "force-new-cluster": force_new_clusters,
             }
+            if cluster_distance_threshold:
+                result["cluster_distance_threshold"] = cluster_distance_threshold
+            if phrase_distance_threshold:
+                result["phrase_distance_threshold"] = phrase_distance_threshold
             if hasattr(input, "metadata") and input.metadata:
                 result["item_metadata"] = input.metadata
             if hasattr(input, "datetime") and input.datetime:
