@@ -473,6 +473,9 @@ class BatchResponse:
             else next(v for k, v in self._data.items() if k.text == key)
         )
 
+    def items(self) -> Iterable[Tuple[Input, Output]]:
+        return self._data.items()
+
     def __contains__(self, key: Input) -> bool:
         return (
             isinstance(key, Hashable)

@@ -594,6 +594,54 @@ class Clustering(Skill):
     """Use the output of a Skill as input for clustering, omit to use the input directly"""
 
 
+@skillclass(api_name="clustering")
+class CollectionInsert(Skill):
+    """
+    Insert input into a collection
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.Sentiments(),
+    ...     oneai.skills.Clustering(
+    ...         collection="my_collection",
+    ...         input_skill=oneai.skills.Sentiments(),
+    ...     ),
+    ... ])
+    >>> pipeline.run(input)
+    """
+
+    collection: str = ""
+    """The name of the collection to insert the input into"""
+    input_skill: str = ""
+    """Use the output of a Skill as input for clustering, omit to use the input directly"""
+
+
+@skillclass(api_name="collection-search")
+class CollectionSearch(Skill):
+    """
+    Find most matching items in a collection. Results are grouped in phrases.
+
+    ## Example
+
+    >>> pipeline = oneai.Pipeline(steps=[
+    ...     oneai.skills.CollectionSearch(
+    ...         collection="my_collection",
+    ...     ),
+    ... ])
+    >>> pipeline.run(input)
+    """
+
+    collection: str = ""
+    """The name of the collection to insert the input into"""
+    max_items: int = 1
+    """Maximum number of items per phrase to return"""
+    max_phrases: int = 3
+    """Maximum number of phrases to return"""
+    sort_by: Literal["similarity", "position"] = "similarity"
+    """Sort results by similarity to input or by position in original text when inserted"""
+
+
 @skillclass(api_name="gpt")
 class GPT(Skill):
     """
