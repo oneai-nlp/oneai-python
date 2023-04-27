@@ -19,6 +19,11 @@ items = [
 def test_add_items():
     assert "status" in collection.add_items(items)
 
+    # insert via pipeline
+    oneai.Pipeline(
+        steps=[oneai.skills.CollectionInsert(collection=collection.id)]
+    ).run_batch(items)
+
 
 def test_get_collections():
     collec = next(oneai.clustering.get_collections(limit=1, api_key=oneai.api_key))
@@ -70,3 +75,10 @@ def test_find_phrases():
         for phrase in collection.find_phrases("cancel order", include_items=True)
     ]
     assert "Cancel order" in matches
+
+    # find via pipeline
+    assert (
+        oneai.Pipeline(steps=[oneai.skills.CollectionSearch(collection=collection.id)])
+        .run("cancel order")
+        .matches
+    )

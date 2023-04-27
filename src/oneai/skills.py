@@ -617,7 +617,7 @@ class CollectionInsert(Skill):
     """Use the output of a Skill as input for clustering, omit to use the input directly"""
 
 
-@skillclass(api_name="collection-search")
+@skillclass(api_name="collection-search", labels_attr="matches")
 class CollectionSearch(Skill):
     """
     Find most matching items in a collection. Results are grouped in phrases.
@@ -661,7 +661,7 @@ class GPT(Skill):
     ...     oneai.skills.GPT()
     ... ])
     >>> output = pipeline.run('...')
-    >>> output.completion
+    >>> output.gpt_text
     """
 
     model: Literal[
@@ -741,3 +741,4 @@ class OutputAttrs:
     classification: Labels = None
     gpt_text: str = None
     gpt_labels: Labels = None
+    matches: Labels = None
