@@ -164,15 +164,28 @@ def skillclass(
             )
 
             for k, v in classVars.items():
-                if k not in params:
-                    setattr(self, k, v)
+                if k not in self.params and k is not None:
+                    self.params[k] = v
 
         def __getattr__(self, name):
-            return self.params[name]
+            if name in Skill.__annotations__:
+                return object.__getattribute__(self, name)
+
+            if name not in classVars:
+                raise AttributeError(
+                    f"'{self.__class__.__name__}' object has no attribute '{name}'"
+                )
+            return self.params.get(name, None)
 
         def __setattr__(self, name, value):
-            if "params" not in self.__dict__:
+            if name in Skill.__annotations__:
                 return object.__setattr__(self, name, value)
+
+            if name not in classVars:
+                warn(
+                    f"warning: parameter '{name}' not defined in class {self.__class__.__name__}",
+                    stacklevel=2,
+                )
             self.params[name] = value
 
         cls.__init__ = __init__

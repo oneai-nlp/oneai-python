@@ -1,4 +1,5 @@
 import oneai
+import pytest
 from tests.constants import DOCUMENT, URL_INPUT
 
 
@@ -69,3 +70,12 @@ def test_modify_predefined_skill():
         hasattr(output.html_article, "magic_labels")
         and output.html_article.magic_labels
     )
+
+
+def test_init_skill():
+    attrs = ["prompt_fields", "prompt", "temperature"]
+    skill = oneai.skills.GPT()
+    assert all(hasattr(skill, a) for a in attrs)
+    # should not crash - allow params not defined explicitly in SDK
+    with pytest.warns(UserWarning):
+        skill.fake_param = "fake"
