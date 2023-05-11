@@ -44,7 +44,7 @@ def build_output(
         output_index = max(output_index, 0)
         labels = [
             Label.from_dict(label)
-            for label in raw_output["output"][output_index]["labels"]
+            for label in raw_output["output"][output_index].get("labels", [])
         ]
         data = []
         for i, skill in enumerate(skills):
