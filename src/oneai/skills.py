@@ -593,8 +593,14 @@ class Clustering(Skill):
     input_skill: str = ""
     """Use the output of a Skill as input for clustering, omit to use the input directly"""
 
+    def __post_init__(self):
+        if self.collection:
+            object.__setattr__(self, "labels_attr", "status")
+        else:
+            object.__setattr__(self, "labels_attr", "clusters")
 
-@skillclass(api_name="clustering")
+
+@skillclass(api_name="clustering", labels_attr="status")
 class CollectionInsert(Skill):
     """
     Insert input into a collection
@@ -721,6 +727,8 @@ class OutputAttrs:
     words: Labels = None
     emotions: Labels = None
     names: Labels = None
+    clusters: Labels = None
+    status: Labels = None
     numbers: Labels = None
     keywords: Labels = None
     highlights: Labels = None
