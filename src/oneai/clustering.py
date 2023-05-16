@@ -208,17 +208,21 @@ class Collection:
         self.id = id
         self.api_key = api_key or oneai.api_key
 
+    @classmethod
     def create(
-        self,
+        cls,
+        id: str,
+        *,
+        api_key: str = None,
         access: AccessSettings = None,
         cluster_distance_threshold: float = None,
         phrase_distance_threshold: float = None,
         domain: Literal[
             "curation", "survey", "reviews", "service", "classify"
         ] = "service",
-    ):
+    ) -> "Collection":
         post_clustering(
-            f"{self.id}/create",
+            f"{id}/create",
             {
                 "access": asdict(access if access else AccessSettings()),
                 "cluster_distance_threshold": cluster_distance_threshold,
@@ -226,6 +230,7 @@ class Collection:
                 "domain": domain,
             },
         )
+        return cls(id, api_key)
 
     def get_clusters(
         self,

@@ -1,5 +1,6 @@
 import pytest
 import oneai
+import uuid
 
 collection = oneai.clustering.Collection("test-collection", api_key=oneai.api_key)
 cluster: oneai.clustering.Cluster = None
@@ -27,6 +28,14 @@ def test_add_items():
 
 def test_get_collections():
     collec = next(oneai.clustering.get_collections(limit=1, api_key=oneai.api_key))
+    assert collec.id
+
+
+def test_create_collection():
+    collec = oneai.clustering.Collection.create(
+        f"test-python-sdk-{oneai.__version__}-{uuid.uuid4().hex}",
+        domain="service",
+    )
     assert collec.id
 
 
