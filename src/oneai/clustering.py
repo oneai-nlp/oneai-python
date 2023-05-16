@@ -1,4 +1,4 @@
-from dataclasses import dataclass, field
+from dataclasses import dataclass, field, asdict
 from datetime import datetime
 import urllib.parse
 from typing import Generator, List, Optional, Union
@@ -188,10 +188,44 @@ class Cluster:
         )
 
 
+@dataclass
+class AccessSettings:
+    query: bool = True
+    list_clusters: bool = True
+    list_phrases: bool = True
+    list_items: bool = True
+    add_items: bool = True
+    edit_clusters: bool = True
+    discoverable: bool = True
+
+
 class Collection:
-    def __init__(self, id: str, api_key: str = None):
+    def __init__(
+        self,
+        id: str,
+        api_key: str = None,
+    ):
         self.id = id
         self.api_key = api_key or oneai.api_key
+
+    def create(
+        self,
+        access: AccessSettings = None,
+        cluster_distance_threshold: float = None,
+        phrase_distance_threshold: float = None,
+        domain: Literal[
+            "curation", "survey", "reviews", "service", "classify"
+        ] = "service",
+    ):
+        post_clustering(
+            f"{self.id}/create",
+            {
+                "access": asdict(access if access else AccessSettings()),
+                "cluster_distance_threshold": cluster_distance_threshold,
+                "phrase_distance_threshold": phrase_distance_threshold,
+                "domain": domain,
+            },
+        )
 
     def get_clusters(
         self,
