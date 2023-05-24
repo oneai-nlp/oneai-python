@@ -58,6 +58,12 @@ def build_output(
                 )
         return Output(text=text, skills=list(skills), data=data)
 
+    # handle output lists
+    if "outputs" in raw_output:
+        return Output(
+            "", outputs=[build_output(skills, o) for o in raw_output["outputs"]]
+        )
+
     generator = raw_output["output"][0].get("text_generated_by_step_id", 0) - 1
     if generator < 0:
         return build_internal(-1, skills)

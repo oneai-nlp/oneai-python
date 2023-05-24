@@ -8,7 +8,7 @@ import aiohttp
 import oneai
 from oneai.api.output import build_output
 from oneai.api.pipeline import post_pipeline, post_pipeline_async_file, get_task_status
-from oneai.classes import Input, Output, PipelineInput, Skill
+from oneai.classes import Input, Output, PipelineInput, Skill, CSVParams
 from oneai.exceptions import ServerError, handle_unsuccessful_response
 
 logger = logging.getLogger("oneai")
@@ -25,12 +25,16 @@ STATUS_FAILED = "FAILED"
 
 # open a client session and send a request
 async def process_single_input(
-    input: PipelineInput, steps: List[Skill], api_key: str, multilingual: bool = False
+    input: PipelineInput,
+    steps: List[Skill],
+    api_key: str,
+    multilingual: bool = False,
+    csv_params: CSVParams = None,
 ) -> Awaitable[Output]:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         return await _run_internal(
-            session, Input.wrap(input), steps, api_key, multilingual
+            session, Input.wrap(input), steps, api_key, multilingual, csv_params
         )
 
 
@@ -40,6 +44,7 @@ async def process_file_async(
     api_key: str,
     interval: int,
     multilingual: bool = False,
+    csv_params: CSVParams = None,
 ) -> Awaitable[Output]:
     input = Input.wrap(input, False)
     timeout = aiohttp.ClientTimeout(total=6000)
@@ -47,7 +52,9 @@ async def process_file_async(
         name = input.text.name
         logger.debug(f"Uploading file '{name}'")
         task_id = (
-            await post_pipeline_async_file(session, input, steps, api_key, multilingual)
+            await post_pipeline_async_file(
+                session, input, steps, api_key, multilingual, csv_params
+            )
         )["task_id"]
         logger.debug(f"Upload of file '{name}' complete\n")
 
@@ -176,6 +183,7 @@ async def _run_internal(
     skills: List[Skill],
     api_key: str,
     multilingual: bool,
+    csv_params: CSVParams = None,
 ) -> Awaitable[Output]:
     if not skills:  # no skills
         return Output(input.text)
@@ -183,4 +191,6 @@ async def _run_internal(
     if input.content_type == "text/uri-list":
         input = await fetch_url(session, input.text)
 
-    return await post_pipeline(session, input, skills, api_key, multilingual)
+    return await post_pipeline(
+        session, input, skills, api_key, multilingual, csv_params
+    )

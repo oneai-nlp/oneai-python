@@ -6,7 +6,7 @@ from typing import Awaitable, List
 import aiohttp
 import oneai, oneai.api
 from oneai.api.output import build_output
-from oneai.classes import Input, Output, Skill
+from oneai.classes import Input, Output, Skill, CSVParams
 from oneai.exceptions import handle_unsuccessful_response, validate_api_key
 
 endpoint_default = "api/v0/pipeline"
@@ -15,7 +15,11 @@ endpoint_async_tasks = "api/v0/pipeline/async/tasks"
 
 
 def build_request(
-    input: Input, steps: List[Skill], multilingual: bool, include_text: bool
+    input: Input,
+    steps: List[Skill],
+    multilingual: bool,
+    include_text: bool,
+    csv_params: CSVParams = None,
 ):
     def json_default(obj):
         if isinstance(obj, timedelta):
@@ -38,6 +42,10 @@ def build_request(
     }
     if include_text:
         request["text"] = input.text
+    if csv_params is not None:
+        request["csv_params"] = {
+            k: v for k, v in csv_params.asdict().items() if v is not None
+        }
     if isinstance(input, Input):
         if input.type:
             request["input_type"] = input.type
@@ -54,10 +62,11 @@ async def post_pipeline(
     steps: List[Skill],
     api_key: str,
     multilingual: bool,
+    csv_params: CSVParams = None,
 ) -> Awaitable[Output]:
     validate_api_key(api_key)
 
-    request = build_request(input, steps, multilingual, True)
+    request = build_request(input, steps, multilingual, True, csv_params)
     url = f"{oneai.URL}/{endpoint_default}"
     headers = {
         "api-key": api_key,
@@ -83,10 +92,11 @@ async def post_pipeline_async_file(
     steps: List[Skill],
     api_key: str,
     multilingual: bool,
+    csv_params: CSVParams = None,
 ) -> Awaitable[str]:
     validate_api_key(api_key)
 
-    request = build_request(input, steps, multilingual, False)
+    request = build_request(input, steps, multilingual, False, csv_params)
     url = f"{oneai.URL}/{endpoint_async_file}?pipeline=" + urllib.parse.quote(request)
     headers = {
         "api-key": api_key,

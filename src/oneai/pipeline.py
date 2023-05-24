@@ -6,7 +6,14 @@ import sys
 from typing import Awaitable, Callable, Dict, Iterable, List
 
 import oneai
-from oneai.classes import BatchResponse, Output, PipelineInput, Skill, TextContent
+from oneai.classes import (
+    BatchResponse,
+    Output,
+    PipelineInput,
+    Skill,
+    TextContent,
+    CSVParams,
+)
 from oneai.process_scheduler import *
 
 
@@ -69,6 +76,8 @@ class Pipeline:
         input: PipelineInput[TextContent],
         api_key: str = None,
         multilingual: bool = False,
+        *,
+        csv_params: CSVParams = None,
     ) -> Output[TextContent]:
         """
         Runs the pipeline on the input text.
@@ -96,6 +105,7 @@ class Pipeline:
                 self.steps,
                 api_key or self.api_key or oneai.api_key,
                 multilingual or self.multilingual or oneai.multilingual,
+                csv_params=csv_params,
             )
         )
 
@@ -105,6 +115,8 @@ class Pipeline:
         api_key: str = None,
         interval: int = 1,
         multilingual: bool = False,
+        *,
+        csv_params: CSVParams = None,
     ) -> Awaitable[Output[TextContent]]:
         """
         Runs the pipeline on the input text asynchronously.
@@ -133,6 +145,7 @@ class Pipeline:
                 api_key or self.api_key or oneai.api_key,
                 interval,
                 multilingual or self.multilingual or oneai.multilingual,
+                csv_params=csv_params,
             )
             if isinstance(input, io.IOBase)
             or (isinstance(input, Input) and isinstance(input.text, io.IOBase))
@@ -141,6 +154,7 @@ class Pipeline:
                 self.steps,
                 api_key or self.api_key or oneai.api_key,
                 multilingual or self.multilingual or oneai.multilingual,
+                csv_params=csv_params,
             )
         )
 

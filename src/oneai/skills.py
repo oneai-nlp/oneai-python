@@ -750,3 +750,5 @@ class OutputAttrs:
     gpt_text: str = None
     gpt_labels: Labels = None
     matches: Labels = None
+
+    outputs: List["Output"] = None

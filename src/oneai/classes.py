@@ -20,7 +20,7 @@ from typing import (
     Union,
     Hashable,
 )
-from typing_extensions import dataclass_transform
+from typing_extensions import dataclass_transform, Literal
 from warnings import warn
 
 
@@ -65,6 +65,7 @@ CONTENT_TYPES: Dict[str, Tuple[str, str]] = {
     ".mp4": ("audio/mpeg", "conversation"),
     ".html": ("text/plain", "article"),
     ".pdf": ("text/pdf", "article"),
+    ".csv": ("text/csv", "article"),
 }
 
 
@@ -261,7 +262,7 @@ class Input(Generic[TextContent]):
                     details="see supported files in docs",
                 )
             content_type, input_type = CONTENT_TYPES[ext]
-            if "b" not in mode:
+            if "b" not in mode and ext != ".csv":
                 return cls(text.read(), type=input_type, content_type=content_type)
             elif sync:
                 data = b64encode(text.read()).decode("ascii")
@@ -447,6 +448,7 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
         text: TextContent,
         skills: List[Skill] = [],
         data: List[Union[Labels, "Output"]] = [],
+        outputs: List["Output"] = None,
     ):
         super().__init__(
             text,
@@ -457,6 +459,9 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
         self.skills = skills
         for skill, value in zip(skills, data):
             setattr(self, skill.text_attr or skill.labels_attr or skill.api_name, value)
+
+        if outputs:
+            setattr(self, "outputs", outputs)
 
     def __dir__(self) -> Iterable[str]:
         return super().__dir__() + [
@@ -495,3 +500,33 @@ class BatchResponse:
             and key in self._data
             or any(k.text == key for k in self._data)
         )
+
+
+CSVColumn = Union[
+    Literal[
+        # The text input to be processed
+        "input",
+        # Input timestamp
+        "timestamp",
+        # Input translation
+        "input_translated",
+        # Skip column
+        False,
+    ],
+    # Custom Metadata
+    str,
+]
+
+
+@dataclass
+class CSVParams:
+    columns: List[CSVColumn]
+    skip_rows: int = 0
+    max_rows: Optional[int] = None
+
+    def asdict(self) -> dict:
+        return {
+            "columns": self.columns,
+            "skip_rows": self.skip_rows,
+            "max_rows": self.max_rows,
+        }

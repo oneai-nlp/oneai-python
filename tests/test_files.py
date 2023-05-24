@@ -1,7 +1,7 @@
 import oneai
 import pytest
 
-from tests.constants import MP3_PATH, WAV_PATH, PDF_PATH
+from tests.constants import MP3_PATH, WAV_PATH, PDF_PATH, CSV_PATH
 
 pipeline_audio = oneai.Pipeline(
     [
@@ -41,3 +41,30 @@ async def test_pdf(sync: bool):
         output = pipeline_pdf.run(f) if sync else await pipeline_pdf.run_async(f)
         assert hasattr(output, "pdf_text")
         assert output.pdf_text.text
+
+
+@pytest.mark.asyncio
+async def test_csv():
+    pipeline = oneai.Pipeline([oneai.skills.Numbers()])
+    with open(CSV_PATH, "r") as f:
+        output = await pipeline.run_async(
+            f,
+            csv_params=oneai.CSVParams(
+                columns=[
+                    "input",
+                    "timestamp",
+                    False,
+                    "input_translated",
+                    False,
+                    "metadata",
+                ],
+                skip_rows=1,
+                max_rows=3,
+            ),
+            multilingual=True,
+        )
+        assert hasattr(output, "outputs")
+        assert len(output.outputs) == 1
+        assert hasattr(output.outputs[0], "numbers")
+        assert len(output.outputs[0].numbers) == 1
+        assert hasattr(output.outputs[0].numbers[0], "value")

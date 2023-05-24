@@ -13,6 +13,7 @@ URL_INPUT = "https://techcrunch.com/2022/05/30/one-ai-raises-8m-to-curate-busine
 WAV_PATH = "./tests/testAudio.wav"
 MP3_PATH = "./tests/testAudio.mp3"
 PDF_PATH = "./tests/testPDF.pdf"
+CSV_PATH = "./tests/testCSV.csv"
 CONVERSATION_PARSING_TESTS = [
     {
         "desc": "consistent 'SPEAKER  0:00' format",
