@@ -14,6 +14,7 @@ WAV_PATH = "./tests/testAudio.wav"
 MP3_PATH = "./tests/testAudio.mp3"
 PDF_PATH = "./tests/testPDF.pdf"
 CSV_PATH = "./tests/testCSV.csv"
+TXT_PATH = "./tests/testTXT.txt"
 CONVERSATION_PARSING_TESTS = [
     {
         "desc": "consistent 'SPEAKER  0:00' format",

@@ -99,6 +99,7 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
+        input = Input.wrap(input)
         return _async_run_nested(
             process_single_input(
                 input,
@@ -138,6 +139,7 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
+        input = Input.wrap(input)
         return await (
             process_file_async(
                 input,
@@ -147,8 +149,7 @@ class Pipeline:
                 multilingual or self.multilingual or oneai.multilingual,
                 csv_params=csv_params,
             )
-            if isinstance(input, io.IOBase)
-            or (isinstance(input, Input) and isinstance(input.text, io.IOBase))
+            if isinstance(input.text, io.BufferedIOBase)
             else process_single_input(
                 input,
                 self.steps,
@@ -232,7 +233,7 @@ class Pipeline:
         """
         outputs = BatchResponse()
         await process_batch(
-            batch,
+            (Input.wrap(i) for i in batch),
             self.steps,
             on_output if on_output else outputs.__setitem__,
             on_error if on_error else outputs.__setitem__,

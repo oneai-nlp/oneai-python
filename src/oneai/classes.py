@@ -240,7 +240,8 @@ class Input(Generic[TextContent]):
 
     @classmethod
     def wrap(
-        cls, text: PipelineInput[TextContent], sync: bool = True
+        cls,
+        text: PipelineInput[TextContent],
     ) -> "Input[TextContent]":
         if isinstance(text, cls):
             return text
@@ -254,25 +255,26 @@ class Input(Generic[TextContent]):
         ):
             return cls(text, type="conversation", content_type="application/json")
         elif isinstance(text, io.IOBase):
-            name, mode = text.name, text.mode
-            _, ext = os.path.splitext(name)
+            _, ext = os.path.splitext(text.name)
             if ext not in CONTENT_TYPES:
                 raise InputError(
                     message=f"unsupported file extension {ext}",
                     details="see supported files in docs",
                 )
             content_type, input_type = CONTENT_TYPES[ext]
-            if "b" not in mode and ext != ".csv":
-                return cls(text.read(), type=input_type, content_type=content_type)
-            elif sync:
-                data = b64encode(text.read()).decode("ascii")
-                return cls(
-                    data, type=input_type, content_type=content_type, encoding="base64"
-                )
-            else:
-                return cls(text, type=input_type, content_type=content_type)
+            if ext == ".csv" and isinstance(text, io.TextIOBase):
+                text = io.BytesIO(text.read().encode("utf-8"))
+            return cls(text, type=input_type, content_type=content_type)
         else:
             raise ValueError(f"invalid content type {type(text)}")
+
+    def _make_sync(self) -> "Input[Union[str, List[Utterance]]]":
+        if isinstance(self.text, io.BufferedIOBase):
+            self.text = b64encode(self.text.read()).decode("ascii")
+            self.encoding = "base64"
+        elif isinstance(self.text, io.TextIOBase):
+            self.text = self.text.read()
+        return self
 
 
 def timestamp_to_timedelta(timestamp: str) -> timedelta:

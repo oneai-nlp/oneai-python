@@ -107,7 +107,10 @@ async def post_pipeline_async_file(
     if oneai.DEBUG_LOG_REQUESTS:
         oneai.logger.debug(f"POST {url}\n")
         oneai.logger.debug(f"headers={json.dumps(headers, indent=4)}\n")
-        oneai.logger.debug(f"data={json.dumps(json.loads(request), indent=4)}\n")
+        oneai.logger.debug(
+            f"decoded pipeline={json.dumps(json.loads(request), indent=4)}\n"
+        )
+        oneai.logger.debug(f"data={input.text}\n")
 
     async with session.post(url, headers=headers, data=input.text) as response:
         if response.status != 200:

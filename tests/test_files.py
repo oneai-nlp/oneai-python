@@ -1,7 +1,7 @@
 import oneai
 import pytest
 
-from tests.constants import MP3_PATH, WAV_PATH, PDF_PATH, CSV_PATH
+from tests.constants import *
 
 pipeline_audio = oneai.Pipeline(
     [
@@ -44,27 +44,46 @@ async def test_pdf(sync: bool):
 
 
 @pytest.mark.asyncio
-async def test_csv():
+@pytest.mark.parametrize(
+    "mode, sync", [("r", False), ("rb", False), ("r", True), ("rb", True)]
+)
+async def test_csv(mode: str, sync: bool):
+    if sync:
+        pytest.skip("CSV upload is not supported in sync mode")
     pipeline = oneai.Pipeline([oneai.skills.Numbers()])
-    with open(CSV_PATH, "r") as f:
-        output = await pipeline.run_async(
-            f,
-            csv_params=oneai.CSVParams(
-                columns=[
-                    "input",
-                    "timestamp",
-                    False,
-                    "input_translated",
-                    False,
-                    "metadata",
-                ],
-                skip_rows=1,
-                max_rows=3,
-            ),
-            multilingual=True,
+    with open(CSV_PATH, mode) as f:
+        csv_params = oneai.CSVParams(
+            columns=[
+                "input",
+                "timestamp",
+                False,
+                "input_translated",
+                False,
+                "metadata",
+            ],
+            skip_rows=1,
+            max_rows=3,
+        )
+        output = (
+            pipeline.run(f, csv_params=csv_params, multilingual=True)
+            if sync
+            else await pipeline.run_async(f, csv_params=csv_params, multilingual=True)
         )
         assert hasattr(output, "outputs")
         assert len(output.outputs) == 1
         assert hasattr(output.outputs[0], "numbers")
         assert len(output.outputs[0].numbers) == 1
         assert hasattr(output.outputs[0].numbers[0], "value")
+        assert int(output.outputs[0].numbers[0].value) == 1
+
+
+@pytest.mark.asyncio
+@pytest.mark.parametrize("sync", [False, True])
+async def test_txt(sync: bool):
+    pipeline = oneai.Pipeline([oneai.skills.Numbers()])
+    with open(TXT_PATH, "r") as f:
+        output = pipeline.run(f) if sync else await pipeline.run_async(f)
+        assert hasattr(output, "numbers")
+        assert len(output.numbers) == 1
+        assert hasattr(output.numbers[0], "value")
+        assert int(output.numbers[0].value) == 1

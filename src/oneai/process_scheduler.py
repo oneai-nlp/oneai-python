@@ -34,7 +34,7 @@ async def process_single_input(
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         return await _run_internal(
-            session, Input.wrap(input), steps, api_key, multilingual, csv_params
+            session, input, steps, api_key, multilingual, csv_params
         )
 
 
@@ -46,17 +46,16 @@ async def process_file_async(
     multilingual: bool = False,
     csv_params: CSVParams = None,
 ) -> Awaitable[Output]:
-    input = Input.wrap(input, False)
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
-        name = input.text.name
-        logger.debug(f"Uploading file '{name}'")
+        name = f" '{input.text.name}'" if hasattr(input.text, "name") else ""
+        logger.debug(f"Uploading file{name}")
         task_id = (
             await post_pipeline_async_file(
                 session, input, steps, api_key, multilingual, csv_params
             )
         )["task_id"]
-        logger.debug(f"Upload of file '{name}' complete\n")
+        logger.debug(f"Upload of file{name} complete\n")
 
         status = ""
         start = datetime.now()
@@ -66,11 +65,11 @@ async def process_file_async(
             response = await get_task_status(session, task_id, api_key)
             status = response["status"]
             logger.debug(
-                f"Processing file '{name}' - status {status} - {time_format(datetime.now() - start)}"
+                f"Processing file{name} - status {status} - {time_format(datetime.now() - start)}"
             )
             await asyncio.sleep(interval)
         logger.debug(
-            f"Processing of file '{name}' complete - {time_format(datetime.now() - start)} total\n"
+            f"Processing of file{name} complete - {time_format(datetime.now() - start)} total\n"
         )
         return build_output(steps, response["result"])
 
@@ -92,7 +91,7 @@ async def process_batch(
 
     def next_input():  # distribute batch to workers
         try:
-            return Input.wrap(next(iterator))
+            return next(iterator)
         except StopIteration:
             return None  # we need to break loop for each worker, so we ignore StopIteration
 
@@ -190,7 +189,7 @@ async def _run_internal(
 
     if input.content_type == "text/uri-list":
         input = await fetch_url(session, input.text)
-
+    input._make_sync()  # make input compatible with sync API
     return await post_pipeline(
         session, input, skills, api_key, multilingual, csv_params
     )
