@@ -118,6 +118,7 @@ class Pipeline:
         multilingual: bool = False,
         *,
         csv_params: CSVParams = None,
+        polling: bool = True,
     ) -> Awaitable[Output[TextContent]]:
         """
         Runs the pipeline on the input text asynchronously.
@@ -128,6 +129,10 @@ class Pipeline:
             The input text (or multiple input texts) to be processed.
         `api_key: str, optional`
             An API key to be used in this API call. If not provided, `self.api_key` is used.
+        `interval: int, optional`
+            The number of seconds to wait between polling for results.
+        `polling: bool, optional`
+            Whether to poll for results. If `False`, will return an `Output` object with a `task_id`, and `None` for the rest of the fields.
 
         ## Returns
 

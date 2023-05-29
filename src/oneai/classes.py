@@ -451,6 +451,7 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
         skills: List[Skill] = [],
         data: List[Union[Labels, "Output"]] = [],
         outputs: List["Output"] = None,
+        task_id: str = None,
     ):
         super().__init__(
             text,
@@ -458,6 +459,7 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
             content_type="text/plain" if isinstance(text, str) else "application/json",
         )
 
+        self.task_id = task_id
         self.skills = skills
         for skill, value in zip(skills, data):
             setattr(self, skill.text_attr or skill.labels_attr or skill.api_name, value)

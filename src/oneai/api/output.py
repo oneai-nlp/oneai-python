@@ -8,6 +8,7 @@ from oneai.classes import Label, Labels, Output, Skill, Utterance, TextContent
 def build_output(
     skills: List[Skill],
     raw_output: dict,
+    headers: dict = {},
 ) -> Output:
     if oneai.DEBUG_RAW_RESPONSES:
         return raw_output
@@ -37,7 +38,11 @@ def build_output(
             second = (clone, *second)
         return first, second
 
-    def build_internal(output_index: int, skills: List[Skill]) -> "Output":
+    def build_internal(
+        output_index: int,
+        skills: List[Skill],
+        headers: dict = {},
+    ) -> "Output":
         text = get_text(output_index)
         # temporary fix- if 1st skill is not a generator, use input_text, not output[0].text,
         # since output[0].text is corrupted (not parsable) for conversation inputs
@@ -56,12 +61,19 @@ def build_output(
                 data.append(
                     Labels(filter(lambda label: label.skill == skill.api_name, labels))
                 )
-        return Output(text=text, skills=list(skills), data=data)
+        return Output(
+            text=text,
+            skills=list(skills),
+            data=data,
+            task_id=headers.get("x-oneai-request-id"),
+        )
 
     # handle output lists
     if "outputs" in raw_output:
         return Output(
-            "", outputs=[build_output(skills, o) for o in raw_output["outputs"]]
+            "",
+            outputs=[build_output(skills, o) for o in raw_output["outputs"]],
+            task_id=headers.get("x-oneai-request-id"),
         )
 
     generator = raw_output["output"][0].get("text_generated_by_step_id", 0) - 1
@@ -76,4 +88,5 @@ def build_output(
             text=get_text(-1),
             skills=list(skills),
             data=[Labels()] * generator + [build_internal(0, next_skills)],
+            task_id=headers.get("x-oneai-request-id"),
         )

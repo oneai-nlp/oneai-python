@@ -84,7 +84,7 @@ async def post_pipeline(
         if response.status != 200:
             await handle_unsuccessful_response(response)
         else:
-            return build_output(steps, await response.json())
+            return build_output(steps, await response.json(), response.headers)
 
 
 async def post_pipeline_async(
