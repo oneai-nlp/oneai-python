@@ -2,7 +2,8 @@ from dataclasses import replace
 from typing import List
 
 import oneai
-from oneai.classes import Label, Labels, Output, Skill, Utterance, TextContent
+from oneai.classes import Label, Labels, Skill, Utterance, TextContent
+from oneai.output import Output
 
 
 def build_output(
@@ -78,7 +79,7 @@ def build_output(
 
     generator = raw_output["output"][0].get("text_generated_by_step_id", 0) - 1
     if generator < 0:
-        return build_internal(-1, skills)
+        return build_internal(-1, skills, headers)
     else:
         # edge case- first Skill is a generator, or a generator preceded by Skills that didn't generate output
         # in this case the API will skip these Skills,

@@ -7,7 +7,8 @@ from typing import Awaitable, List
 import aiohttp
 import oneai, oneai.api
 from oneai.api.output import build_output
-from oneai.classes import Input, Output, Skill, CSVParams
+from oneai.classes import Input, Skill, CSVParams
+from oneai.output import Output
 from oneai.exceptions import handle_unsuccessful_response, validate_api_key
 
 endpoint_default = "api/v0/pipeline"

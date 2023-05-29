@@ -101,6 +101,8 @@ def test_pipeline(
         output = pipeline.run(input)
         for attr in attrs:
             assert hasattrnested(output, attr)
+        assert hasattr(output, "task_id")
+        assert output.task_id is not None and output.task_id != ""
     except Exception as e:
         pytest.fail(f"Pipeline failed on {notes}: {e}")
 
@@ -134,6 +136,44 @@ async def test_async():
         output = await oneai.Pipeline(
             [oneai.skills.Names(), oneai.skills.Summarize(), oneai.skills.Keywords()]
         ).run_async(DOCUMENT)
+        assert hasattr(output, "task_id")
+        assert output.task_id is not None and output.task_id != ""
+        assert hasattr(output, "text")
+        assert hasattr(output, "names")
+        assert hasattr(output, "summary")
+        assert hasattrnested(output, "summary.keywords")
+    except Exception as e:
+        pytest.fail(f"Async pipeline failed: {e}")
+
+
+@pytest.mark.asyncio
+async def test_polling_output():
+    try:
+        task = await oneai.Pipeline(
+            [oneai.skills.Names(), oneai.skills.Summarize(), oneai.skills.Keywords()]
+        ).run_async(DOCUMENT, polling=False)
+        assert hasattr(task, "task_id")
+        assert await task.get_status() in ["COMPLETED", "RUNNING"]
+        output = await task.await_completion()
+        assert output.task_id == task.task_id
+        assert hasattr(output, "text")
+        assert hasattr(output, "names")
+        assert hasattr(output, "summary")
+        assert hasattrnested(output, "summary.keywords")
+    except Exception as e:
+        pytest.fail(f"Async pipeline failed: {e}")
+
+
+@pytest.mark.asyncio
+async def test_polling_pipeline():
+    try:
+        pipeline = oneai.Pipeline(
+            [oneai.skills.Names(), oneai.skills.Summarize(), oneai.skills.Keywords()]
+        )
+        task = await pipeline.run_async(DOCUMENT, polling=False)
+        assert hasattr(task, "task_id")
+        output = await pipeline.await_completion(task)
+        assert output.task_id == task.task_id
         assert hasattr(output, "text")
         assert hasattr(output, "names")
         assert hasattr(output, "summary")

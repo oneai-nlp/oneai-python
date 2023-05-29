@@ -1,20 +1,24 @@
 import asyncio
 import concurrent.futures
-import io
 import os
 import sys
-from typing import Awaitable, Callable, Dict, Iterable, List
+from typing import Awaitable, Callable, Iterable, List, Union
 
 import oneai
 from oneai.classes import (
-    BatchResponse,
-    Output,
     PipelineInput,
     Skill,
     TextContent,
     CSVParams,
+    Input,
 )
-from oneai.process_scheduler import *
+from oneai.output import Output, BatchResponse
+from oneai.process_scheduler import (
+    process_single_input,
+    process_single_input_async,
+    process_batch,
+    task_polling,
+)
 
 
 class Pipeline:
@@ -152,6 +156,23 @@ class Pipeline:
             interval,
             multilingual or self.multilingual or oneai.multilingual,
             csv_params=csv_params,
+            polling=polling,
+        )
+
+    async def await_completion(
+        self,
+        task: Union[str, Output],
+        api_key: str = None,
+        interval: int = 1,
+    ) -> Awaitable[Output[TextContent]]:
+        if isinstance(task, Output):
+            task = task.task_id
+        return await task_polling(
+            task,
+            None,
+            api_key or self.api_key or oneai.api_key,
+            self.steps,
+            interval,
         )
 
     def run_batch(

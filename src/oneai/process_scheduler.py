@@ -2,15 +2,16 @@ import asyncio
 from datetime import datetime, timedelta
 import io
 import logging
-from typing import Awaitable, Callable, Iterable, List
+from typing import Awaitable, Callable, Iterable, List, Tuple, TYPE_CHECKING
 
 import aiohttp
 
 import oneai
 from oneai.api.output import build_output
 from oneai.api.pipeline import post_pipeline, post_pipeline_async, get_task_status
-from oneai.classes import Input, Output, PipelineInput, Skill, CSVParams
-from oneai.exceptions import ServerError, handle_unsuccessful_response
+from oneai.classes import Input, PipelineInput, Skill, CSVParams
+from oneai.exceptions import ServerError, handle_unsuccessful_response, OneAIError
+from oneai.output import Output
 
 logger = logging.getLogger("oneai")
 
@@ -46,6 +47,7 @@ async def process_single_input_async(
     interval: int,
     multilingual: bool = False,
     csv_params: CSVParams = None,
+    polling: bool = True,
 ) -> Awaitable[Output]:
     if isinstance(input.text, io.TextIOBase):
         input._make_sync()
@@ -59,22 +61,66 @@ async def process_single_input_async(
             )
         )["task_id"]
         logger.debug(f"Upload of input{name} complete\n")
-
-        status = ""
-        start = datetime.now()
-        while status != STATUS_COMPLETED:
-            if status == STATUS_FAILED:
-                await handle_unsuccessful_response(response["result"])
-            response = await get_task_status(session, task_id, api_key)
-            status = response["status"]
-            logger.debug(
-                f"Processing input{name} - status {status} - {time_format(datetime.now() - start)}"
-            )
-            await asyncio.sleep(interval)
-        logger.debug(
-            f"Processing of input{name} complete - {time_format(datetime.now() - start)} total\n"
+        return (
+            await task_polling(task_id, session, api_key, steps, interval)
+            if polling
+            else Output(None, steps, task_id=task_id)
         )
-        return build_output(steps, response["result"], {"x-oneai-request-id": task_id})
+
+
+async def task_polling(
+    task_id: str,
+    session: aiohttp.ClientSession,
+    api_key: str,
+    steps: List[Skill],
+    interval: int,
+) -> Awaitable[Output]:
+    timeout = aiohttp.ClientTimeout(total=6000)
+    close = session is None
+    if session == None:
+        session = aiohttp.ClientSession(timeout=timeout)
+    status, response = "", None
+    start = datetime.now()
+    while status != STATUS_COMPLETED:
+        status, response = await process_task_status(task_id, session, api_key, steps)
+        if status == STATUS_FAILED:
+            raise response
+        logger.debug(
+            f"Processing input - status {status} - {time_format(datetime.now() - start)}"
+        )
+        await asyncio.sleep(interval)
+    logger.debug(
+        f"Processing of input complete - {time_format(datetime.now() - start)} total\n"
+    )
+    if close:
+        await session.close()
+    return response
+
+
+async def process_task_status(
+    task_id: str,
+    session: aiohttp.ClientSession,
+    api_key: str,
+    steps: List[Skill],
+) -> Awaitable[Tuple[str, Output]]:
+    timeout = aiohttp.ClientTimeout(total=6000)
+    close = session is None
+    if session == None:
+        session = aiohttp.ClientSession(timeout=timeout)
+    response = await get_task_status(session, task_id, api_key)
+    status = response["status"]
+    if status == STATUS_FAILED:
+        try:
+            await handle_unsuccessful_response(response["result"])
+        except OneAIError as e:
+            return status, e
+    elif status == STATUS_COMPLETED:
+        return status, build_output(
+            steps, response["result"], {"x-oneai-request-id": task_id}
+        )
+    if close:
+        await session.close()
+    return status, None
 
 
 # open a client session with multiple workers and send concurrent requests
