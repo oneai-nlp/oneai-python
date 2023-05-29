@@ -672,8 +672,13 @@ class GPT(Skill):
     """
 
     model: Literal[
-        "text-davinci-003", "text-curie-001", "text-babbage-001", "text-ada-001"
-    ] = "text-davinci-003"
+        "text-davinci-003",
+        "text-curie-001",
+        "text-babbage-001",
+        "text-ada-001",
+        "gpt-3-5-turbo",
+        "gpt-4",
+    ] = "gpt-3-5-turbo"
     input_skill: str = None
     prompt: str = None
     prompt_position: Literal["start", "end"] = "start"
@@ -748,7 +753,7 @@ class OutputAttrs:
     headline: Labels = None
     subheading: Labels = None
     classification: Labels = None
-    gpt_text: str = None
+    gpt_text: Output = None
     gpt_labels: Labels = None
     matches: Labels = None
 
