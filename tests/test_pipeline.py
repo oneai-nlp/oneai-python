@@ -126,3 +126,17 @@ def test_batch():
 
 def test_generate_chapters():
     assert oneai.util.generate_chapters(DOCUMENT, amount="more")
+
+
+@pytest.mark.asyncio
+async def test_async():
+    try:
+        output = await oneai.Pipeline(
+            [oneai.skills.Names(), oneai.skills.Summarize(), oneai.skills.Keywords()]
+        ).run_async(DOCUMENT)
+        assert hasattr(output, "text")
+        assert hasattr(output, "names")
+        assert hasattr(output, "summary")
+        assert hasattrnested(output, "summary.keywords")
+    except Exception as e:
+        pytest.fail(f"Async pipeline failed: {e}")

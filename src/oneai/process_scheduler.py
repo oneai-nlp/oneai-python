@@ -1,5 +1,6 @@
 import asyncio
 from datetime import datetime, timedelta
+import io
 import logging
 from typing import Awaitable, Callable, Iterable, List
 
@@ -7,7 +8,7 @@ import aiohttp
 
 import oneai
 from oneai.api.output import build_output
-from oneai.api.pipeline import post_pipeline, post_pipeline_async_file, get_task_status
+from oneai.api.pipeline import post_pipeline, post_pipeline_async, get_task_status
 from oneai.classes import Input, Output, PipelineInput, Skill, CSVParams
 from oneai.exceptions import ServerError, handle_unsuccessful_response
 
@@ -38,7 +39,7 @@ async def process_single_input(
         )
 
 
-async def process_file_async(
+async def process_single_input_async(
     input: PipelineInput,
     steps: List[Skill],
     api_key: str,
@@ -46,16 +47,18 @@ async def process_file_async(
     multilingual: bool = False,
     csv_params: CSVParams = None,
 ) -> Awaitable[Output]:
+    if isinstance(input.text, io.TextIOBase):
+        input._make_sync()
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         name = f" '{input.text.name}'" if hasattr(input.text, "name") else ""
-        logger.debug(f"Uploading file{name}")
+        logger.debug(f"Uploading input{name}...")
         task_id = (
-            await post_pipeline_async_file(
+            await post_pipeline_async(
                 session, input, steps, api_key, multilingual, csv_params
             )
         )["task_id"]
-        logger.debug(f"Upload of file{name} complete\n")
+        logger.debug(f"Upload of input{name} complete\n")
 
         status = ""
         start = datetime.now()
@@ -65,11 +68,11 @@ async def process_file_async(
             response = await get_task_status(session, task_id, api_key)
             status = response["status"]
             logger.debug(
-                f"Processing file{name} - status {status} - {time_format(datetime.now() - start)}"
+                f"Processing input{name} - status {status} - {time_format(datetime.now() - start)}"
             )
             await asyncio.sleep(interval)
         logger.debug(
-            f"Processing of file{name} complete - {time_format(datetime.now() - start)} total\n"
+            f"Processing of input{name} complete - {time_format(datetime.now() - start)} total\n"
         )
         return build_output(steps, response["result"])
 

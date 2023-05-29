@@ -140,23 +140,13 @@ class Pipeline:
         `ServerError` if an internal server error occured.
         """
         input = Input.wrap(input)
-        return await (
-            process_file_async(
-                input,
-                self.steps,
-                api_key or self.api_key or oneai.api_key,
-                interval,
-                multilingual or self.multilingual or oneai.multilingual,
-                csv_params=csv_params,
-            )
-            if isinstance(input.text, io.BufferedIOBase)
-            else process_single_input(
-                input,
-                self.steps,
-                api_key or self.api_key or oneai.api_key,
-                multilingual or self.multilingual or oneai.multilingual,
-                csv_params=csv_params,
-            )
+        return await process_single_input_async(
+            input,
+            self.steps,
+            api_key or self.api_key or oneai.api_key,
+            interval,
+            multilingual or self.multilingual or oneai.multilingual,
+            csv_params=csv_params,
         )
 
     def run_batch(
