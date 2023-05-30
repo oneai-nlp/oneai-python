@@ -264,6 +264,7 @@ class Collection:
         limit: int = 100,
         include_items: bool = False,
         items_limit: int = 10,
+        metadata_filter: str = None,
     ) -> List[Phrase]:
         params = {
             "text": query.replace("\n", "\\n"),
@@ -271,6 +272,7 @@ class Collection:
             "max-phrases": limit,
             "include-items": include_items,
             "max-items": items_limit,
+            "meta-query": metadata_filter,
         }
 
         url = f"{self.id}/phrases/find?{urllib.parse.urlencode(params)}"
