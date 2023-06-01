@@ -140,7 +140,6 @@ class Cluster:
     def get_items(
         self,
         *,
-        sort: Literal["ASC", "DESC"] = "ASC",
         limit: int = None,
         from_date: Union[datetime, str] = None,
         to_date: Union[datetime, str] = None,
@@ -153,7 +152,7 @@ class Cluster:
             "items",
             self,
             Item.from_dict,
-            sort,
+            None,
             limit,
             from_date,
             to_date,
