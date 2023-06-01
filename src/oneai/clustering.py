@@ -46,8 +46,8 @@ class Item(Input[str]):
             if isinstance(object["create_date"], str)
             else datetime.fromtimestamp(object["create_date"] / 1000),
             distance=object["distance_to_phrase"],
-            phrase=phrase,
-            cluster=phrase.cluster,
+            phrase=phrase if isinstance(phrase, Phrase) else None,
+            cluster=phrase.cluster if isinstance(phrase, Phrase) else phrase,
             metadata=object.get("metadata", {}),
             text_index=object.get(
                 "translated_text", object.get("item_translated_text", None)
