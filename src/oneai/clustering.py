@@ -1,5 +1,6 @@
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
+from dateutil import parser as dateutil
 import urllib.parse
 from typing import Generator, List, Optional, Union
 from typing_extensions import Literal
@@ -41,7 +42,7 @@ class Item(Input[str]):
         item = cls(
             id=object.get("id", object.get("item_id", None)),
             text=object.get("original_text", object.get("item_original_text")),
-            datetime=datetime.strptime(object["create_date"], f"%Y-%m-%d %H:%M:%S.%f")
+            datetime=dateutil.parse(object["create_date"])
             if isinstance(object["create_date"], str)
             else datetime.fromtimestamp(object["create_date"] / 1000),
             distance=object["distance_to_phrase"],
