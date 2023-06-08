@@ -37,6 +37,7 @@ def build_query_params(
         "to-date": to_date,
         "include-phrases": False,
         "item-metadata": item_metadata,
+        "translate": True,
     }
     return urllib.parse.urlencode({k: v for k, v in params.items() if v})
 
