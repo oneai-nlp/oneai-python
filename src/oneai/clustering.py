@@ -273,6 +273,7 @@ class Collection:
             "include-items": include_items,
             "max-items": items_limit,
             "meta-query": metadata_filter,
+            "translate": True,
         }
 
         url = f"{self.id}/phrases/find?{urllib.parse.urlencode(params)}"
@@ -285,6 +286,7 @@ class Collection:
         params = {
             "text": query.replace("\n", "\\n"),
             "similarity-threshold": threshold,
+            "translate": True,
         }
 
         url = f"{self.id}/clusters/find?{urllib.parse.urlencode(params)}"

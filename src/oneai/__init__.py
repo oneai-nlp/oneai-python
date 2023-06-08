@@ -1,4 +1,4 @@
-__version__ = "0.9.77"
+__version__ = "0.9.78"
 __package__ = "oneai"
 
 import logging
