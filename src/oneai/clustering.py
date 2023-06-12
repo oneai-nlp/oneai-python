@@ -276,10 +276,10 @@ class Collection:
             "translate": True,
         }
 
-        url = f"{self.id}/phrases/find?{urllib.parse.urlencode(params)}"
+        url = f"{self.id}/phrases/find"
         return [
             Phrase.from_dict(None, phrase, self)
-            for phrase in get_clustering(url, self.api_key)
+            for phrase in get_clustering(url, params, self.api_key)
         ]
 
     def find_clusters(self, query: str, threshold: float = 0.5) -> List[Cluster]:
@@ -289,10 +289,10 @@ class Collection:
             "translate": True,
         }
 
-        url = f"{self.id}/clusters/find?{urllib.parse.urlencode(params)}"
+        url = f"{self.id}/clusters/find"
         return [
             Cluster.from_dict(self, cluster)
-            for cluster in get_clustering(url, self.api_key)
+            for cluster in get_clustering(url, params, self.api_key)
         ]
 
     def add_items(

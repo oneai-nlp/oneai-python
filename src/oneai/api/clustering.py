@@ -35,11 +35,10 @@ def build_query_params(
         "limit": limit if limit else 20,
         "from-date": from_date,
         "to-date": to_date,
-        "include-phrases": False,
         "item-metadata": item_metadata,
         "translate": True,
     }
-    return urllib.parse.urlencode({k: v for k, v in params.items() if v})
+    return {k: v for k, v in params.items() if v is not None}
 
 
 def get_clustering_paginated(
@@ -55,13 +54,16 @@ def get_clustering_paginated(
     date_format: str = API_DATE_FORMAT,
     item_metadata: str = None,
 ):
-    path_query = f"{path}?{build_query_params(sort, limit, from_date, to_date, date_format, item_metadata)}"
+    params = build_query_params(
+        sort, limit, from_date, to_date, date_format, item_metadata
+    )
     page = 0
     counter = 0
     results = [None]
 
     while results and ((not limit) or counter < limit):
-        response = get_clustering(f"{path_query}&page={page}", api_key)
+        params["page"] = page
+        response = get_clustering(path, params, api_key)
         results = [
             (from_dict(parent, result) if parent else from_dict(result))
             for result in response[result_key]
@@ -74,7 +76,7 @@ def get_clustering_paginated(
             break
 
 
-def get_clustering(path: str, api_key: str = None):
+def get_clustering(path: str, params: dict, api_key: str = None):
     api_key = api_key or oneai.api_key
     if not api_key:
         raise Exception("API key is required")
@@ -86,9 +88,11 @@ def get_clustering(path: str, api_key: str = None):
     if oneai.DEBUG_LOG_REQUESTS:
         oneai.logger.debug(f"GET {oneai.URL}/{ENDPOINT}/{path}\n")
         oneai.logger.debug(f"headers={json.dumps(headers, indent=4)}\n")
+        oneai.logger.debug(f"params={json.dumps(params, indent=4)}\n")
     response = requests.get(
         f"{oneai.URL}/{ENDPOINT}/{path}",
         headers=headers,
+        params=params,
     )
     return json.loads(response.content)
 
