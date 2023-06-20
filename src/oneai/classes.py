@@ -32,7 +32,7 @@ class Utterance:
     @classmethod
     def from_dict(cls, u: Dict[str, str]) -> "Utterance":
         return cls(
-            u["speaker"],
+            u.get("speaker", None),
             u["utterance"],
             timestamp_to_timedelta(u.get("timestamp", None)),
         )
@@ -42,6 +42,8 @@ class Utterance:
             f"\n\t{self.timestamp} {self.speaker}: {self.utterance}"
             if self.timestamp
             else f"\n\t{self.speaker}: {self.utterance}"
+            if self.speaker
+            else f"\n\t{self.utterance}"
         )
 
 
