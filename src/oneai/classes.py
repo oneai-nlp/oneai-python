@@ -275,7 +275,11 @@ class Input(Generic[TextContent]):
 def timestamp_to_timedelta(timestamp: str) -> timedelta:
     if not timestamp:
         return None
-    dt = dateutil.parse(timestamp)
+    try:
+        dt = dateutil.parse(timestamp)
+    except Exception as e:
+        warn("Received invalid timestamp: {}, returning as str".format(timestamp))
+        return timestamp
     return timedelta(
         hours=dt.hour, minutes=dt.minute, seconds=dt.second, microseconds=dt.microsecond
     )
