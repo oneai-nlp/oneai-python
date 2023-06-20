@@ -237,7 +237,13 @@ async def _run_internal(
         return Output(input.text)
 
     if input.content_type == "text/uri-list":
-        input = await fetch_url(session, input.text)
+        if skills[0].api_name == "html-extract-article" and not skills[0].params.get(
+            "use_proxy"
+        ):
+            input = await fetch_url(session, input.text)
+        else:
+            input.content_type = "text/plain"
+
     input._make_sync()  # make input compatible with sync API
     return await post_pipeline(
         session, input, skills, api_key, multilingual, csv_params
