@@ -185,6 +185,7 @@ class Topics(Skill):
 @skillclass(
     api_name="pdf-extract-text",
     text_attr="pdf_text",
+    labels_attr="pdf_labels",
 )
 class PDFExtractText(Skill):
     """
