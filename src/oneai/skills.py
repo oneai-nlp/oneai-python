@@ -729,6 +729,7 @@ class OutputAttrs:
     html_text: "Output[str]" = None
     html_labels: Labels = None
     pdf_text: "Output[str]" = None
+    pdf_labels: Labels = None
     transcription: "Output[List[Utterance]]" = None
     anonymized: "Output" = None
     words: Labels = None
