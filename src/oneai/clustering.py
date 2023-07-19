@@ -204,9 +204,11 @@ class Collection:
         self,
         id: str,
         api_key: str = None,
+        use_vector_db: bool = False,
     ):
         self.id = id
         self.api_key = api_key or oneai.api_key
+        self.use_vector_db = use_vector_db
 
     @classmethod
     def create(
@@ -318,7 +320,7 @@ class Collection:
                 result["input_translated"] = input.text_index
             return result
 
-        url = f"{self.id}/items"
+        url = f"{self.id}/items?use_vector_db={self.use_vector_db}"
         data = [build_item(item) for item in items]
         return post_clustering(url, data, self.api_key)
 
