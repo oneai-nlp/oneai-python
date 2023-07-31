@@ -44,7 +44,7 @@ def build_request(
         "multilingual": multilingual,
     }
     if include_text:
-        request["text"] = input.text
+        request["input"] = input.text
     if csv_params is not None:
         request["csv_params"] = {
             k: v for k, v in csv_params.asdict().items() if v is not None
