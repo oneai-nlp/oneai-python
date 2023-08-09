@@ -7,3 +7,4 @@ python-dotenv==1.0.0; python_version > "3.7"
 python-dotenv==0.21.1; python_version <= "3.7"
 coveralls==3.2.0
 twine==4.0.1
+build==0.10.0
