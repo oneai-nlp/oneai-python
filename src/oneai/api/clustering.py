@@ -84,7 +84,6 @@ def get_clustering(path: str, params: dict, api_key: str = None):
         "api-key": api_key,
         "Content-Type": "application/json",
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
-        **oneai.api._headers,
     }
     if oneai.DEBUG_LOG_REQUESTS:
         oneai.logger.debug(f"GET {oneai.URL}/{ENDPOINT}/{path}\n")
@@ -106,7 +105,6 @@ def post_clustering(path: str, data: dict, api_key: str = None):
         "api-key": api_key,
         "Content-Type": "application/json",
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
-        **oneai.api._headers,
     }
     if oneai.DEBUG_LOG_REQUESTS:
         oneai.logger.debug(f"POST {oneai.URL}/{ENDPOINT}/{path}\n")

@@ -19,5 +19,3 @@ def get_or_create_uuid() -> str:
 
 
 uuid = get_or_create_uuid()
-
-_headers = {}
