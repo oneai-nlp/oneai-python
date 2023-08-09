@@ -74,6 +74,7 @@ async def post_pipeline(
         "api-key": api_key,
         "Content-Type": "application/json",
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
+        **oneai.api._headers,
     }
 
     if oneai.DEBUG_LOG_REQUESTS:
@@ -107,6 +108,7 @@ async def post_pipeline_async(
         "api-key": api_key,
         "Content-Type": "application/json",
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
+        **oneai.api._headers,
     }
     data = input.text if is_file else request
 
@@ -139,6 +141,7 @@ async def get_task_status(
     headers = {
         "api-key": api_key,
         "User-Agent": f"python-sdk/{oneai.__version__}/{oneai.api.uuid}",
+        **oneai.api._headers,
     }
 
     if oneai.DEBUG_LOG_REQUESTS:
