@@ -60,7 +60,12 @@ def build_output(
                 break
             else:
                 data.append(
-                    Labels(filter(lambda label: label.skill == skill.api_name, labels))
+                    Labels(
+                        label
+                        for label in labels
+                        # startswith instead of strict equality to handle subskills
+                        if label.skill.startswith(skill.api_name)
+                    )
                 )
         return Output(
             text=text,
