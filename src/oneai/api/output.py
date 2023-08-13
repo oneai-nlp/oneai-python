@@ -64,7 +64,7 @@ def build_output(
                         label
                         for label in labels
                         # startswith instead of strict equality to handle subskills
-                        if label.skill.startswith(skill.api_name)
+                        if skill.api_name.startswith(label.skill)
                     )
                 )
         return Output(
