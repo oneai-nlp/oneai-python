@@ -264,21 +264,16 @@ class Pipeline:
 
 # for jupyter environment, to avoid "asyncio.run() cannot be called from a running event loop"
 pool = concurrent.futures.ThreadPoolExecutor()
-is_36 = sys.version_info[:2] == (3, 6)
 
-if os.name == "nt" and not is_36:  # Windows
+if os.name == "nt":  # Windows
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
 
 
 def _async_run_nested(coru):
-    if is_36:
-        loop = asyncio.get_event_loop()
-        return loop.run_until_complete(coru)
-    else:
-        try:
-            asyncio.get_running_loop()
-            return pool.submit(asyncio.run, coru).result()
-        except RuntimeError:
-            pass
+    try:
+        asyncio.get_running_loop()
+        return pool.submit(asyncio.run, coru).result()
+    except RuntimeError:
+        pass
 
-        return asyncio.run(coru)
+    return asyncio.run(coru)
