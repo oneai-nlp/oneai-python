@@ -38,11 +38,11 @@ class Pipeline:
 
     `run(input, api_key=None) -> Output`
         Runs the pipeline on the input text.
-    `run_async(input, api_key=None) -> Awaitable[Output]`
+    `run_async(input, api_key=None) -> Output`
         Runs the pipeline on the input text asynchronously.
     `run_batch(batch, api_key=None) -> Dict[Input, Output]`
         Runs the pipeline on a batch of input texts.
-    `run_batch_async(batch, api_key=None) -> Awaitable[Dict[Input, Output]]`
+    `run_batch_async(batch, api_key=None) -> Dict[Input, Output]`
         Runs the pipeline on a batch of input texts asynchronously.
 
     ## Pipeline Ordering
@@ -123,7 +123,7 @@ class Pipeline:
         *,
         csv_params: CSVParams = None,
         polling: bool = True,
-    ) -> Awaitable[Output[TextContent]]:
+    ) -> Output[TextContent]:
         """
         Runs the pipeline on the input text asynchronously.
 
@@ -164,7 +164,7 @@ class Pipeline:
         task: Union[str, Output],
         api_key: str = None,
         interval: int = 1,
-    ) -> Awaitable[Output[TextContent]]:
+    ) -> Output[TextContent]:
         if isinstance(task, Output):
             task = task.task_id
         return await task_polling(
@@ -222,7 +222,7 @@ class Pipeline:
         ] = None,
         on_error: Callable[[PipelineInput[TextContent], Exception], None] = None,
         multilingual: bool = False,
-    ) -> Awaitable[BatchResponse]:
+    ) -> BatchResponse:
         """
         Runs the pipeline on a batch of input texts asynchronously.
 

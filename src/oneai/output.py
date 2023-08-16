@@ -65,7 +65,7 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
             result += f", {attr}={repr(getattr(self, attr))}"
         return result + ")"
 
-    async def get_status(self, api_key: str = None) -> Awaitable[str]:
+    async def get_status(self, api_key: str = None) -> str:
         if self.task_id is None:
             raise ValueError("No task_id found")
         if self.text is not None:
@@ -80,7 +80,7 @@ class Output(Input[TextContent], OutputAttrs if TYPE_CHECKING else object):
 
     async def await_completion(
         self, api_key: str = None, *, interval: int = 1
-    ) -> Awaitable["Output[TextContent]"]:
+    ) -> "Output[TextContent]":
         if self.task_id is None:
             raise ValueError("No task_id found")
         if self.text is not None:

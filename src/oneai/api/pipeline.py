@@ -65,7 +65,7 @@ async def post_pipeline(
     api_key: str,
     multilingual: bool,
     csv_params: CSVParams = None,
-) -> Awaitable[Output]:
+) -> Output:
     validate_api_key(api_key)
 
     request = build_request(input, steps, multilingual, True, csv_params)
@@ -95,7 +95,7 @@ async def post_pipeline_async(
     api_key: str,
     multilingual: bool,
     csv_params: CSVParams = None,
-) -> Awaitable[str]:
+) -> str:
     validate_api_key(api_key)
 
     is_file = isinstance(input.text, io.IOBase)

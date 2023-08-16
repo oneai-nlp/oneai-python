@@ -32,7 +32,7 @@ async def process_single_input(
     api_key: str,
     multilingual: bool = False,
     csv_params: CSVParams = None,
-) -> Awaitable[Output]:
+) -> Output:
     timeout = aiohttp.ClientTimeout(total=6000)
     async with aiohttp.ClientSession(timeout=timeout) as session:
         return await _run_internal(
@@ -48,7 +48,7 @@ async def process_single_input_async(
     multilingual: bool = False,
     csv_params: CSVParams = None,
     polling: bool = True,
-) -> Awaitable[Output]:
+) -> Output:
     if isinstance(input.text, io.TextIOBase):
         input._make_sync()
     timeout = aiohttp.ClientTimeout(total=6000)
@@ -74,7 +74,7 @@ async def task_polling(
     api_key: str,
     steps: List[Skill],
     interval: int,
-) -> Awaitable[Output]:
+) -> Output:
     timeout = aiohttp.ClientTimeout(total=6000)
     close = session is None
     if session == None:
@@ -102,7 +102,7 @@ async def process_task_status(
     session: aiohttp.ClientSession,
     api_key: str,
     steps: List[Skill],
-) -> Awaitable[Tuple[str, Output]]:
+) -> Tuple[str, Output]:
     timeout = aiohttp.ClientTimeout(total=6000)
     close = session is None
     if session == None:
@@ -232,7 +232,7 @@ async def _run_internal(
     api_key: str,
     multilingual: bool,
     csv_params: CSVParams = None,
-) -> Awaitable[Output]:
+) -> Output:
     if not skills:  # no skills
         return Output(input.text)
 
