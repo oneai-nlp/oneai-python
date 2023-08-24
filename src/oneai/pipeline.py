@@ -5,6 +5,7 @@ import sys
 from typing import Awaitable, Callable, Iterable, List, Union
 
 import oneai
+from oneai.async_utils import async_to_sync
 from oneai.classes import (
     PipelineInput,
     Skill,
@@ -104,7 +105,7 @@ class Pipeline:
         `ServerError` if an internal server error occured.
         """
         input = Input.wrap(input)
-        return _async_run_nested(
+        return async_to_sync(
             process_single_input(
                 input,
                 self.steps,
@@ -209,7 +210,7 @@ class Pipeline:
         `APIKeyError` if the API key is invalid, expired, or missing quota.
         `ServerError` if an internal server error occured.
         """
-        return _async_run_nested(
+        return async_to_sync(
             self.run_batch_async(batch, api_key, on_output, on_error, multilingual)
         )
 
@@ -260,20 +261,3 @@ class Pipeline:
 
     def __repr__(self) -> str:
         return f"oneai.Pipeline({self.steps})"
-
-
-# for jupyter environment, to avoid "asyncio.run() cannot be called from a running event loop"
-pool = concurrent.futures.ThreadPoolExecutor()
-
-if os.name == "nt":  # Windows
-    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
-
-
-def _async_run_nested(coru):
-    try:
-        asyncio.get_running_loop()
-        return pool.submit(asyncio.run, coru).result()
-    except RuntimeError:
-        pass
-
-    return asyncio.run(coru)
